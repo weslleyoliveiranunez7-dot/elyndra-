@@ -1,0 +1,35 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versao do jogo: 2.3 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v2_3.txt
+(Leia junto com v2.2 e anteriores. Nunca sobrescrever handoff anterior.)
+
+SITUACAO
+- O zip elyndra--main.zip NAO tinha o codigo da v2.1/v2.2 (so index.html da raiz = v2.0 e www/Index.html = v1.8).
+- A v2.3 foi feita sobre a v2.0 (a mais nova do zip) e salva em www/index.html (minusculo).
+- Os handoffs v2.1/v2.2 descrevem recursos (fonte pixel, interface Undertale, ambiente em camadas, musRest) que NAO estao neste arquivo.
+  Se existir um www/index.html v2.2 em outro lugar, NAO substituir por este sem portar o bloco "v2.3" (ver abaixo).
+
+MUDANCAS DA v2.3 (www/index.html; tudo novo esta num bloco "v2.3 — ABERTURA ANIMADA" logo antes do "loop")
+1) BUILD DO APK: causa = Capacitor exige www/index.html minusculo; o repo so tinha www/Index.html. android.yml e pages.yml
+   agora normalizam (www/index.html > index.html da raiz > www/Index.html) e falham com mensagem clara se nao houver nenhum.
+   Recomendado no repo: apagar index.html da raiz e www/Index.html, deixar so www/index.html.
+2) ABERTURA (S='intro'): fones -> intro -> titulo. Toque/Enter/Esc/Espaco depois de 1,2 s pula (fade 0,7 s).
+   - Musica: audio/trailer/lifelight_abertura.ogg (Audio, sem loop); relogio INT.t segue o currentTime (corrige se divergir >0,35 s);
+     sem audio, segue por dt (espera ate 2,2 s o audio comecar).
+   - Linha do tempo: 0-15,2 CENA A (noite, crianca com lamparina, estrela cadente aos 8 s); 15,2-69,4 CENA B (livro a luz de lamparina,
+     janela com chuva, xicara com vapor; 12 paginas de 4,5 s com virada: Floris, Guardiao, Cain, Rainha, Morpheus, Herdeiros, Judas, Zeus,
+     Anubis, Hades, Erro Original, Primeiro Autor; texto digitado; dados em IBN[]); 69,4-90,5 CENA C (fogueira, grupo em volta, protagonista
+     e Jordana na frente, faiscas, camera recuando); 90,5 flash quente + LOGO (img/logo.png) + "uma aventura de escolhas" + "um jogo de
+     Weslley Nunes"; 98,6 fade para preto; 100,8 vai ao titulo.
+   - Visual: barras de cinema, tom quente, vinheta, grao, riscos de filme, vaga-lumes. Legendas na barra de baixo (ICAP[]).
+   - Ambiente: grilos (A), chuva na janela (B), fogueira (C) via playAmb(); limpo ao sair (playAmb('')).
+   - SFX: ui_virar_pagina a cada pagina, cena_estrela_some, cena_mundo_reconecta + stg_fim_capitulo no logo.
+   - musKey(): 'intro' devolve null (a musica do titulo so comeca depois).
+3) RATO SO NO MENU (TITULO): o rato (img/rato.png) aparece apenas em S='title' (canto inferior esquerdo, com "?"). Tocar nele ou tecla H abre
+   S='rato' (titulo escurecido, lista RQ[] com 4 perguntas + Voltar). Nao existe rato em explore/c2/batalha. Esc/toque volta.
+4) Titulo agora usa img/logo.png (drawLogoT) e subtitulo "uma aventura de escolhas". <title> = v2.3.
+
+LIMITES
+- Testado em Chromium headless (Playwright, via http): fones -> abertura (10 instantes) -> pular -> titulo -> rato -> resposta, sem erros de JS.
+  NAO testado em celular/APK nem a mixagem do audio por um jogador. Volumes dos ambientes usam o ganho padrao de playAmb (0,5).
+- Os textos do rato (RQ) sao genericos; atualizar se as regras/controles mudarem.
+- Mudar pontos da linha do tempo: constantes 15.2 / 69.4 / 90.5 / 98.6 / 100.8 em updIntro e drawIntro e tempos em ICAP.
