@@ -8,6 +8,13 @@ jobs:
     environment: { name: github-pages, url: "${{ steps.d.outputs.page_url }}" }
     steps:
       - uses: actions/checkout@v4
+      - name: Garantir www/index.html (minúsculo)
+        shell: bash
+        run: |
+          if [ -f www/index.html ]; then echo "Usando www/index.html"
+          elif [ -f index.html ]; then mkdir -p www && cp index.html www/index.html
+          elif [ -f www/Index.html ]; then mv www/Index.html www/index.html
+          else echo "::error::Nenhum index.html encontrado"; exit 1; fi
       - uses: actions/upload-pages-artifact@v3
         with: { path: www }
       - id: d

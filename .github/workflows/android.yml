@@ -15,6 +15,25 @@ jobs:
         with: { node-version: 20 }
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
+      - name: Garantir www/index.html (minúsculo)
+        shell: bash
+        run: |
+          # O Linux diferencia index.html de Index.html. O Capacitor exige www/index.html.
+          # Prioridade: www/index.html > index.html da raiz > www/Index.html
+          if [ -f www/index.html ]; then
+            echo "Usando www/index.html"
+          elif [ -f index.html ]; then
+            echo "Usando index.html da raiz (copiando para www/index.html)"
+            mkdir -p www && cp index.html www/index.html
+          elif [ -f www/Index.html ]; then
+            echo "Usando www/Index.html (renomeando para index.html)"
+            mv www/Index.html www/index.html
+          else
+            echo "::error::Nenhum index.html encontrado. Suba o jogo em www/index.html"
+            exit 1
+          fi
+          grep -o '<title>[^<]*' www/index.html || true
+          ls -la www
       - run: npm install
       - run: npx cap add android
       - run: npx cap sync android
