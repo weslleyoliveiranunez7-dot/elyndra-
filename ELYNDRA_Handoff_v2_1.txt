@@ -1,0 +1,20 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versão do jogo: 2.1 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v2_1.txt
+(Leia junto com v2.0 e anteriores. Nunca sobrescrever handoff anterior.)
+
+MUDANÇAS DA v2.1 (www/index.html, www/img/logo.png, www/img/rato.png)
+Tudo novo está num bloco "v2.1 — INTERFACE ESTILO UNDERTALE" logo antes do "loop" em index.html.
+1) FONTE PIXEL: BF = fonte bitmap (DejaVu Sans Mono Bold rasterizada em 10/12/14/16/20 px). g.fillText e g.measureText do canvas foram substituídos, então TODO texto do jogo usa a fonte pixel sem mudar o resto do código. Caractere fora da tabela é ignorado.
+2) PRIMITIVAS: heart() (coração 9x8), utBox() (caixa preta com borda branca grossa), cores YEL/ORG.
+3) TÍTULO: logo ELYNDRA (img/logo.png), estrelas azuis, menu horizontal embaixo com coração (setas/A-D + Enter, ou toque).
+4) BATALHA: caixa larga com texto "* ..." digitado; a caixa encolhe para a arena na esquiva (utArena); linha VOCÊ / LV 1 / HP amarelo e vermelho; botões LUTAR/AGIR/DEFENDER/FUGIR laranja, selecionado amarelo com coração (b.sel; teclado esquerda/direita + Enter); alma = coração; tela FIM DE JOGO com coração quebrando.
+5) DIÁLOGO (dbox), ESCOLHAS (ask/drawCh/updCh) e OPÇÕES (drawOpt): estilo Undertale, com cursor de coração e navegação por teclado (NAV: u/d/l/r/ok/esc preenchido no keydown e zerado todo frame).
+6) RATO GUIA: sprite img/rato.png. Aparece no título (canto esquerdo) e no canto superior direito de explore/c2 (entra deslizando). Toque nele ou tecla H abre S='rato' (cena pausada e escurecida). Perguntas: O que faço agora? (usa diaryObj), Como funcionam as rotas? (submenu: Como o jogo decide, Paz, Neutra, Ruína, Deuses, Criador, Vazio, Sacrifício, Genocide), Qual rota estou seguindo? (usa routeCalc), Como desviar nas batalhas?, Controles. Textos em RMAIN/RROT. Respostas longas são paginadas sozinhas (ratPag).
+   Regras das rotas no texto, vindas de routeCalc(): Paz = Kael apoiado + Cain escutar + Guardião poupado (AGIR) + hrel>=2 + apito do Tobias + Helena no grupo; Ruína = Kael "concordar com a vila" + Cain desconfiar + Judas rejeitar + hrel<0 + Guardião não poupado; Criador = Judas negociar + Cain negociar + abrir arquivo AUTOR (precisa dos 3); Vazio = diário da Íris + NÃO abrir AUTOR (precisa dos 2); Deuses = 4+ pistas no Cap. 5. Uma rota precisa de MAIS de 2 pontos; empate: Ruína, Criador, Vazio, Deuses, Paz; senão Neutra. Sacrifício = "Estabilizar o Núcleo" (libera Genocide). SE O routeCalc MUDAR, atualize RROT.
+7) drawS(): o despacho de desenho do frame virou função (usada também pelo Rato para desenhar a cena por trás).
+
+LIMITES
+- Testado em Chromium headless (capturas de título, batalha, diálogo, escolha, opções, Rato e batalha Rush) sem erros de JS. Não testado em celular/APK.
+- Telas Diário, Teclas e finais ainda usam o layout antigo (só ganharam a fonte pixel).
+- A fonte é uma rasterização da DejaVu Mono Bold (a Determination Mono não pôde ser baixada); dá para trocar o BF por outra fonte bitmap.
+- O Rato não aparece em batalha nem em cenas com diálogo.
