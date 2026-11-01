@@ -1,0 +1,17 @@
+{
+  "name": "elyndra-desktop",
+  "version": "1.8.0",
+  "description": "ELYNDRA para Windows",
+  "author": "Weslley Nunes",
+  "main": "main.js",
+  "scripts": { "start": "electron .", "build": "electron-builder --win --publish never" },
+  "devDependencies": { "electron": "^31.0.0", "electron-builder": "^24.13.3" },
+  "build": {
+    "appId": "com.weslleynunes.elyndra",
+    "productName": "ELYNDRA",
+    "files": ["main.js", "package.json"],
+    "extraResources": [{ "from": "../www", "to": "www", "filter": ["**/*", "!audio/musica/**", "!audio/trailer/**"] }],
+    "win": { "target": ["portable"], "artifactName": "ELYNDRA-${version}.exe" },
+    "directories": { "output": "dist" }
+  }
+}
