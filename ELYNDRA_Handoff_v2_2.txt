@@ -1,0 +1,29 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versão do jogo: 2.2 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v2_2.txt
+(Leia junto com v2.1 e anteriores. Nunca sobrescrever handoff anterior.)
+
+MUDANÇAS DA v2.2 (www/index.html + www/audio/trailer/lifelight_abertura.ogg)
+Tudo novo está num bloco "v2.2 — AMBIENTE SONORO EM CAMADAS, RATO SÓ NO TÍTULO, ABERTURA (CUTSCENE)" logo antes do "loop" em index.html.
+
+1) MÚSICA DE ENTRADA NÃO ATRAVESSA MAIS A EXPLORAÇÃO
+   - musKey(): mus_abertura_prologo toca só no S='pro' (slides do prólogo). Em S='explore' devolve null: a música sai (fade) e fica só o ambiente até a primeira batalha (Floris, mus_tema_floris).
+2) AMBIENTE EM CAMADAS (substitui playAmb/ambFor no audTick; as funções antigas ficaram no arquivo sem uso)
+   - AMBX = presets por lugar. L = loops [arquivo, volume]; X = ruídos aleatórios [arquivo, volume, intervalo mín, máx, tipo].
+   - ambSpec() escolhe o preset: pro/explore = chuva; c2 segue o mesmo mapa de capítulos/salas de antes (Cap.1 sala 3 chuva, sala 0-1 floresta, sala 2 noite, etc.) agora com 2 loops + ruídos. Outros estados (título, batalha, escolhas) mantêm o preset atual (undefined = não muda).
+   - Loops de 11 s ganham taxa levemente diferente e início aleatório, e o volume oscila ("rajadas") a cada 5-11 s para não repetir.
+   - Ruídos: tipo 'e' = trecho aleatório (2-5 s) de um loop, com pan aleatório (pingos, grilos, vento, estalos de fogueira); tipo 't' = trovão (amb_trovao mais grave e lento, passa por lowpass e reverb) com clarão azulado na tela (lightFx), o clarão vem antes do som.
+   - Em batalha o ambiente cai para 40%; sem som nas Opções, tudo zera.
+3) MÚSICA RESPIRA NA EXPLORAÇÃO (musRest): em S='c2' sem diálogo, a música toca ~85-135 s, some por ~22-38 s (só ambiente, que sobe para 140%) e volta. Diálogo, batalha, escolha e finais voltam a música na hora. Durante a exploração a música fica a 80%.
+4) RATO SÓ NO TÍTULO: ratVisible() = (S==='title'). Saiu o rato do canto da tela em explore/c2 e a tecla H só vale no título. Textos do Rato ajustados.
+5) ABERTURA (S='intro'): fones -> intro -> título. Tocar na tela / Enter / Esc depois de 1,2 s pula (fade de 0,7 s).
+   - Música: www/audio/trailer/lifelight_abertura.ogg = trecho 104,0 s a 205,6 s do lifelight.ogg (começa calmo, sobe, pico em ~194,6 s = 90,5 s da abertura, cai no fim), opus mono 48k, fade in 1,2 s e out 3 s. O original foi mantido. Chave 'trailer_lifelight_abertura' no mkAud (sem loop). O relógio da cena (INT.t) é corrigido pelo currentTime do áudio quando divergir mais de 0,35 s; sem áudio, segue por dt (espera até 2,2 s o áudio iniciar).
+   - Linha do tempo (IT): 0-14,9 CENA A (noite, criança de costas com lamparina, estrela cadente aos 8 s); 15,2-69,2 CENA B (livro à luz de lamparina com xícara, 12 páginas com virada de página: Floris, Guardião, Cain, Rainha, Morpheus, Herdeiros, Judas, Zeus, Anubis, Hades, Erro Original, Primeiro Autor; 4,5 s cada; texto digitado; textos em IB[]); 69,4-90,5 CENA C (todos em volta da fogueira, protagonista e Jordana na frente); 90,5 = flash quente + LOGO (img/logo.png), "uma aventura de escolhas" e "um jogo de Weslley Nunes"; 98,6 fade para preto; 100,8 vai ao título.
+   - Visual: barras de cinema, tom quente, vinheta, grão e riscos de filme, poeira e vaga-lumes. Legendas na barra de baixo (iCap).
+   - Ambiente próprio: grilos/vento (A), fogueira (B), fogueira+grilos (C). SFX: ui_virar_pagina a cada página, cena_estrela_some, cena_mundo_reconecta + stg_fim_capitulo no logo.
+6) Título do jogo: v2.2.
+
+LIMITES
+- Testado em Chromium headless (capturas da abertura em 17 instantes, fluxo fones->abertura->pular->título->prólogo->exploração, troca de capítulos, descanso da música, trovão/clarão): sem erros de JS. Não testado no APK/celular nem a sensação de mixagem por um jogador.
+- Os 404 de audio/musica/mus_cidade_espelhos, mus_nucleo, mus_olimpo, mus_vazio, mus_vila_cinzas já existiam: caem no fallback audio/sint.
+- www/Index.html (maiúsculo, v1.8) e o index.html da raiz são cópias antigas; o jogo atual é www/index.html.
+- Se o ambiente ainda ficar baixo/alto: volumes em AMBX, AMB.bm (batalha .4 / descanso 1.4) e AUD.rm (.8 na exploração) em musRest.
