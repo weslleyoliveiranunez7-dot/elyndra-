@@ -1,0 +1,12 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versão do jogo: 1.9 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v1_9.txt
+(Leia junto com v1.8 e anteriores. Nunca sobrescrever handoff anterior.)
+
+MUDANÇAS DA v1.9 (só www/index.html mudou; título v1.9)
+1) BUG CORRIGIDO: personagem "girando" esquerda/direita. Causa: setMove escolhia o sprite lateral ou frontal comparando |x| com |y|; em diagonal (toque/arrasto ou valor quase igual) a comparação alternava a cada quadro. Agora há histerese: mantém o eixo atual até o outro dominar por ~1,4x. Também a diagonal por teclado é normalizada (0,7071), então não anda mais mais rápido na diagonal.
+2) TECLAS REMAPEÁVEIS (PC): Opções > "Teclas do teclado (PC)". Ações: Cima, Baixo, Esquerda, Direita, Confirmar/Falar, Menu/Opções. Clique na ação e pressione a tecla; Esc cancela; tecla repetida troca com a outra ação; "Restaurar padrão". Padrão: W A S D, E, Esc. Setas, Espaço e Enter sempre funcionam. Salvo em CFG.kb (localStorage elyndra_cfg). Tecla de Menu abre/fecha as Opções em explore, c2 e batalha.
+3) Menu de Opções ficou com 10 itens: espaçamento dinâmico (OST/OH) para caber nos 270 px.
+
+LIMITES
+- Não testado no navegador/APK (só node --check e simulação da direção). Menus ainda são por clique/toque; não há navegação por teclado neles.
+- Nomes de teclas exibidos por kname(); teclas especiais aparecem em inglês simplificado (ex.: "Shift").
