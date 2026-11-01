@@ -1,0 +1,23 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versão do jogo: 1.5 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v1.5.txt
+(Leia junto com v1.4 e anteriores. Nunca sobrescrever handoff anterior. Ordem de autoridade: Bíblia > handoffs > implementação.)
+
+MUDANÇAS DA v1.5: SISTEMA SONORO COMPLETO
+- Tela inicial "fones de ouvido" (S='fones'); o toque dela libera o áudio do navegador (audInit).
+- Motor no bloco "SISTEMA SONORO v1.5": música por HTMLAudio com crossfade de 1,4 s e volta à posição anterior; efeitos e ambientes por WebAudio (compressor + reverb leve); ducking da música durante diálogos; pausa ao sair da aba.
+- audTick(dt) roda todo frame e decide pelo estado (S, C2.ch, C2.room, B, D): música (musKey), ambiente (ambFor), passos por piso, voz por personagem (voz()), dano/cura/projéteis/game over/vitória, portas, chefes, queda/volta da Jordana, finais, pós-créditos. beep() agora chama efeitos do jogo.
+- Arquivos: www/audio/sfx/<nome>.ogg (141 sons originais sintetizados, sem nada de Undertale), www/audio/sint/<slot>.ogg (42 músicas originais sintéticas), www/audio/musica/<slot>.ogg (músicas do autor, prioridade; ficam FORA do repositório público por direitos autorais), acervo_*.ogg (9 faixas que tocam de vez em quando).
+- Mapa de músicas: título Raimundos; abertura/Prólogo Megalovania do Gravity Falls; Raiz Velha e Guardião sailor song; Casa dos Herdeiros Lavender's Blue; Jordana Fallen Down (também Cap. 8 sala 4); protagonista Finale (escolha final); Floris Feel Good (batalha do Prólogo e conversa no Cap. 8); Rainha Thriller (Cap. 2); Morfeu Paradise (Cap. 3); Herdeiros Without Me (Cap. 4); Zeus God of War PS4 (Cap. 5); Hades God of War 2A03 (Cap. 6); Anubis/Cain/Judas tocam enquanto falam; Erro Rush E; Primeiro Autor Sound of Silence; Nada No Surprises; Genocide Eye of the Tiger (todas as batalhas); cena triste Hokage (cena do Cap. 7 e sala da ponte); final Sacrifício The Winner Takes It All; créditos I Will Survive. Lifelight só para o trailer (não usada).
+- Chapters sem música do autor (2, 3, 5, 6, 7, 8, Núcleo, finais alternativos): tocam as sintéticas de audio/sint.
+- Erro Original: updBattle usa rushMul() com curva medida do Rush E (RUSH) para acelerar o spawn e a velocidade dos projéteis ao longo da música.
+- Acervo: ao mudar de sala (30% de chance, a cada 150 s, fora do Cap. 7, Genocide e diálogos) toca uma faixa do acervo compatível com o capítulo e mostra "♪ nome". Humor: A Thousand Miles (1,3,4), Take On Me (1,3), Another One Bites the Dust (2,5), Be My Baby (3,4), Blue (1,3), In the End (6,8), Moves Like Jagger (3,4), Hey Ya (só 1), Seven Nation Army (5,8). Humor baseado no que conheço de cada música (não busquei na web). Sem o arquivo, a faixa é pulada.
+- Opções: novos itens Música e Efeitos (100/70/40/0%). CFG.mv e CFG.sv.
+- Build: pasta ELYNDRA com www/, package.json, capacitor.config.json, workflows (android.yml gera APK debug; pages.yml publica no GitHub Pages), README em português, .gitignore que ignora www/audio/musica.
+
+PENDÊNCIAS E AVISOS
+- Direitos autorais: as músicas do autor são covers 8-bit de músicas comerciais e Undertale; só para uso pessoal/privado. Antes de publicar, trocar por músicas próprias ou licenciadas. O trailer com Lifelight também.
+- Os 35 sons do pack de Undertale NÃO estão no build; o jogo usa sons originais.
+- Músicas sintéticas são provisórias (simples); sons dos personagens são blips.
+- Falta hook de música/efeito em mortes de Kael e Tobias e em outras cenas tristes (só Cap. 7 recog e ponte do Cap. 8 usam "cena triste"); vibração ainda não ligada (CFG.vib/vib() existe).
+- Zeus/Hades: se estiverem trocados, renomear os dois arquivos.
+- Não testado: navegador real, celular, APK (workflow escrito sem rodar), volume e mixagem, loop dos ambientes ao ouvido. Testado em Node com simulação: troca de música por cena, chefes, rotas, acervo, curva do Rush E, existência dos arquivos de som citados.

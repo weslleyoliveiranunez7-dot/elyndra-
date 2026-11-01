@@ -1,0 +1,19 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versão do jogo: 1.8 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v1_8.txt
+(Leia junto com v1.7 e anteriores. Nunca sobrescrever handoff anterior. Ordem de autoridade: Bíblia > handoffs > implementação.)
+
+MUDANÇAS DA v1.8: DESIGN PRÓPRIO PARA TODOS OS PERSONAGENS (ESTILO UNDERTALE)
+- Os 31 NPCs/chefes deixaram de ser o protagonista recolorido. Cada um tem silhueta própria: cabelo (curto, longo, coque, tranças, chamas, folhas, capuz), roupa (túnica, casaco, armadura, manto), acessórios (coroa de louros, elmo, chapéu, boné, óculos, barba, cicatriz, máscara, lanterna, pena, correntes, estrelas) e olhos/boca característicos. Contorno preto, sombra em 2 tons, cabeça grande, dois quadros (parado e passo).
+- Rostos de diálogo (faces.png) agora são desenhados à parte, em 48x48, com expressão do personagem (Morpheus de olhos fechados, Primeiro Autor com olhos vazios, Anubis com olhos dourados, Herdeiros com máscara etc.). Mantidos como estavam: Você, Floris e Floris!. Jordana segue arte do autor, intocada.
+- Formato e ordem de npc.png/faces.png NÃO mudaram (NPN e FN iguais), então o index.html só teve o título trocado para v1.8. Nenhuma lógica foi alterada.
+- Chefes (bigSpr, escala 2): a Rainha, o Guardião, Zeus, Hades e Kael têm os acessórios por código (coroa, folhas, chamas) por cima. Os sprites novos não repetem esses acessórios no topo da cabeça (Rainha sem coroa, Guardião com cabelo de folhas curto, Hades com cabelo escuro, Zeus sem coroa).
+- tools/build_chars.py gera npc.png e faces.png: `python3 tools/build_chars.py www/img`. Para mudar um personagem, edite a linha dele no dicionário S (pele, cabelo, estilo, olhos, boca, corpo, cores, extras). Substitui o npc.png do build_assets.py; se rodar build_assets.py de novo, rode build_chars.py depois.
+
+LIMITES
+- Chefes ainda têm corpo humano (sem dragão/deus gigante). Expressões por personagem são uma só; não há rosto triste/bravo alternativo, só Jordana tem 6.
+- Não testado em celular real nem em APK; conferir se algum acessório de chefe ficou desalinhado.
+
+EMPACOTAMENTO (v1.8)
+- As 3 partes foram unidas em um único repositório (ELYNDRA_v1_8_GitHub_completo.zip, ~200 arquivos; o upload pelo site do GitHub aceita 100 por vez, então use git ou suba por partes).
+- APK: .github/workflows/android.yml (Capacitor, debug, paisagem). EXE: .github/workflows/windows.yml (Electron + electron-builder, portátil) com código em desktop/ (main.js carrega www/index.html; F11 tela cheia). Ambos geram Artifacts e, em tag v*, anexam à Release.
+- Não pude compilar aqui (sem rede): os workflows estão validados só na sintaxe (YAML/JSON/node --check), não rodaram no GitHub. Se falhar, mandar o log da aba Actions.

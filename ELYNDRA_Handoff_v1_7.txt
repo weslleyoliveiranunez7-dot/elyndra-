@@ -1,0 +1,16 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versão do jogo: 1.7 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v1_7.txt
+(Leia junto com v1.6 e anteriores. Nunca sobrescrever handoff anterior. Ordem de autoridade: Bíblia > handoffs > implementação.)
+
+MUDANÇAS DA v1.7: ROSTO E TEXTURA PARA TODOS OS PERSONAGENS
+- Rostos de diálogo: img/faces.png, uma faixa de rostos 48x48. Ordem em FN no código (Você, todos os NPCs em ordem alfabética, Floris, Floris!). Cada rosto é a cabeça do sprite do personagem ampliada 3x, sobre fundo escuro. dbox() escolhe pelo nome de quem fala; 'Os Herdeiros' usa o rosto de Herdeiros (FALIAS); Floris usa o rosto malvado quando F.evil; Jordana continua com os 6 rostos próprios (jordana_face.png); 'Narração' não tem rosto. A cor do nome e da caixa vem de COL ou, se não houver, de FCOL (cor do personagem).
+- Personagens grandes de batalha agora são sprites: Rainha (nova linha no npc.png, cor #d58cff), Guardião, Morpheus, 3 Herdeiros, Zeus, Hades e Primeiro Autor. bigSpr(nome,x,y) desenha o corpo da protagonista recolorido em escala 2 (40x60), e cada função (queen, guard, morph, heirs, zeus, hades, autor) põe acessórios por cima (coroa, folhas, estrelas, chamas, palavras). Sem a imagem, cai no desenho antigo.
+- Todos os NPCs falantes das salas já tinham sprite (v1.6); agora também têm rosto. Erro Original continua glitch.
+- tools/build_assets.py agora também gera faces.png e inclui a Rainha. NPN e FN no index.html foram regerados juntos com npc.png: se rodar a ferramenta de novo, atualizar as duas listas (a ferramenta imprime/gera na mesma ordem: nomes em ordem alfabética).
+
+LIMITES
+- Os rostos são cabeças recolhidas de corpos recoloridos: parecidos entre si (só mudam cabelo, pele e cor da roupa). Rostos únicos, com expressões, ainda não existem (só Jordana tem).
+- Chefes ainda parecem humanos recoloridos com acessórios; sem sprites próprios de dragão, deus etc.
+- Portas, escadas, rios e abismos (DEC) continuam desenhados por código.
+- Testado em Node (todos os capítulos e batalhas) e Chromium headless (diálogos de Zeus, Rainha, Herdeiros, Floris e Você; batalhas de Zeus, Rainha e Herdeiros). Não testado em celular real nem em APK.
+- Entrega no GitHub: parte-1, parte-2 e parte-3, menos de 100 arquivos cada.

@@ -1,0 +1,11 @@
+{
+  "name": "elyndra",
+  "version": "1.8.0",
+  "description": "ELYNDRA, RPG de escolhas em pixel art (fan game inspirado em Undertale, história original)",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/cli": "^6.1.0",
+    "@capacitor/core": "^6.1.0"
+  }
+}
