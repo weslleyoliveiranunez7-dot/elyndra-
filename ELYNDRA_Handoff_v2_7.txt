@@ -1,0 +1,25 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versao do jogo: 2.7 | Data: 01/11/2026 | Este arquivo: ELYNDRA_Handoff_v2_7.txt | Jogo: elyndra_v2.7.html (copiar para www/index.html)
+(Leia junto com v2.6 e anteriores. Nunca sobrescrever handoff anterior.)
+
+MUDANCAS DA v2.7: PARTE 2, CHEFOES ANIMADOS (so www/index.html; bloco novo "v2.7 — CHEFÕES ANIMADOS" antes do "loop")
+Camada de animacao POR CIMA das funcoes de desenho existentes (queen, guard, morph, heirs, zeus, hades, erro, autor e floris em batalha).
+Nenhuma logica de batalha, dano, turnos, audio ou vibracao foi alterada; sem imagem nova (tudo por codigo, nao ha arte nova de chefe).
+1) Mecanismo: bfxWrap(chave, fn) reatribui cada funcao de chefe; so age quando BFX.inB (drawBattle foi embrulhada para ligar a flag e rodar bfxTick uma vez por frame).
+   Fora da batalha (ex.: Floris na exploracao, erro() no resto do jogo) as funcoes funcionam como antes.
+2) Estados lidos de B (sem escrever nada nele): troca de B = batalha nova; B.ph virando 'dodge' = pulso de ataque; B.n subindo na esquiva = pulso por disparo;
+   B.turn mudando = rajada (aura e escala); B.hp caindo = reacao ao dano do jogador (tremor e brilho); S==='qend' = chefe derrotado.
+3) Animacoes: entrada (desce com easeOutBack, escala 75%->100%, fade 0,6 s) + faixa com o nome do chefe por 2,4 s; flutuacao e balanco proprios por chefe
+   (mais forte e rapido na esquiva); pulso ao atacar; aura radial na cor do chefe; derrota: afunda, inclina, some ate 25% e solta estilhacos durante o dialogo final.
+4) Efeitos por chefe (BCFG): Rainha estilhacos de mascara | Guardiao folhas | Morpheus estrelas | Herdeiros 2 copias fantasmas orbitando | Zeus raios (mais na esquiva, com clarao) |
+   Hades chamas azuis | Erro Original fatias glitch + linhas ciano/magenta | Primeiro Autor letras e simbolos subindo | Floris petalas.
+   Para ajustar: BCFG (nome, cor, fy amplitude px, fq Hz, sw balanco rad, pt tipo) e bfxSpawn. Limite de 70 particulas.
+5) Titulo do jogo: v2.7.
+
+LIMITES
+- Testado em Chromium headless: os 9 chefes em 4 momentos (entrada, parado, esquiva, derrota), sem erros de JS. NAO testado em celular, APK ou gamepad; desempenho no celular nao medido
+  (efeito mais pesado: Erro Original, que copia fatias do canvas).
+- Os chefes continuam com o corpo humano dos sprites atuais (sem dragao/deus gigante); a animacao e por codigo, nao por quadros desenhados. Cain, Judas, Anubis e o Nada nao tem batalha propria no codigo, entao nao foram animados.
+- A faixa de nome fica no alto da tela (y=22); se colidir com algum texto, mudar em bfxDraw.
+
+PROXIMAS PARTES: 3 audio em cenas | 4 quests dentro dos Caps. 1-8 (mapas, inimigos, cutscenes).
