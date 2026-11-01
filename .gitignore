@@ -1,0 +1,7 @@
+node_modules/
+android/
+desktop/dist/
+# Músicas comerciais (covers 8-bit) NÃO devem ir para repositório público.
+# Se o repositório for PRIVADO e você quiser as músicas dentro do APK/EXE, apague as linhas abaixo.
+www/audio/musica/
+www/audio/trailer/
