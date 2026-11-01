@@ -37,6 +37,8 @@ jobs:
       - run: npm install
       - run: npx cap add android
       - run: npx cap sync android
+      - name: Permitir vibração
+        run: grep -q 'android.permission.VIBRATE' android/app/src/main/AndroidManifest.xml || sed -i 's#<application#<uses-permission android:name="android.permission.VIBRATE" />\n    <application#' android/app/src/main/AndroidManifest.xml
       - name: Forçar modo paisagem
         run: sed -i 's/<activity /<activity android:screenOrientation="sensorLandscape" /' android/app/src/main/AndroidManifest.xml
       - name: Compilar
