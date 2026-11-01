@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ELYNDRA — v1.8</title>
+<style>
+:root{box-sizing:border-box;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;height:100%;background:#0a0910;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif}
+canvas{width:100%;max-height:100%;aspect-ratio:16/9;touch-action:none;background:#000;image-rendering:pixelated}
+#hint{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;text-align:center;color:#b9a8d8;font-size:13px;pointer-events:none}
+@media (orientation:portrait){#hint{display:block}}
+</style></head><body>
+<div id="hint">Gire o celular para jogar na horizontal</div>
+<canvas id="c" width="480" height="270"></canvas>
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d'),W=480,H=270;
+const FONT='13px ui-monospace,Menlo,Consolas,monospace';
+let S='fones',T=0,K={},ptr=null,P0=null,tap=false,drag={x:0,y:0},D=null,saved=null;
+const F={pts:0,evil:false,jordana:false};
+const COL={Floris:'#ffd84a',Jordana:'#9fd7ff','Narração':'#a99ec4'};
+try{saved=JSON.parse(localStorage.getItem('elyndra_save'))}catch(e){}
+const CFG={snd:1,vib:1,ts:28,easy:0,mv:.8,sv:.9};try{Object.assign(CFG,JSON.parse(localStorage.getItem('elyndra_cfg'))||{})}catch(e){}
+function saveCfg(){try{localStorage.setItem('elyndra_cfg',JSON.stringify(CFG))}catch(e){}}
+function save(stage){try{sfx('ui_salvar',{v:.6})}catch(e){}saved={v:2,ver:'1.5',stage,F:{...F}};try{localStorage.setItem('elyndra_save',JSON.stringify(saved))}catch(e){}}
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const AC=window.AudioContext?new AudioContext():null;
+function beep(f){try{sfx(f>=850?'ui_item_pegar':f===500?'ui_confirmar':f===260?'ui_virar_pagina':'ui_selecionar',{v:.7,var:.03})}catch(e){}}
+const vib=n=>{try{CFG.vib&&navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+cv.addEventListener('pointerdown',e=>{try{AC&&AC.resume()}catch(_){}ptr=pos(e);P0={...ptr};tap=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+cv.addEventListener('pointermove',e=>{if(!ptr)return;const p=pos(e);drag.x+=p.x-ptr.x;drag.y+=p.y-ptr.y;ptr=p});
+['pointerup','pointercancel'].forEach(n=>cv.addEventListener(n,()=>{ptr=null;P0=null}));
+addEventListener('keydown',e=>{K[e.key.toLowerCase()]=1;if(e.key===' '||e.key==='Enter'||e.key.toLowerCase()==='e')tap=true});
+addEventListener('keyup',e=>{K[e.key.toLowerCase()]=0});
+function dirKeys(){return{x:(K.arrowright||K.d?1:0)-(K.arrowleft||K.a?1:0),y:(K.arrowdown||K.s?1:0)-(K.arrowup||K.w?1:0)}}
+function inRect(p,x,y,w,h){return p&&p.x>=x&&p.x<=x+w&&p.y>=y&&p.y<=y+h}
+/* ---------- texto ---------- */
+function tx(t,x,y,c='#fff',sz=13,al='left'){g.font=sz+'px ui-monospace,Menlo,Consolas,monospace';g.fillStyle=c;g.textAlign=al;g.textBaseline='alphabetic';g.fillText(t,x,y)}
+function wl(t,w){const r=[];let l='';for(const wd of t.split(' ')){const tr=l?l+' '+wd:wd;if(g.measureText(tr).width>w&&l){r.push(l);l=wd}else l=tr}r.push(l);return r}
+function wr(t,x,y,w,lh,n,c='#e8e2f5'){g.font=FONT;g.fillStyle=c;g.textAlign='left';let k=n;for(const l of wl(t,w)){if(k<=0)break;g.fillText(l.slice(0,k),x,y);k-=l.length+1;y+=lh}}
+function box(x,y,w,h,c='#fff'){g.fillStyle='#07060c';g.fillRect(x,y,w,h);g.strokeStyle=c;g.lineWidth=2;g.strokeRect(x+1,y+1,w-2,h-2)}
+/* ---------- diálogo ---------- */
+function say(l,cb){D={l,i:0,n:0,cb}}
+function dlg(dt){if(!D)return false;const L=D.l[D.i][1];const old=D.n|0;D.n=Math.min(L.length,D.n+dt*CFG.ts);if((D.n|0)!==old&&(D.n|0)%3===0)voz(D.l[D.i][0]);
+ if(tap){if(D.n<L.length)D.n=L.length;else{D.i++;D.n=0;if(D.i>=D.l.length){const cb=D.cb;D=null;cb&&cb()}}}return true}
+function dbox(){if(!D)return;const[s,t,fc]=D.l[D.i];box(10,188,460,76,COL[s]||FCOL[FALIAS[s]||s]||'#fff');const fi=s==='Jordana'||s==='Narração'?-1:FN.indexOf(s==='Floris'?(F.evil?'Floris!':'Floris'):(FALIAS[s]||s)),pf=(s==='Jordana'&&IMG.jordana_face)||(fi>=0&&IMG.faces);if(s==='Jordana'&&pf)spr('jordana_face',(fc|0)*48,0,48,48,20,202);else if(pf)spr('faces',fi*48,0,48,48,20,202);const tx0=pf?76:22;tx(s,tx0,208,COL[s]||FCOL[FALIAS[s]||s]||'#fff');wr(t,tx0,228,pf?386:436,17,D.n|0);if(D.n>=t.length)tx('▼',452,256,'#888')}
+/* ---------- personagens ---------- */
+function floris(x,y,s=1,a=1){if(flSpr(x,y,s,a))return;g.globalAlpha=a;g.fillStyle='#2f7a3c';g.fillRect(x-2*s,y+10*s,4*s,26*s);g.fillRect(x-14*s,y+22*s,12*s,4*s);g.fillRect(x+2*s,y+28*s,12*s,4*s);
+ g.fillStyle=F.evil?'#ff9a3c':'#ffd84a';for(let i=0;i<8;i++){const an=i*Math.PI/4;g.beginPath();g.arc(x+Math.cos(an)*13*s,y+Math.sin(an)*13*s,7*s,0,7);g.fill()}
+ g.fillStyle='#f2b84b';g.beginPath();g.arc(x,y,10*s,0,7);g.fill();g.fillStyle=F.evil?'#b3001b':'#2b1b0e';g.fillRect(x-5*s,y-4*s,3*s,4*s);g.fillRect(x+2*s,y-4*s,3*s,4*s);
+ if(F.evil){g.fillStyle='#fff';g.fillRect(x-6*s,y+3*s,12*s,3*s)}else g.fillRect(x-4*s,y+3*s,8*s,2*s);g.globalAlpha=1}
+/* ---------- SPRITES v1.6 (img/*.png; sem a imagem, o jogo cai no desenho antigo) ---------- */
+g.imageSmoothingEnabled=false;
+const IMG={};['prot','npc','floris','faces','jordana','jordana_face','jordana_bat','tiles'].forEach(n=>{const i=new Image();i.onload=()=>{IMG[n]=i};i.src='img/'+n+'.png'});
+const NPN=['Anubis','Aro','Athena','Bento','Cain','Dante','Dom','Erro Original','Guardião','Hades','Helena','Herdeiros','Joca','Judas','Kael','Lúcia','Matriarca','Mira','Morpheus','Nilo','Persephone','Primeiro Autor','Prometheus','Rainha','Rufo','Sira','Tobias','Vael','Vera','Zeus','Íris'];
+const FN=['Você','Anubis','Aro','Athena','Bento','Cain','Dante','Dom','Erro Original','Guardião','Hades','Helena','Herdeiros','Joca','Judas','Kael','Lúcia','Matriarca','Mira','Morpheus','Nilo','Persephone','Primeiro Autor','Prometheus','Rainha','Rufo','Sira','Tobias','Vael','Vera','Zeus','Íris','Floris','Floris!'],FALIAS={'Os Herdeiros':'Herdeiros'},FCOL={'Vera': '#c98b6a', 'Dom': '#7a8aa0', 'Bento': '#6a8a5a', 'Kael': '#d9482f', 'Cain': '#8a8a99', 'Mira': '#c9a06a', 'Joca': '#6a8aa0', 'Tobias': '#8a6a3a', 'Aro': '#9a9a9a', 'Guardião': '#4a6a3a', 'Lúcia': '#e0b84a', 'Rufo': '#6a8aa0', 'Íris': '#7a5ac8', 'Dante': '#3a8a8a', 'Morpheus': '#2a2050', 'Helena': '#d98ca8', 'Matriarca': '#a86a6a', 'Judas': '#8a7a66', 'Herdeiros': '#3a2a50', 'Athena': '#9fd0ff', 'Prometheus': '#ff9a5a', 'Zeus': '#ffe066', 'Sira': '#ff8a6a', 'Vael': '#d95a5a', 'Persephone': '#7ed8a0', 'Anubis': '#d4b050', 'Hades': '#3a3060', 'Nilo': '#9a9ab0', 'Erro Original': '#7a6a8a', 'Primeiro Autor': '#e8d9ff', 'Rainha': '#d58cff', 'Você': '#67a4e0'};
+function spr(k,sx,sy,sw,sh,dx,dy,flip,sc){const im=IMG[k];if(!im)return false;sc=sc||1;dx=Math.round(dx);dy=Math.round(dy);if(flip){g.save();g.translate(dx+sw*sc,dy);g.scale(-1,1);g.drawImage(im,sx,sy,sw,sh,0,0,sw*sc,sh*sc);g.restore()}else g.drawImage(im,sx,sy,sw,sh,dx,dy,sw*sc,sh*sc);return true}
+const TPAT={};
+function tileFill(ch,col,x,y,w,h){const im=IMG.tiles;if(!im)return false;const k=ch+'_'+col;let p=TPAT[k];if(!p){const c=document.createElement('canvas');c.width=c.height=16;c.getContext('2d').drawImage(im,col*16,ch*16,16,16,0,0,16,16);p=TPAT[k]=g.createPattern(c,'repeat')}g.save();g.beginPath();g.rect(x,y,w,h);g.clip();g.fillStyle=p;g.fillRect(x,y,w,h);g.restore();return true}
+function setMove(d,dt){const m=d.x||d.y;pl.mv=!!m;if(m){pl.dir=Math.abs(d.x)>Math.abs(d.y)?(d.x<0?1:3):(d.y<0?2:0);pl.fr+=dt*7}else pl.fr=0}
+const TRL=[];function trail(){const l=TRL[TRL.length-1];if(l&&Math.hypot(l.x-pl.x,l.y-pl.y)>40)TRL.length=0;if(!l||TRL.length===0||Math.hypot(l.x-pl.x,l.y-pl.y)>=2){TRL.push({x:pl.x,y:pl.y,dir:pl.dir});if(TRL.length>40)TRL.shift()}}
+function drawPlayer(x,y){const fr=pl.mv?(Math.floor(pl.fr)%4):0,d=pl.dir,row=d===1||d===3?1:d===2?2:0;if(!spr('prot',fr*20,row*30,20,30,x+5-10,y+12-30,d===3))child(x,y)}
+function jfPos(){const t=TRL.length>9?TRL[TRL.length-9]:null;return{x:t?t.x:pl.x-14,y:t?t.y:pl.y,dir:t?t.dir:pl.dir}}
+function drawJordF(j){const row=pl.mv&&Math.floor(pl.fr)%2?1:0;if(!spr('jordana',j.dir*28,row*38,28,38,j.x+5-14,j.y+12-38))jordana(pl.x-14,pl.y-24)}
+function npcSpr(n,x,y){if(n==='Floris')return flSpr(x+5,y+8,1,1);if(n==='Jordana')return spr('jordana',0,0,28,38,x+5-14,y+14-38);if(n==='Erro Original'){erro(x+5,y);return true}const i=NPN.indexOf(n);if(i<0||!IMG.npc)return false;spr('npc',(Math.floor(T*1.5+i)%2)*20,i*30,20,30,x+5-10,y+14-30);if(n==='Kael'){g.fillStyle='#ffb36b';g.fillRect(Math.round(x-1),Math.round(y-19),3,5);g.fillRect(Math.round(x+8),Math.round(y-19),3,5)}return true}
+function flSpr(x,y,s,a){if(!IMG.floris)return false;const sc=s>=1.2?2:1,f=(F.evil?2:0)+Math.floor(T*2)%2;g.globalAlpha=a;spr('floris',f*32,0,32,40,x-16*sc,y-16*sc,false,sc);g.globalAlpha=1;return true}
+function jordBat(x,y,a){const im=IMG.jordana_bat;if(!im)return jordana(x,y,a);g.globalAlpha=a;spr('jordana_bat',0,0,im.width,im.height,x-im.width/2,y-4);g.globalAlpha=1}
+function bigSpr(n,x,y){const i=NPN.indexOf(n);if(i<0||!IMG.npc)return false;spr('npc',(Math.floor(T*1.5)%2)*20,i*30,20,30,x-20,y+48-60,false,2);return true}
+function child(x,y){g.fillStyle='#5a4fa8';g.fillRect(x,y+4,10,8);g.fillStyle='#f1c9a0';g.fillRect(x+1,y,8,6);g.fillStyle='#2a1c14';g.fillRect(x+1,y,8,2)}
+function jordana(x,y,a=1){g.globalAlpha=a;g.fillStyle='#1b1830';g.fillRect(x-9,y+10,18,34);g.fillStyle='#9fd7ff';g.fillRect(x-9,y+10,18,3);g.fillStyle='#d9d2ea';g.fillRect(x-6,y-4,12,14);g.fillStyle='#9fd7ff';g.fillRect(x-4,y+1,3,2);g.fillRect(x+1,y+1,3,2);g.globalAlpha=1}
+/* ---------- título ---------- */
+const stars=Array.from({length:50},(_,i)=>[(i*97)%480,(i*53)%270,i%3+1]);
+function unlocked(){try{return localStorage.getItem('elyndra_unlock')==='1'}catch(e){return false}}
+function menuItems(){const m=saved?['Novo jogo','Continuar','Opções']:['Novo jogo','Opções'];if(unlocked())m.push('Modo Genocide');return m}
+function resetF(){Object.assign(F,{pts:0,evil:false,jordana:false,tobias:0,kaelIn:0,iris:0,dante:0,kael:-1,cain:-1,morph:-1,guardSpared:false,hrel:0,judas:-1,tj:0,trusted_judas:0,debt:0,hpress:-1,helenaIn:0,kaelDead:0,tobiasDead:0,tobiasKeep:0,tobias_memory_kept:0,anubis:-1,iris_records_found:0,dante_family_truth:0,author_records_found:0,irisGone:0,danteGone:0,irisDiary:0,gods:0,route:'',jfall:0,prophecy_read:0,jordana_truth_known:0,sacrifice_understood:0,route_sacrifice:0,floris8:0,pa_defeated:0});M3={hp:20,hard:0}}
+function cont(){if(saved.F)Object.assign(F,saved.F);GEN=!!F.gen;const t=saved.stage;if(t==='fim8')startE8();else if(t==='cap8')startC8();else if(t==='fim7'){S='end7';T=0}else if(t==='cap7')startC7();else if(t==='fim6'){S='end6';T=0}else if(t==='cap6')startC6();else if(t==='fim5'){S='end5';T=0}else if(t==='cap5')startC5();else if(t==='fim4'){S='end4';T=0}else if(t==='cap4')startC4();else if(t==='fim3'){S='end3';T=0}else if(t==='fim2'||t==='cap3')startC3();else if(t==='fim'||t==='cap1')startC1();else if(t==='cap2')startC2();else startExplore()}
+function updTitle(){if(tap){menuItems().forEach((n,i)=>{if(inRect(ptr,170,130+i*32,140,30)){beep(440);if(n==='Novo jogo'){sfx('ui_novo_jogo');resetF();F.gen=0;GEN=false;startPro()}else if(n==='Modo Genocide'){sfx('ui_genocide_ativar');resetF();F.gen=1;GEN=true;startPro()}else if(n==='Continuar')cont();else openOpt()}})}}
+function drawTitle(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);for(const[x,y,s]of stars){g.fillStyle=(T*2+x)%7<1?'#fff':'#6a5fa0';g.fillRect(x,y,s,s)}
+ tx('ELYNDRA',W/2,92,'#d9c8ff',46,'center');tx('v1.5 — som completo, rotas e finais',W/2,118,'#8d80b3',13,'center');
+ menuItems().forEach((n,i)=>{box(170,130+i*32,140,30,n==='Modo Genocide'?'#ff2a4d':'#8d80b3');tx(n,240,150+i*32,n==='Modo Genocide'?'#ff6a80':'#fff',14,'center')});
+ tx('Toque numa opção para começar',W/2,262,'#6c6290',11,'center')}
+/* ---------- opções ---------- */
+let optBack='title',optDel=0;const TSN={18:'lento',28:'normal',45:'rápido'};
+function openOpt(){optBack=S;optDel=0;S='opt'}
+function optItems(){const L=[['Som: '+(CFG.snd?'ligado':'desligado'),'snd'],['Vibração: '+(CFG.vib?'ligada':'desligada'),'vib'],['Texto: '+TSN[CFG.ts],'ts'],['Dano nas batalhas: '+(CFG.easy?'reduzido':'normal'),'easy'],['Música: '+Math.round(CFG.mv*100)+'%','mv'],['Efeitos: '+Math.round(CFG.sv*100)+'%','sv']];
+ if(optBack==='explore'||optBack==='c2')L.push(['Diário','diary']);
+ L.push([saved?(optDel?'Toque de novo para apagar':'Apagar progresso salvo'):'Nenhum progresso salvo','del'],['Voltar','back']);return L}
+function updOpt(){if(!tap)return;const od=optDel;optDel=0;optItems().forEach(([n,k],i)=>{if(!inRect(ptr,90,30+i*26,300,23))return;
+ if(k==='mv'){CFG.mv=CFG.mv>.85?.7:CFG.mv>.55?.4:CFG.mv>.1?0:1;saveCfg()}else if(k==='sv'){CFG.sv=CFG.sv>.85?.7:CFG.sv>.55?.4:CFG.sv>.1?0:1;saveCfg();beep(500)}else if(k==='snd'){CFG.snd^=1;saveCfg();beep(500)}else if(k==='vib'){CFG.vib^=1;saveCfg();vib(60)}else if(k==='ts'){CFG.ts=CFG.ts===18?28:CFG.ts===28?45:18;saveCfg();beep(500)}else if(k==='easy'){CFG.easy^=1;saveCfg();beep(500)}
+ else if(k==='diary'){S='diary'}
+ else if(k==='del'){if(saved){if(od){try{localStorage.removeItem('elyndra_save')}catch(e){}saved=null}else optDel=1}}
+ else{S=optBack;ptr=null;P0=null}})}
+function drawOpt(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('OPÇÕES',W/2,16,'#d9c8ff',18,'center');optItems().forEach(([n,k],i)=>{box(90,30+i*26,300,23,k==='del'&&optDel?'#ff4d6d':'#8d80b3');tx(n,240,46+i*26,'#fff',13,'center')})}
+const CHN=['Prólogo','Capítulo 1 — Raiz Velha','Capítulo 2 — Vila das Cinzas','Capítulo 3 — Cidade dos Espelhos','Capítulo 4 — Casa dos Herdeiros','Capítulo 5 — Olimpo Partido','Capítulo 6 — Mortalha','Capítulo 7 — Vazio','Capítulo 8 — O Núcleo'];
+function diaryObj(){const n=Object.keys(C2.cl||{}).length;if(optBack==='explore')return'Reunir os pontos de amizade ('+F.pts+'/3).';const c=C2.ch;
+ if(c===1)return !F.tobias?'Conversar com quem está no acampamento.':!C2.open?'Abrir a Passagem das Raízes.':'Seguir para a Câmara do Guardião.';
+ if(c===2)return n<3?'Ouvir os moradores da vila ('+n+'/3 pistas).':!C2.told?'Falar com Kael.':'Seguir a trilha leste.';
+ if(c===3)return !F.iris?'Falar com os moradores da praça.':!C2.open?'Examinar os documentos do Arquivo ('+n+'/3).':'Seguir até o Salão de Morpheus.';
+ if(c===4)return !C2.hl?'Conversar com quem está no jardim.':!C2.open?'Atravessar o jantar da família ('+(C2.dn||0)+'/3).':!C2.jt?'Falar com Judas no escritório.':'Enfrentar a família no salão.';
+ if(c===8)return !C2.fl0?'Falar com Floris no limiar do Núcleo.':!C2.open?'Ler os registros da profecia ('+(C2.rc||0)+'/3).':!C2.rv?'Atravessar a Ponte do Núcleo.':!C2.pd?'Enfrentar o Primeiro Autor.':'Decidir o destino do Núcleo.';if(c===7)return !C2.open?'Examinar os registros do Arquivo Sem Nome ('+(C2.rc||0)+'/3).':!C2.ir?'Examinar a estrutura de registros no corredor.':!C2.dg?'Examinar a gravação na Sala dos Modelos.':!C2.eh?'Atravessar a defesa do sistema.':'Examinar os arquivos ('+Object.keys(C2.fl||{}).length+'/3).';if(c===6)return !C2.cl.P?'Ouvir quem espera na margem das almas.':!C2.open?'Responder ao guardião dos registros.':!C2.hd?'Enfrentar Hades no trono.':'Atravessar a passagem antes que ela se feche.';const nd=Object.keys(C2.dr||{}).length;return n<2?'Ouvir Athena e Prometheus ('+n+'/2).':!C2.open?'Enfrentar Zeus no Salão do Trono.':nd<2?'Ouvir os dracônicos no terraço ('+nd+'/2).':'Descer a escadaria.'}
+function updDiary(){if(tap){S='opt';ptr=null;P0=null}}
+function drawDiary(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('DIÁRIO',W/2,34,'#d9c8ff',20,'center');
+ const ch=optBack==='explore'?CHN[0]:CHN[C2.ch],lc=optBack==='explore'?'RAIZ VELHA':RN[C2.room],gp=[!F.jfall&&'Jordana',F.tobias&&'Tobias',F.kaelIn&&'Kael',F.iris&&'Íris',F.dante&&'Dante',F.helenaIn&&'Helena'].filter(Boolean).join(', ');
+ tx(ch,40,70,'#ffe98a',14);tx('Local: '+lc,40,98,'#d9d2ea',13);tx('Objetivo:',40,128,'#8d80b3',12);wr(diaryObj(),40,148,400,17,999);tx('Grupo: '+gp,40,200,'#d9d2ea',13);if(F.tobiasKeep)wr('Lembrança: o apito de madeira de Tobias. Ele o usava para chamar as crianças do acampamento.',40,222,400,14,999,'#c9b48a');tx('toque para voltar',W/2,255,'#6c6290',12,'center')}
+function drawGear(){if(D)return;g.fillStyle='rgba(0,0,0,.5)';g.fillRect(446,4,28,22);g.fillStyle='#b9a8d8';for(let i=0;i<3;i++)g.fillRect(452,10+i*5,16,2)}
+/* ---------- prólogo ---------- */
+const PRO=['Há muito tempo, humanos e monstros lutaram.','Dizem que os humanos venceram. Dizem que os monstros foram esquecidos.','Dizem que uma barreira foi criada para proteger o mundo.','Ninguém concorda sobre quem ela protegia.','Uma criança olhou para o céu e viu uma estrela desaparecer.','Hoje, perto de uma fenda...','O chão cede.'];
+let pi=0,pt=0;
+function startPro(){S='pro';pi=0;pt=0}
+function updPro(dt){pt+=dt;if(tap&&pt>1.2){pi++;pt=0;beep(260,.05);if(pi>=PRO.length)startExplore()}}
+function drawPro(){g.fillStyle='#000';g.fillRect(0,0,W,H);const a=Math.min(1,pt*.8);g.globalAlpha=a;
+ if(pi===4){g.fillStyle='#fff';g.fillRect(300+(pt*6),60+pt*4,2,2)}
+ if(pi===6){g.fillStyle='#2a1c14';g.fillRect(0,180+pt*60,W,90)}
+ g.globalAlpha=a;wr(PRO[pi],70,130,340,20,999,'#d9d2ea');g.globalAlpha=1;tx('toque para continuar',W/2,255,'#4d4570',11,'center')}
+/* ---------- exploração ---------- */
+const WALLS=[[0,0,480,28],[0,242,480,28],[0,0,24,270],[456,0,24,270],[120,90,40,70],[260,150,50,30],[380,60,36,60],[200,40,30,30]];
+const pl={x:50,y:200,dir:0,mv:false,fr:0};let pts=[],fl={x:330,y:110},ex={t:0};
+function hit(x,y){for(const[a,b,w,h]of WALLS)if(x<a+w&&x+10>a&&y<b+h&&y+10>b)return true;return false}
+function startExplore(){S='explore';pl.x=50;pl.y=200;pts=[[100,60],[220,200],[400,200]].filter((_,i)=>i>=F.pts);F.pts=Math.min(F.pts,3);ex.t=0;save('raiz');
+ say([['Narração','Você desperta entre raízes antigas. O silêncio pesa.'],['Floris','Olá, olá! Que susto! Eu sou Floris, a flor mais amigável de Elyndra.'],['Floris','Eu ensino a sobreviver aqui. Toque nas partículas de luz: são pontos de amizade!'],['Narração','Arraste o dedo na tela (ou use WASD / setas) para andar.']])}
+function updExplore(dt){ex.t+=dt;if(dlg(dt))return;if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8){d={x:dx/m,y:dy/m}}}
+ setMove(d,dt);const sp=58*dt;if(!hit(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
+ for(let i=pts.length-1;i>=0;i--){if(Math.hypot(pts[i][0]-pl.x-5,pts[i][1]-pl.y-5)<12){pts.splice(i,1);F.pts++;beep(880,.1);
+  if(F.pts<3)say([['Floris',F.pts===1?'Isso! Continue assim!':'Quase lá! Mais um!']]);
+  else say([['Floris','Muito bem... pontos de amizade. Todos para mim.'],['Floris','Sabe o que é engraçado? Almas não precisam de dono. Mas eu preciso da sua.']],()=>{F.evil=true;startBattle()})}}}
+function drawExplore(){if(!tileFill(0,0,0,0,W,H)){g.fillStyle='#10201a';g.fillRect(0,0,W,H);g.fillStyle='#16291f';for(let i=0;i<60;i++)g.fillRect((i*83)%480,(i*47)%270,6,2)}
+ for(const[a,b,w,h]of WALLS){if(!tileFill(0,1,a,b,w,h)){g.fillStyle='#3a2a1d';g.fillRect(a,b,w,h)}g.fillStyle='#5a4230';g.fillRect(a,b,w,3)}
+ for(const[x,y]of pts){g.fillStyle='rgba(255,240,150,'+(.6+.4*Math.sin(T*5))+')';g.beginPath();g.arc(x,y,4,0,7);g.fill()}
+ floris(fl.x,fl.y,1);drawPlayer(pl.x,pl.y);
+ if(ex.t<3){g.globalAlpha=Math.min(1,3-ex.t);tx('RAIZ VELHA',W/2,60,'#d9c8ff',22,'center');g.globalAlpha=1}
+ tx('Pontos de amizade: '+F.pts+'/3',12,262,'#ffe98a',11);
+ if(ptr&&P0&&!D){g.strokeStyle='rgba(255,255,255,.3)';g.lineWidth=2;g.beginPath();g.arc(P0.x,P0.y,24,0,7);g.stroke();g.fillStyle='rgba(255,255,255,.4)';g.beginPath();g.arc(P0.x+Math.max(-24,Math.min(24,ptr.x-P0.x)),P0.y+Math.max(-24,Math.min(24,ptr.y-P0.y)),9,0,7);g.fill()}
+ drawGear();dbox()}
+/* -
