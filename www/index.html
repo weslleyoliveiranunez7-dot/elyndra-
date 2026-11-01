@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ELYNDRA — v1.8</title>
+<style>
+:root{box-sizing:border-box;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;height:100%;background:#0a0910;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif}
+canvas{width:100%;max-height:100%;aspect-ratio:16/9;touch-action:none;background:#000;image-rendering:pixelated}
+#hint{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;text-align:center;color:#b9a8d8;font-size:13px;pointer-events:none}
+@media (orientation:portrait){#hint{display:block}}
+</style></head><body>
+<div id="hint">Gire o celular para jogar na horizontal</div>
+<canvas id="c" width="480" height="270"></canvas>
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d'),W=480,H=270;
+const FONT='13px ui-monospace,Menlo,Consolas,monospace';
+let S='fones',T=0,K={},ptr=null,P0=null,tap=false,drag={x:0,y:0},D=null,saved=null;
+const F={pts:0,evil:false,jordana:false};
+const COL={Floris:'#ffd84a',Jordana:'#9fd7ff','Narração':'#a99ec4'};
+try{saved=JSON.parse(localStorage.getItem('elyndra_save'))}catch(e){}
+const CFG={snd:1,vib:1,ts:28,easy:0,mv:.8,sv:.9};try{Object.assign(CFG,JSON.parse(localStorage.getItem('elyndra_cfg'))||{})}catch(e){}
+function saveCfg(){try{localStorage.setItem('elyndra_cfg',JSON.stringify(CFG))}catch(e){}}
+function save(stage){try{sfx('ui_salvar',{v:.6})}catch(e){}saved={v:2,ver:'1.5',stage,F:{...F}};try{localStorage.setItem('elyndra_save',JSON.stringify(saved))}catch(e){}}
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const AC=window.AudioContext?new AudioContext():null;
+function beep(f){try{sfx(f>=850?'ui_item_pegar':f===500?'ui_confirmar':f===260?'ui_virar_pagina':'ui_selecionar',{v:.7,var:.03})}catch(e){}}
+const vib=n=>{try{CFG.vib&&navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+cv.addEventListener('pointerdown',e=>{try{AC&&AC.resume()}catch(_){}ptr=pos(e);P0={...ptr};tap=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+cv.addEventListener('pointermove',e=>{if(!ptr)return;const p=pos(e);drag.x+=p.x-ptr.x;drag.y+=p.y-ptr.y;ptr=p});
+['pointerup','pointercancel'].forEach(n=>cv.addEventListener(n,()=>{ptr=null;P0=null}));
+addEventListener('keydown',e=>{K[e.key.toLowerCase()]=1;if(e.key===' '||e.key==='Enter'||e.key.toLowerCase()==='e')tap=true});
+addEventListener('keyup',e=>{K[e.key.toLowerCase()]=0});
+function dirKeys(){return{x:(K.arrowright||K.d?1:0)-(K.arrowleft||K.a?1:0),y:(K.arrowdown||K.s?1:0)-(K.arrowup||K.w?1:0)}}
+function inRect(p,x,y,w,h){return p&&p.x>=x&&p.x<=x+w&&p.y>=y&&p.y<=y+h}
+/* ---------- texto ---------- */
+function tx(t,x,y,c='#fff',sz=13,al='left'){g.font=sz+'px ui-monospace,Menlo,Consolas,monospace';g.fillStyle=c;g.textAlign=al;g.textBaseline='alphabetic';g.fillText(t,x,y)}
+function wl(t,w){const r=[];let l='';for(const wd of t.split(' ')){const tr=l?l+' '+wd:wd;if(g.measureText(tr).width>w&&l){r.push(l);l=wd}else l=tr}r.push(l);return r}
+function wr(t,x,y,w,lh,n,c='#e8e2f5'){g.font=FONT;g.fillStyle=c;g.textAlign='left';let k=n;for(const l of wl(t,w)){if(k<=0)break;g.fillText(l.slice(0,k),x,y);k-=l.length+1;y+=lh}}
+function box(x,y,w,h,c='#fff'){g.fillStyle='#07060c';g.fillRect(x,y,w,h);g.strokeStyle=c;g.lineWidth=2;g.strokeRect(x+1,y+1,w-2,h-2)}
+/* ---------- diálogo ---------- */
+function say(l,cb){D={l,i:0,n:0,cb}}
+function dlg(dt){if(!D)return false;const L=D.l[D.i][1];const old=D.n|0;D.n=Math.min(L.length,D.n+dt*CFG.ts);if((D.n|0)!==old&&(D.n|0)%3===0)voz(D.l[D.i][0]);
+ if(tap){if(D.n<L.length)D.n=L.length;else{D.i++;D.n=0;if(D.i>=D.l.length){const cb=D.cb;D=null;cb&&cb()}}}return true}
+function dbox(){if(!D)return;const[s,t,fc]=D.l[D.i];box(10,188,460,76,COL[s]||FCOL[FALIAS[s]||s]||'#fff');const fi=s==='Jordana'||s==='Narração'?-1:FN.indexOf(s==='Floris'?(F.evil?'Floris!':'Floris'):(FALIAS[s]||s)),pf=(s==='Jordana'&&IMG.jordana_face)||(fi>=0&&IMG.faces);if(s==='Jordana'&&pf)spr('jordana_face',(fc|0)*48,0,48,48,20,202);else if(pf)spr('faces',fi*48,0,48,48,20,202);const tx0=pf?76:22;tx(s,tx0,208,COL[s]||FCOL[FALIAS[s]||s]||'#fff');wr(t,tx0,228,pf?386:436,17,D.n|0);if(D.n>=t.length)tx('▼',452,256,'#888')}
+/* ---------- personagens ---------- */
+function floris(x,y,s=1,a=1){if(flSpr(x,y,s,a))return;g.globalAlpha=a;g.fillStyle='#2f7a3c';g.fillRect(x-2*s,y+10*s,4*s,26*s);g.fillRect(x-14*s,y+22*s,12*s,4*s);g.fillRect(x+2*s,y+28*s,12*s,4*s);
+ g.fillStyle=F.evil?'#ff9a3c':'#ffd84a';for(let i=0;i<8;i++){const an=i*Math.PI/4;g.beginPath();g.arc(x+Math.cos(an)*13*s,y+Math.sin(an)*13*s,7*s,0,7);g.fill()}
+ g.fillStyle='#f2b84b';g.beginPath();g.arc(x,y,10*s,0,7);g.fill();g.fillStyle=F.evil?'#b3001b':'#2b1b0e';g.fillRect(x-5*s,y-4*s,3*s,4*s);g.fillRect(x+2*s,y-4*s,3*s,4*s);
+ if(F.evil){g.fillStyle='#fff';g.fillRect(x-6*s,y+3*s,12*s,3*s)}else g.fillRect(x-4*s,y+3*s,8*s,2*s);g.globalAlpha=1}
+/* ---------- SPRITES v1.6 (img/*.png; sem a imagem, o jogo cai no desenho antigo) ---------- */
+g.imageSmoothingEnabled=false;
+const IMG={};['prot','npc','floris','faces','jordana','jordana_face','jordana_bat','tiles'].forEach(n=>{const i=new Image();i.onload=()=>{IMG[n]=i};i.src='img/'+n+'.png'});
+const NPN=['Anubis','Aro','Athena','Bento','Cain','Dante','Dom','Erro Original','Guardião','Hades','Helena','Herdeiros','Joca','Judas','Kael','Lúcia','Matriarca','Mira','Morpheus','Nilo','Persephone','Primeiro Autor','Prometheus','Rainha','Rufo','Sira','Tobias','Vael','Vera','Zeus','Íris'];
+const FN=['Você','Anubis','Aro','Athena','Bento','Cain','Dante','Dom','Erro Original','Guardião','Hades','Helena','Herdeiros','Joca','Judas','Kael','Lúcia','Matriarca','Mira','Morpheus','Nilo','Persephone','Primeiro Autor','Prometheus','Rainha','Rufo','Sira','Tobias','Vael','Vera','Zeus','Íris','Floris','Floris!'],FALIAS={'Os Herdeiros':'Herdeiros'},FCOL={'Vera': '#c98b6a', 'Dom': '#7a8aa0', 'Bento': '#6a8a5a', 'Kael': '#d9482f', 'Cain': '#8a8a99', 'Mira': '#c9a06a', 'Joca': '#6a8aa0', 'Tobias': '#8a6a3a', 'Aro': '#9a9a9a', 'Guardião': '#4a6a3a', 'Lúcia': '#e0b84a', 'Rufo': '#6a8aa0', 'Íris': '#7a5ac8', 'Dante': '#3a8a8a', 'Morpheus': '#2a2050', 'Helena': '#d98ca8', 'Matriarca': '#a86a6a', 'Judas': '#8a7a66', 'Herdeiros': '#3a2a50', 'Athena': '#9fd0ff', 'Prometheus': '#ff9a5a', 'Zeus': '#ffe066', 'Sira': '#ff8a6a', 'Vael': '#d95a5a', 'Persephone': '#7ed8a0', 'Anubis': '#d4b050', 'Hades': '#3a3060', 'Nilo': '#9a9ab0', 'Erro Original': '#7a6a8a', 'Primeiro Autor': '#e8d9ff', 'Rainha': '#d58cff', 'Você': '#67a4e0'};
+function spr(k,sx,sy,sw,sh,dx,dy,flip,sc){const im=IMG[k];if(!im)return false;sc=sc||1;dx=Math.round(dx);dy=Math.round(dy);if(flip){g.save();g.translate(dx+sw*sc,dy);g.scale(-1,1);g.drawImage(im,sx,sy,sw,sh,0,0,sw*sc,sh*sc);g.restore()}else g.drawImage(im,sx,sy,sw,sh,dx,dy,sw*sc,sh*sc);return true}
+const TPAT={};
+function tileFill(ch,col,x,y,w,h){const im=IMG.tiles;if(!im)return false;const k=ch+'_'+col;let p=TPAT[k];if(!p){const c=document.createElement('canvas');c.width=c.height=16;c.getContext('2d').drawImage(im,col*16,ch*16,16,16,0,0,16,16);p=TPAT[k]=g.createPattern(c,'repeat')}g.save();g.beginPath();g.rect(x,y,w,h);g.clip();g.fillStyle=p;g.fillRect(x,y,w,h);g.restore();return true}
+function setMove(d,dt){const m=d.x||d.y;pl.mv=!!m;if(m){pl.dir=Math.abs(d.x)>Math.abs(d.y)?(d.x<0?1:3):(d.y<0?2:0);pl.fr+=dt*7}else pl.fr=0}
+const TRL=[];function trail(){const l=TRL[TRL.length-1];if(l&&Math.hypot(l.x-pl.x,l.y-pl.y)>40)TRL.length=0;if(!l||TRL.length===0||Math.hypot(l.x-pl.x,l.y-pl.y)>=2){TRL.push({x:pl.x,y:pl.y,dir:pl.dir});if(TRL.length>40)TRL.shift()}}
+function drawPlayer(x,y){const fr=pl.mv?(Math.floor(pl.fr)%4):0,d=pl.dir,row=d===1||d===3?1:d===2?2:0;if(!spr('prot',fr*20,row*30,20,30,x+5-10,y+12-30,d===3))child(x,y)}
+function jfPos(){const t=TRL.length>9?TRL[TRL.length-9]:null;return{x:t?t.x:pl.x-14,y:t?t.y:pl.y,dir:t?t.dir:pl.dir}}
+function drawJordF(j){const row=pl.mv&&Math.floor(pl.fr)%2?1:0;if(!spr('jordana',j.dir*28,row*38,28,38,j.x+5-14,j.y+12-38))jordana(pl.x-14,pl.y-24)}
+function npcSpr(n,x,y){if(n==='Floris')return flSpr(x+5,y+8,1,1);if(n==='Jordana')return spr('jordana',0,0,28,38,x+5-14,y+14-38);if(n==='Erro Original'){erro(x+5,y);return true}const i=NPN.indexOf(n);if(i<0||!IMG.npc)return false;spr('npc',(Math.floor(T*1.5+i)%2)*20,i*30,20,30,x+5-10,y+14-30);if(n==='Kael'){g.fillStyle='#ffb36b';g.fillRect(Math.round(x-1),Math.round(y-19),3,5);g.fillRect(Math.round(x+8),Math.round(y-19),3,5)}return true}
+function flSpr(x,y,s,a){if(!IMG.floris)return false;const sc=s>=1.2?2:1,f=(F.evil?2:0)+Math.floor(T*2)%2;g.globalAlpha=a;spr('floris',f*32,0,32,40,x-16*sc,y-16*sc,false,sc);g.globalAlpha=1;return true}
+function jordBat(x,y,a){const im=IMG.jordana_bat;if(!im)return jordana(x,y,a);g.globalAlpha=a;spr('jordana_bat',0,0,im.width,im.height,x-im.width/2,y-4);g.globalAlpha=1}
+function bigSpr(n,x,y){const i=NPN.indexOf(n);if(i<0||!IMG.npc)return false;spr('npc',(Math.floor(T*1.5)%2)*20,i*30,20,30,x-20,y+48-60,false,2);return true}
+function child(x,y){g.fillStyle='#5a4fa8';g.fillRect(x,y+4,10,8);g.fillStyle='#f1c9a0';g.fillRect(x+1,y,8,6);g.fillStyle='#2a1c14';g.fillRect(x+1,y,8,2)}
+function jordana(x,y,a=1){g.globalAlpha=a;g.fillStyle='#1b1830';g.fillRect(x-9,y+10,18,34);g.fillStyle='#9fd7ff';g.fillRect(x-9,y+10,18,3);g.fillStyle='#d9d2ea';g.fillRect(x-6,y-4,12,14);g.fillStyle='#9fd7ff';g.fillRect(x-4,y+1,3,2);g.fillRect(x+1,y+1,3,2);g.globalAlpha=1}
+/* ---------- título ---------- */
+const stars=Array.from({length:50},(_,i)=>[(i*97)%480,(i*53)%270,i%3+1]);
+function unlocked(){try{return localStorage.getItem('elyndra_unlock')==='1'}catch(e){return false}}
+function menuItems(){const m=saved?['Novo jogo','Continuar','Opções']:['Novo jogo','Opções'];if(unlocked())m.push('Modo Genocide');return m}
+function resetF(){Object.assign(F,{pts:0,evil:false,jordana:false,tobias:0,kaelIn:0,iris:0,dante:0,kael:-1,cain:-1,morph:-1,guardSpared:false,hrel:0,judas:-1,tj:0,trusted_judas:0,debt:0,hpress:-1,helenaIn:0,kaelDead:0,tobiasDead:0,tobiasKeep:0,tobias_memory_kept:0,anubis:-1,iris_records_found:0,dante_family_truth:0,author_records_found:0,irisGone:0,danteGone:0,irisDiary:0,gods:0,route:'',jfall:0,prophecy_read:0,jordana_truth_known:0,sacrifice_understood:0,route_sacrifice:0,floris8:0,pa_defeated:0});M3={hp:20,hard:0}}
+function cont(){if(saved.F)Object.assign(F,saved.F);GEN=!!F.gen;const t=saved.stage;if(t==='fim8')startE8();else if(t==='cap8')startC8();else if(t==='fim7'){S='end7';T=0}else if(t==='cap7')startC7();else if(t==='fim6'){S='end6';T=0}else if(t==='cap6')startC6();else if(t==='fim5'){S='end5';T=0}else if(t==='cap5')startC5();else if(t==='fim4'){S='end4';T=0}else if(t==='cap4')startC4();else if(t==='fim3'){S='end3';T=0}else if(t==='fim2'||t==='cap3')startC3();else if(t==='fim'||t==='cap1')startC1();else if(t==='cap2')startC2();else startExplore()}
+function updTitle(){if(tap){menuItems().forEach((n,i)=>{if(inRect(ptr,170,130+i*32,140,30)){beep(440);if(n==='Novo jogo'){sfx('ui_novo_jogo');resetF();F.gen=0;GEN=false;startPro()}else if(n==='Modo Genocide'){sfx('ui_genocide_ativar');resetF();F.gen=1;GEN=true;startPro()}else if(n==='Continuar')cont();else openOpt()}})}}
+function drawTitle(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);for(const[x,y,s]of stars){g.fillStyle=(T*2+x)%7<1?'#fff':'#6a5fa0';g.fillRect(x,y,s,s)}
+ tx('ELYNDRA',W/2,92,'#d9c8ff',46,'center');tx('v1.5 — som completo, rotas e finais',W/2,118,'#8d80b3',13,'center');
+ menuItems().forEach((n,i)=>{box(170,130+i*32,140,30,n==='Modo Genocide'?'#ff2a4d':'#8d80b3');tx(n,240,150+i*32,n==='Modo Genocide'?'#ff6a80':'#fff',14,'center')});
+ tx('Toque numa opção para começar',W/2,262,'#6c6290',11,'center')}
+/* ---------- opções ---------- */
+let optBack='title',optDel=0;const TSN={18:'lento',28:'normal',45:'rápido'};
+function openOpt(){optBack=S;optDel=0;S='opt'}
+function optItems(){const L=[['Som: '+(CFG.snd?'ligado':'desligado'),'snd'],['Vibração: '+(CFG.vib?'ligada':'desligada'),'vib'],['Texto: '+TSN[CFG.ts],'ts'],['Dano nas batalhas: '+(CFG.easy?'reduzido':'normal'),'easy'],['Música: '+Math.round(CFG.mv*100)+'%','mv'],['Efeitos: '+Math.round(CFG.sv*100)+'%','sv']];
+ if(optBack==='explore'||optBack==='c2')L.push(['Diário','diary']);
+ L.push([saved?(optDel?'Toque de novo para apagar':'Apagar progresso salvo'):'Nenhum progresso salvo','del'],['Voltar','back']);return L}
+function updOpt(){if(!tap)return;const od=optDel;optDel=0;optItems().forEach(([n,k],i)=>{if(!inRect(ptr,90,30+i*26,300,23))return;
+ if(k==='mv'){CFG.mv=CFG.mv>.85?.7:CFG.mv>.55?.4:CFG.mv>.1?0:1;saveCfg()}else if(k==='sv'){CFG.sv=CFG.sv>.85?.7:CFG.sv>.55?.4:CFG.sv>.1?0:1;saveCfg();beep(500)}else if(k==='snd'){CFG.snd^=1;saveCfg();beep(500)}else if(k==='vib'){CFG.vib^=1;saveCfg();vib(60)}else if(k==='ts'){CFG.ts=CFG.ts===18?28:CFG.ts===28?45:18;saveCfg();beep(500)}else if(k==='easy'){CFG.easy^=1;saveCfg();beep(500)}
+ else if(k==='diary'){S='diary'}
+ else if(k==='del'){if(saved){if(od){try{localStorage.removeItem('elyndra_save')}catch(e){}saved=null}else optDel=1}}
+ else{S=optBack;ptr=null;P0=null}})}
+function drawOpt(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('OPÇÕES',W/2,16,'#d9c8ff',18,'center');optItems().forEach(([n,k],i)=>{box(90,30+i*26,300,23,k==='del'&&optDel?'#ff4d6d':'#8d80b3');tx(n,240,46+i*26,'#fff',13,'center')})}
+const CHN=['Prólogo','Capítulo 1 — Raiz Velha','Capítulo 2 — Vila das Cinzas','Capítulo 3 — Cidade dos Espelhos','Capítulo 4 — Casa dos Herdeiros','Capítulo 5 — Olimpo Partido','Capítulo 6 — Mortalha','Capítulo 7 — Vazio','Capítulo 8 — O Núcleo'];
+function diaryObj(){const n=Object.keys(C2.cl||{}).length;if(optBack==='explore')return'Reunir os pontos de amizade ('+F.pts+'/3).';const c=C2.ch;
+ if(c===1)return !F.tobias?'Conversar com quem está no acampamento.':!C2.open?'Abrir a Passagem das Raízes.':'Seguir para a Câmara do Guardião.';
+ if(c===2)return n<3?'Ouvir os moradores da vila ('+n+'/3 pistas).':!C2.told?'Falar com Kael.':'Seguir a trilha leste.';
+ if(c===3)return !F.iris?'Falar com os moradores da praça.':!C2.open?'Examinar os documentos do Arquivo ('+n+'/3).':'Seguir até o Salão de Morpheus.';
+ if(c===4)return !C2.hl?'Conversar com quem está no jardim.':!C2.open?'Atravessar o jantar da família ('+(C2.dn||0)+'/3).':!C2.jt?'Falar com Judas no escritório.':'Enfrentar a família no salão.';
+ if(c===8)return !C2.fl0?'Falar com Floris no limiar do Núcleo.':!C2.open?'Ler os registros da profecia ('+(C2.rc||0)+'/3).':!C2.rv?'Atravessar a Ponte do Núcleo.':!C2.pd?'Enfrentar o Primeiro Autor.':'Decidir o destino do Núcleo.';if(c===7)return !C2.open?'Examinar os registros do Arquivo Sem Nome ('+(C2.rc||0)+'/3).':!C2.ir?'Examinar a estrutura de registros no corredor.':!C2.dg?'Examinar a gravação na Sala dos Modelos.':!C2.eh?'Atravessar a defesa do sistema.':'Examinar os arquivos ('+Object.keys(C2.fl||{}).length+'/3).';if(c===6)return !C2.cl.P?'Ouvir quem espera na margem das almas.':!C2.open?'Responder ao guardião dos registros.':!C2.hd?'Enfrentar Hades no trono.':'Atravessar a passagem antes que ela se feche.';const nd=Object.keys(C2.dr||{}).length;return n<2?'Ouvir Athena e Prometheus ('+n+'/2).':!C2.open?'Enfrentar Zeus no Salão do Trono.':nd<2?'Ouvir os dracônicos no terraço ('+nd+'/2).':'Descer a escadaria.'}
+function updDiary(){if(tap){S='opt';ptr=null;P0=null}}
+function drawDiary(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('DIÁRIO',W/2,34,'#d9c8ff',20,'center');
+ const ch=optBack==='explore'?CHN[0]:CHN[C2.ch],lc=optBack==='explore'?'RAIZ VELHA':RN[C2.room],gp=[!F.jfall&&'Jordana',F.tobias&&'Tobias',F.kaelIn&&'Kael',F.iris&&'Íris',F.dante&&'Dante',F.helenaIn&&'Helena'].filter(Boolean).join(', ');
+ tx(ch,40,70,'#ffe98a',14);tx('Local: '+lc,40,98,'#d9d2ea',13);tx('Objetivo:',40,128,'#8d80b3',12);wr(diaryObj(),40,148,400,17,999);tx('Grupo: '+gp,40,200,'#d9d2ea',13);if(F.tobiasKeep)wr('Lembrança: o apito de madeira de Tobias. Ele o usava para chamar as crianças do acampamento.',40,222,400,14,999,'#c9b48a');tx('toque para voltar',W/2,255,'#6c6290',12,'center')}
+function drawGear(){if(D)return;g.fillStyle='rgba(0,0,0,.5)';g.fillRect(446,4,28,22);g.fillStyle='#b9a8d8';for(let i=0;i<3;i++)g.fillRect(452,10+i*5,16,2)}
+/* ---------- prólogo ---------- */
+const PRO=['Há muito tempo, humanos e monstros lutaram.','Dizem que os humanos venceram. Dizem que os monstros foram esquecidos.','Dizem que uma barreira foi criada para proteger o mundo.','Ninguém concorda sobre quem ela protegia.','Uma criança olhou para o céu e viu uma estrela desaparecer.','Hoje, perto de uma fenda...','O chão cede.'];
+let pi=0,pt=0;
+function startPro(){S='pro';pi=0;pt=0}
+function updPro(dt){pt+=dt;if(tap&&pt>1.2){pi++;pt=0;beep(260,.05);if(pi>=PRO.length)startExplore()}}
+function drawPro(){g.fillStyle='#000';g.fillRect(0,0,W,H);const a=Math.min(1,pt*.8);g.globalAlpha=a;
+ if(pi===4){g.fillStyle='#fff';g.fillRect(300+(pt*6),60+pt*4,2,2)}
+ if(pi===6){g.fillStyle='#2a1c14';g.fillRect(0,180+pt*60,W,90)}
+ g.globalAlpha=a;wr(PRO[pi],70,130,340,20,999,'#d9d2ea');g.globalAlpha=1;tx('toque para continuar',W/2,255,'#4d4570',11,'center')}
+/* ---------- exploração ---------- */
+const WALLS=[[0,0,480,28],[0,242,480,28],[0,0,24,270],[456,0,24,270],[120,90,40,70],[260,150,50,30],[380,60,36,60],[200,40,30,30]];
+const pl={x:50,y:200,dir:0,mv:false,fr:0};let pts=[],fl={x:330,y:110},ex={t:0};
+function hit(x,y){for(const[a,b,w,h]of WALLS)if(x<a+w&&x+10>a&&y<b+h&&y+10>b)return true;return false}
+function startExplore(){S='explore';pl.x=50;pl.y=200;pts=[[100,60],[220,200],[400,200]].filter((_,i)=>i>=F.pts);F.pts=Math.min(F.pts,3);ex.t=0;save('raiz');
+ say([['Narração','Você desperta entre raízes antigas. O silêncio pesa.'],['Floris','Olá, olá! Que susto! Eu sou Floris, a flor mais amigável de Elyndra.'],['Floris','Eu ensino a sobreviver aqui. Toque nas partículas de luz: são pontos de amizade!'],['Narração','Arraste o dedo na tela (ou use WASD / setas) para andar.']])}
+function updExplore(dt){ex.t+=dt;if(dlg(dt))return;if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8){d={x:dx/m,y:dy/m}}}
+ setMove(d,dt);const sp=58*dt;if(!hit(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
+ for(let i=pts.length-1;i>=0;i--){if(Math.hypot(pts[i][0]-pl.x-5,pts[i][1]-pl.y-5)<12){pts.splice(i,1);F.pts++;beep(880,.1);
+  if(F.pts<3)say([['Floris',F.pts===1?'Isso! Continue assim!':'Quase lá! Mais um!']]);
+  else say([['Floris','Muito bem... pontos de amizade. Todos para mim.'],['Floris','Sabe o que é engraçado? Almas não precisam de dono. Mas eu preciso da sua.']],()=>{F.evil=true;startBattle()})}}}
+function drawExplore(){if(!tileFill(0,0,0,0,W,H)){g.fillStyle='#10201a';g.fillRect(0,0,W,H);g.fillStyle='#16291f';for(let i=0;i<60;i++)g.fillRect((i*83)%480,(i*47)%270,6,2)}
+ for(const[a,b,w,h]of WALLS){if(!tileFill(0,1,a,b,w,h)){g.fillStyle='#3a2a1d';g.fillRect(a,b,w,h)}g.fillStyle='#5a4230';g.fillRect(a,b,w,3)}
+ for(const[x,y]of pts){g.fillStyle='rgba(255,240,150,'+(.6+.4*Math.sin(T*5))+')';g.beginPath();g.arc(x,y,4,0,7);g.fill()}
+ floris(fl.x,fl.y,1);drawPlayer(pl.x,pl.y);
+ if(ex.t<3){g.globalAlpha=Math.min(1,3-ex.t);tx('RAIZ VELHA',W/2,60,'#d9c8ff',22,'center');g.globalAlpha=1}
+ tx('Pontos de amizade: '+F.pts+'/3',12,262,'#ffe98a',11);
+ if(ptr&&P0&&!D){g.strokeStyle='rgba(255,255,255,.3)';g.lineWidth=2;g.beginPath();g.arc(P0.x,P0.y,24,0,7);g.stroke();g.fillStyle='rgba(255,255,255,.4)';g.beginPath();g.arc(P0.x+Math.max(-24,Math.min(24,ptr.x-P0.x)),P0.y+Math.max(-24,Math.min(24,ptr.y-P0.y)),9,0,7);g.fill()}
+ drawGear();dbox()}
+/* ---------- combate ---------- */
+const A={x:170,y:96,w:140,h:84};let B=null;
+const ACTS=[['Lutar','Você não tem arma. Só Determinação, e ela não basta.'],['Agir','Você tenta conversar. Floris sorri com dentes demais.'],['Defender','Você se encolhe e se prepara. O próximo golpe dói menos.'],['Fugir','As raízes fecham o caminho. Não há para onde fugir.']];
+const NEXT=['Pétalas caem como lâminas.','As raízes se contorcem sob seus pés.','Floris não sorri mais.'];
+function startBattle(q){S='battle';J=null;D=null;B={q:q===true,g:q==='g',mo:q==='m',he:q==='h',z:q==='z',hd:q==='H',er:q==='E'||q==='P',pa:q==='P',hard:q==='m'&&M3.hard,hp:q==='m'?M3.hp:20,turn:0,ph:'menu',txt:GEN?'MODO GENOCIDE. Ele não quer mais ser convencido.':'Floris bloqueia o caminho.',t:0,sh:false,bul:[],sx:0,sy:0,inv:0,n:0}}
+function startDodge(){const b=B;b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn)}
+function updBattle(dt){const b=B;if(tap&&b.ph!=='over'&&inRect(ptr,440,0,40,30)){openOpt();return}
+ if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,10+i*118,222,110,36)){beep(500);b.txt=(b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1)b.agir=1;b.sh=i===2;b.ph='msg';b.t=0}})}
+ else if(b.ph==='msg'){b.t+=dt;if(b.t>3.2||(tap&&b.t>.8))startDodge()}
+ else if(b.ph==='dodge'){b.t+=dt;b.sp-=dt*(GEN?1.6:1)*rushMul();b.inv-=dt;const k=dirKeys();const iv=(b.mo||b.er)&&b.turn===1?-1:1;b.sx+=iv*(k.x*90*dt+drag.x);b.sy+=iv*(k.y*90*dt+drag.y);
+  b.sx=Math.max(A.x+4,Math.min(A.x+A.w-4,b.sx));b.sy=Math.max(A.y+4,Math.min(A.y+A.h-4,b.sy));const p=b.turn%3,r=b.r;if(b.g)gs(b,p,r);if(b.mo)ms(b,p,r);if(b.he)hs(b,p,r);if(b.z)zs(b,p,r);if(b.hd)hds(b,p,r);if(b.er)(b.pa?pas:hers)(b,p,r);if(b.q&&p<2)qs(b,p,r);
+  if(!b.q&&!b.g&&!b.mo&&!b.he&&!b.z&&!b.hd&&!b.er&&p===0&&b.sp<=0){b.sp=.42;b.bul.push({k:'b',x:A.x+r()*A.w,y:A.y-4,vx:(r()-.5)*30,vy:42+r()*18})}
+  if(!b.g&&!b.mo&&!b.he&&!b.z&&!b.hd&&!b.er&&(b.q?p===2:p===1)&&b.sp<=0){b.sp=1;const v=b.n++%2===0;b.bul.push(v?{k:'v',x:A.x+r()*(A.w-16),y:A.y,w:16,h:A.h,t:0}:{k:'v',x:A.x,y:A.y+r()*(A.h-14),w:A.w,h:14,t:0})}
+  if(!b.q&&!b.g&&!b.mo&&!b.he&&!b.z&&!b.hd&&!b.er&&p===2&&b.sp<=0){b.sp=1.3;const cx=A.x+r()*A.w,cy=A.y+10;for(let i=0;i<8;i++){const an=i*Math.PI/4+r()*.3;b.bul.push({k:'s',x:cx,y:cy,vx:Math.cos(an)*42,vy:Math.sin(an)*42})}}
+  for(let i=b.bul.length-1;i>=0;i--){const o=b.bul[i];let h=false;
+   if(o.k==='v'){o.t+=dt;if(o.t>1.3){b.bul.splice(i,1);continue}if(o.t>.8&&b.sx+3>o.x&&b.sx-3<o.x+o.w&&b.sy+3>o.y&&b.sy-3<o.y+o.h)h=true}
+   else{if(o.gr>0)o.gr-=dt;if(o.k==='d'){o.l-=dt;if(o.l<=0){for(const sg of[-1,1])b.bul.push({k:'b',x:o.x,y:o.y,vx:sg*34,vy:o.vy+14});b.bul.splice(i,1);continue}}if(o.k==='w'){o.l-=dt;if(o.l<=0){o.x=o.tx;o.y=o.ty;o.k='b';o.gr=.4;const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx=dx/m*40;o.vy=dy/m*40}}if(o.k==='x'){o.l-=dt;if(o.l<=0){for(let q=0;q<6;q++){const an=q*Math.PI/3;b.bul.push({k:'b',x:o.x,y:o.y,vx:Math.cos(an)*40,vy:Math.sin(an)*40})}b.bul.splice(i,1);continue}}if(o.k==='m'){o.l-=dt;if(o.l<=0){b.bul.splice(i,1);continue}const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx+=dx/m*70*dt;o.vy+=dy/m*70*dt;const v=Math.hypot(o.vx,o.vy);if(v>36){o.vx*=36/v;o.vy*=36/v}}const rm_=(GEN?1.3:1)*Math.min(1.5,Math.sqrt(rushMul()));o.x+=o.vx*dt*rm_;o.y+=o.vy*dt*rm_;if(o.x<A.x-10||o.x>A.x+A.w+10||o.y<A.y-10||o.y>A.y+A.h+10){b.bul.splice(i,1);continue}if(o.k!=='f'&&o.k!=='w'&&!(o.gr>0)&&Math.hypot(o.x-b.sx,o.y-b.sy)<6.5)h=true}
+   if(h&&b.inv<=0){b.hp-=CFG.easy?(b.sh?1:2):(b.sh?(GEN?3:2):(GEN?6:4));b.inv=1;beep(120,.15,.06);vib(40)}}
+  if(b.hp<=0){b.hp=0;b.ph='over';b.t=0}
+  else if(b.t>=7){b.turn++;if(b.turn>=3||b.hp<=6)(b.q?endQ():b.g?endG():b.mo?endM():b.he?endH():b.z?endZ():b.hd?endHd():b.er?(b.pa?endPa():endEr()):startJord());else{b.ph='menu';b.txt=(b.q?NQ:b.g?NG:b.mo?NM:b.he?NH:b.z?NZ:b.hd?NHD:b.er?(b.pa?NPA:NER):NEXT)[b.turn-1]||NEXT[2];b.sh=false}}}
+ else if(b.ph==='over'&&tap&&b.t++>0)startBattle(b.q?true:b.g?'g':b.mo?'m':b.he?'h':b.z?'z':b.hd?'H':b.er?(b.pa?'P':'E'):0)}
+function drawBattle(){const b=B;g.fillStyle='#0b0a12';g.fillRect(0,0,W,H);
+ if(b.q)queen(240,48);else if(b.g)guard(240,48);else if(b.mo)morph(240,48);else if(b.he)heirs(240,48);else if(b.z)zeus(240,48);else if(b.hd)hades(240,48);else if(b.er)(b.pa?autor:erro)(240,48);else floris(240,48,1.4,J&&J.fa!==undefined?J.fa:1);
+ box(A.x-2,A.y-2,A.w+4,A.h+4);
+ if(b.ph==='menu'||b.ph==='msg'){wr(b.txt,A.x+8,A.y+22,A.w-16,16,999)}
+ if(b.mo&&b.ph==='dodge'&&b.turn===2){g.fillStyle='rgba(120,90,160,.25)';g.fillRect(A.x+10,A.y+30,40,34);g.fillStyle='rgba(120,90,160,.45)';g.fillRect(A.x+22,A.y+44,8,20);g.fillRect(A.x+14,A.y+36,8,8);g.fillRect(A.x+100,A.y+36,8,8);tx('A lembrança está errada.',A.x+A.w/2,A.y+14,'#c9a0ff',10,'center')}
+ if(b.he&&b.ph==='dodge'&&b.turn===1&&b.t>3&&b.t<4)tx('A SALA MUDA',A.x+A.w/2,A.y+14,'#ffb36b',10,'center');
+ if((b.mo||b.er)&&b.ph==='dodge'&&b.turn===1)tx('CONTROLES INVERTIDOS',A.x+A.w/2,A.y+14,'#ff9ccb',10,'center');
+ if(b.ph==='dodge'||b.ph==='over'){for(const o of b.bul){if(o.k==='v'){if(o.t<.8){g.strokeStyle=Math.floor(o.t*10)%2?'#ff4d6d':'#7a2336';g.lineWidth=2;g.strokeRect(o.x,o.y,o.w,o.h)}else{g.fillStyle='#4fbf5f';g.fillRect(o.x,o.y,o.w,o.h)}}
+   else{g.globalAlpha=o.gr>0?.5:1;g.fillStyle=o.k==='w'?'rgba(213,140,255,.4)':o.k==='d'?'#ff5ad8':o.k==='f'?'rgba(180,140,255,.35)':o.k==='x'?'#ffd84a':o.k==='m'?'#b48cff':o.k==='b'?'#ff9ccb':'#c98b4a';g.beginPath();g.arc(o.x,o.y,3.5,0,7);g.fill();g.globalAlpha=1;if(o.k==='w'&&o.l<.5){g.strokeStyle='#ff5ad8';g.lineWidth=1;g.beginPath();g.arc(o.x,o.y,7+Math.sin(T*30)*2,0,7);g.stroke()}if(o.k==='d'){g.strokeStyle='#ffc2f2';g.lineWidth=1;g.beginPath();g.arc(o.x,o.y,6,0,7);g.stroke()}}}
+  if(b.ph==='dodge'&&(b.inv<=0||Math.floor(T*14)%2)){g.fillStyle='#ff2a4d';g.fillRect(b.sx-3,b.sy-3,6,6);g.fillRect(b.sx-1,b.sy-4,2,1)}}
+ g.fillStyle='#ffd84a';tx('HP',12,214,'#fff',12);g.fillStyle='#7a1a2a';g.fillRect(36,204,100,10);g.fillStyle='#ffd84a';g.fillRect(36,204,Math.max(0,b.hp)*5,10);tx(b.hp+' / 20',144,214,'#fff',12);
+ ACTS.forEach((a,i)=>{const on=b.ph==='menu';box(10+i*118,222,110,36,on?'#ffa94d':'#4a4258');tx(a[0],65+i*118,245,on?'#ffa94d':'#4a4258',14,'center')});
+ if(b.ph==='over'){g.fillStyle='rgba(0,0,0,.8)';g.fillRect(0,0,W,H);tx('Levante-se.',W/2,120,'#ff4d6d',26,'center');tx('Sua Determinação ainda não acabou.',W/2,148,'#d9d2ea',13,'center');tx('toque para tentar de novo',W/2,180,'#8d80b3',12,'center')}
+  if(GEN)tx('MODO GENOCIDE',10,16,'#ff2a4d',11);if(S==='battle')drawGear();if(D)dbox()}
+/* ---------- Jordana ---------- */
+let J=null;
+function startJord(){S='jord';J={t:0,fa:1,ja:0,flee:false,done:false};B.ph='x';F.jordana=true;
+ say([['Jordana','Já chega, Floris.'],['Floris','Você?! Não é possível...'],['Floris','Isso não termina aqui, criança. Eu volto.']],()=>{J.flee=true});}
+function updJord(dt){J.t+=dt;if(!J.flee)J.ja=Math.min(1,J.ja+dt);
+ if(J.flee&&!J.done){J.fa=Math.max(0,J.fa-dt*.5);if(J.fa<=0){J.done=true;
+  say([['Jordana','Você não deveria estar aqui. Precisa encontrar uma saída.'],['Jordana','Alguém precisa impedir que você morra antes de entender onde caiu.']],()=>{startC1()})}}
+ dlg(dt)}
+function drawJord(){drawBattle();const o=B;g.fillStyle='#0b0a12';g.fillRect(A.x-2,A.y-2,A.w+4,A.h+4);jordBat(390,60,J.ja);dbox()}
+/* ---------- fim ---------- */
+function updEnd(){if(tap&&T>.6)startC2()}
+function drawEnd(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim do Prólogo',W/2,70,'#d9c8ff',24,'center');
+ wr('Você sobreviveu ao primeiro encontro e Jordana apareceu. O Capítulo 1 (Raiz Velha) ainda não foi feito: Tobias, puzzles e o Guardião da Raiz ficaram para depois. Seguimos para o Capítulo 2, com Jordana ao seu lado.',60,110,360,20,999,'#d9d2ea');
+ tx('Progresso salvo neste aparelho',W/2,215,'#8d80b3',12,'center');tx('toque para ir à Vila das Cinzas',W/2,245,'#6c6290',12,'center')}
+
+/* ---------- CAPÍTULO 2 — Vila das Cinzas ---------- */
+Object.assign(COL,{Íris:'#c9a0ff',Dante:'#6fd0d0',Morpheus:'#e8d9ff',Tobias:'#e0b070','Guardião':'#7ed87a',Kael:'#ff7a5c',Cain:'#b9b9d0','Rainha':'#d58cff'});
+const QA=[['Lutar','Seus golpes atravessam uma ilusão.'],['Agir','Você pergunta o que ela teme. A máscara sorri.'],['Defender','Você se encolhe. Máscaras vigiam cada canto.'],['Fugir','Todas as saídas da praça são falsas.']];
+const NQ=['Os espelhos devolvem golpes que você não deu.','O cenário muda: a praça nunca foi real.'];
+function mkR(i,o,l=5){const L=i===0?[[0,0,24,270]]:[[0,0,24,100],[0,170,24,100]],Q=i===l?[[456,0,24,270]]:[[456,0,24,100],[456,170,24,100]];return[[0,0,480,28],[0,242,480,28],...L,...Q,...o]}
+let RW,RN,RB,NP,OB,LAST=5;
+const RW2=[mkR(0,[[120,60,40,40],[300,170,50,40]]),mkR(1,[[80,180,60,30],[200,50,30,60],[350,160,40,50]]),mkR(2,[[110,70,50,50],[300,60,60,40],[220,170,60,40]]),mkR(3,[[100,60,30,30],[100,180,30,30],[240,60,30,30],[240,180,30,30],[380,60,30,30],[380,180,30,30]]),mkR(4,[[150,40,60,50],[300,180,60,40]]),mkR(5,[[150,80,40,40],[380,150,40,60]])];
+const RN2=['ESTRADA DE CINZAS','CAMPO QUEIMADO','VILA DAS CINZAS','POMAR SECO','TRILHA DE CINZAS','MARCAS DE CONDENAÇÃO'],RB2=['#221a1a','#1f1816','#241816','#1d1a14','#1c1717','#1a1624'];
+const OB2={o0:'Uma placa queimada: VILA DAS CINZAS, a leste. Alguém riscou a palavra “bem-vindos”.',o1:'Uma cerca partida. O fogo passou por aqui há muito tempo, mas a terra ainda não aceitou nada.',o3:'Árvores secas em fileiras certinhas. Alguém cuidou deste pomar antes das cinzas.',o4:'Pegadas na terra, todas indo para o leste. Nenhuma voltando.'};
+const NP2=[[{x:70,y:200,id:'o0'}],[{x:280,y:200,id:'o1'}],[{n:'Vera',x:90,y:205,c:'#c98b6a',id:'v'},{n:'Dom',x:250,y:125,c:'#7a8aa0',id:'d'},{n:'Bento',x:380,y:205,c:'#6a8a5a',id:'b'},{n:'Kael',x:400,y:75,c:'#d9482f',id:'k'}],[{x:170,y:130,id:'o3'}],[{x:240,y:120,id:'o4'}],[{n:'Cain',x:300,y:130,c:'#8a8a99',id:'c'}]];
+const LN={v:[['Vera','Todo mundo culpa o Kael pelo incêndio. Mas eu vi a lamparina cair da casa do administrador.'],['Vera','Eu não disse nada na época. Tive medo.']],d:[['Dom','Me mandaram forjar a tranca do depósito para barrar os dracônicos. A ordem veio com o selo da Rainha.']],b:[['Bento','Dracônico perto do estoque? Só pode ser coisa dele.'],['Bento','...Os registros do incêndio foram assinados antes do fogo começar. Não conta que eu disse.']]};
+const CK=[[['Você','Ele não fez nada disso por ser dracônico.'],['Kael','...Ninguém nunca disse isso em voz alta aqui.']],[['Kael','Silêncio também é uma resposta.']],[['Você','Talvez seja melhor manter distância.'],['Kael','Pelo menos você disse isso na minha cara.'],['Narração','O dano foi feito: Kael agora olha para você como olha para o resto da vila.']]];
+const CAINL=[[['Cain','Quem escuta tem pouco. Mas é mais do que quase todos dão.'],['Cain','As ordens que você procura passam pela Rainha das Máscaras. Ela vem aí.']],[['Cain','Desconfie. É sensato. Ainda assim, ela vem aí, e não gosta de visitas.']],[['Cain','Informação tem preço. O meu: ninguém me chama de aliado.'],['Cain','A Rainha é a fonte das ordens. Ela vem aí.']]];
+RW=RW2;RN=RN2;RB=RB2;NP=NP2;OB=OB2;
+let C2={},CH=null;
+function hit2(x,y){for(const[a,b,w,h]of RW[C2.room])if(x<a+w&&x+10>a&&y<b+h&&y+10>b)return true;for(const[a,b,w,h]of decRects())if(x<a+w&&x+10>a&&y<b+h&&y+10>b)return true;return false}
+function startC2(){S='c2';RW=RW2;RN=RN2;RB=RB2;NP=NP2;OB=OB2;LAST=5;C2={room:0,cl:{},k:-1,open:false,told:false,cain:false,ch:2};F.kael=-1;pl.x=50;pl.y=130;ex.t=0;save('cap2');
+ say([...(F.tobias?[['Tobias','Pelo menos esta estrada é mais calma que a passagem do Guardião.']]:[]),['Jordana','Precisamos de abrigo. Há uma vila a leste. Fique perto de mim.'],['Narração','Arraste o dedo na tela para andar. Perto de alguém ou de algo, aparece o botão Falar.']])}
+function lockMsg(){const r=C2.room,c=C2.ch;
+ if(c===8)return r===0&&!C2.fl0?'Floris ainda está ali. Vale ouvi-lo.':r===1&&!C2.open?'Ainda há registros da profecia para ler.':r===3&&!C2.pd?'O Primeiro Autor ainda barra o caminho.':null;
+ if(r===2&&!C2.open)return c===1?'Símbolos antigos selam a passagem.':c===3?'Ainda há documentos para examinar.':c===4?'O jantar ainda não terminou.':c===5?'Zeus ainda barra o caminho.':c===6?'O guardião dos registros ainda espera uma resposta.':c===7?'Ainda há registros para examinar.':'Ainda há o que descobrir na vila antes de seguir.';
+ if(r===1&&((c===1&&!F.tobias)||(c===3&&!F.iris)||(c===4&&!C2.hl)))return'Tem alguém logo ali. Vale conversar antes de seguir.';
+ if(r===1&&c===5&&Object.keys(C2.cl).length<2)return'Há pessoas aqui que sabem o que está acontecendo.';
+ if(r===3&&c===4&&!C2.jt)return'Há alguém no escritório. Melhor ouvir o que ele tem a dizer.';
+ if(r===3&&c===5&&!C2.jt)return'Há dracônicos aqui. Vale ouvi-los antes de descer.';if(r===1&&c===6&&!C2.cl.P)return'Há alguém à margem. Vale ouvi-la antes de seguir.';if(r===3&&c===6&&!C2.hd)return'Hades ainda barra o caminho.';if(r===3&&c===7&&!C2.ir)return'Há algo na estrutura de registros que ainda não foi examinado.';if(r===4&&c===7&&!C2.dg)return'Há uma gravação nesta sala que ainda precisa ser vista.';if(r===5&&c===7&&!C2.eh)return'A defesa do sistema ainda barra o caminho.';return null}
+function ask(o,cb){S='choice';CH={o,cb}}
+function chR(i,n){return n>3?[8+(i%2)*236,104+Math.floor(i/2)*42,228,34]:[8+i*157,150,150,34]}
+function drawCh(){CH.o.forEach((t,i)=>{const[x,y,w,h]=chR(i,CH.o.length);box(x,y,w,h,'#ffa94d');tx(t,x+w/2,y+22,'#ffa94d',12,'center')})}
+function updCh(){if(tap)CH.o.forEach((t,i)=>{if(inRect(ptr,...chR(i,CH.o.length))){beep(500);S='c2';CH.cb(i)}})}
+function talk(id){if(id[0]==='o')return say([['Narração',C2.ch===7?fadeTxt(id):OB[id]]]);if(C2.ch===1)return talk1(id);if(C2.ch===3)return talk3(id);if(C2.ch===4)return talk4(id);if(C2.ch===5)return talk5(id);if(C2.ch===6)return talk6(id);if(C2.ch===7)return talk7(id);if(C2.ch===8)return talk8(id);const n=Object.keys(C2.cl).length;
+ if(id==='v'||id==='d'||id==='b'){C2.cl[id]=1;const l=LN[id].slice();if(Object.keys(C2.cl).length===3&&n<3)l.push(['Jordana','Três histórias, uma só origem: alguém fabricou essas acusações. Fale com o Kael.']);say(l)}
+ else if(id==='k'){if(C2.k<0)say([['Kael','Não preciso da sua ajuda. Humanos só aparecem quando querem algo.'],['Narração','Moradores observam de longe. Alguns se afastam quando você chega perto de Kael.']],()=>ask(['Apoiar Kael','Ficar neutro','Concordar com a vila'],i=>{C2.k=i;F.kael=i;say(CK[i])}));
+  else if(n>=3&&!C2.told){C2.told=true;C2.open=true;say([['Kael','Tentei apagar o fogo do depósito. Quando acabou, só havia cinzas e o meu nome nas bocas.'],['Kael',C2.k===0?'Você ficou ao meu lado. Isso conta. Vamos descobrir quem assinou essas ordens.':'Se quer a verdade, a trilha leste leva às marcas de condenação. Alguém lá sabe quem assina essas ordens.'],['Narração','A passagem leste foi liberada.']])}
+  else say([['Kael',C2.told?'Siga a trilha leste.':'Fale com os outros. Depois decida se ainda quer falar comigo.']])}
+ else if(id==='c'){if(C2.cain)return say([['Cain','Não tenho mais nada a dizer.']]);
+  say([['Cain','Esta marca eu carrego há muito tempo. Sei por que foi dada. Não vou contar tudo.']],()=>ask(['Escutar','Desconfiar','Negociar'],i=>{F.cain=i;say(CAINL[i],()=>{C2.cain=true;say([['Rainha','Quanta gente barulhenta... e quanta verdade perigosa.'],['Jordana','Fique atrás de mim.'],['Rainha','Verdade? Aqui só existe o que a vila acredita.']],()=>startBattle(true))})}))}}
+function nearQ(){for(const q of NP[C2.room])if(Math.hypot(q.x-pl.x,q.y-pl.y)<30)return q;return null}
+function updC2(dt){ex.t+=dt;if(C2.ch===5)F.gods=Math.max(F.gods||0,Object.keys(C2.cl).length+Object.keys(C2.dr||{}).length);if(dlg(dt))return;if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}if(C2.ch===5&&C2.room===4&&!C2.rv){C2.rv=1;revolt();return}if(C2.ch===6&&C2.room===4&&!C2.rv){C2.rv=1;rupture();return}if(C2.ch===7&&C2.room===6&&!C2.rv){C2.rv=1;recog();return}if(C2.ch===8&&C2.room===2&&!C2.rv){C2.rv=1;jfall();return}let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}
+ setMove(d,dt);const sp=58*dt;if(!hit2(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit2(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
+ if(pl.x>466){const lk=lockMsg();if(lk){pl.x=440;say([[F.jfall?'Narração':'Jordana',lk]])}else if(C2.room<LAST){C2.room++;pl.x=30;ex.t=0}}
+ else if(pl.x<10&&C2.room>0){C2.room--;pl.x=440;ex.t=0}
+ const nq=nearQ();if(nq&&tap&&(inRect(ptr,388,196,84,38)||K[' ']||K.enter||K.e))talk(nq.id)}
+function drawC2(){trail();const r=C2.room;g.fillStyle=RB[r];g.fillRect(0,0,W,H);const rr=rng(r*77+3);if(tileFill(C2.ch,0,0,0,W,H)){g.globalAlpha=.35;g.fillStyle=RB[r];g.fillRect(0,0,W,H);g.globalAlpha=1}else{g.fillStyle=r===5?'#2a2238':'#33231f';for(let i=0;i<70;i++)g.fillRect((rr()*480)|0,(rr()*270)|0,6,2);
+ g.fillStyle='#4a403c';for(let i=0;i<10;i++)g.fillRect((rr()*440+20)|0,(rr()*200+35)|0,5,3)}
+ drawDecor(r,0);for(const[a,b,w,h]of RW[r]){if(!tileFill(C2.ch,1,a,b,w,h)){g.fillStyle=r===5?'#2b2438':'#3a2a2a';g.fillRect(a,b,w,h)}g.fillStyle=r===5?'#4a3d66':'#5a4040';g.fillRect(a,b,w,3)}
+ drawDecor(r,1);for(const q of NP[r]){if(isObj(q.id)){g.fillStyle='#5a4230';g.fillRect(q.x,q.y,4,16);g.fillRect(q.x-5,q.y-4,14,8)}else if(!npcSpr(q.n,q.x,q.y)){g.fillStyle=q.c;g.fillRect(q.x,q.y+4,10,10);g.fillStyle='#f1c9a0';g.fillRect(q.x+1,q.y-2,8,7);if(q.id==='k'){g.fillStyle='#ffb36b';g.fillRect(q.x,q.y-5,2,4);g.fillRect(q.x+8,q.y-5,2,4)}if(q.id==='c'){g.fillStyle='#b3001b';g.fillRect(q.x+3,q.y+7,4,4)}}}
+ const JF=F.jfall?null:jfPos();if(JF&&JF.y<=pl.y)drawJordF(JF);{let fi=0;for(const[k,c,nm]of[['tobias','#8a6a3a','Tobias'],['kaelIn','#d9482f','Kael'],['iris','#7a5ac8','Íris'],['dante','#3a8a8a','Dante'],['helenaIn','#d98ca8','Helena']])if(F[k]){const fx=Math.round(pl.x-32-fi++*14);if(!npcSpr(nm,fx,pl.y-4)){g.fillStyle=c;g.fillRect(fx,pl.y-6,10,12);g.fillStyle='#f1c9a0';g.fillRect(fx+1,pl.y-12,8,7)}}}drawPlayer(pl.x,pl.y);if(JF&&JF.y>pl.y)drawJordF(JF);
+ g.fillStyle='rgba(200,190,180,.35)';for(let i=0;i<26;i++)g.fillRect(Math.round((i*53+Math.sin(T+i)*14+480)%480),Math.round((T*14+i*41)%270),2,2);
+ if(ex.t<3.5){g.globalAlpha=Math.min(1,3.5-ex.t);tx(RN[r],W/2,60,'#d9c8ff',20,'center');g.globalAlpha=1}
+ if(r===2&&C2.ch>=2&&C2.ch<=3)tx('Pistas: '+Object.keys(C2.cl).length+'/3',12,262,'#ffe98a',11);
+ if(ptr&&P0&&!D&&S==='c2'){g.strokeStyle='rgba(255,255,255,.3)';g.lineWidth=2;g.beginPath();g.arc(P0.x,P0.y,24,0,7);g.stroke()}
+ const nq=nearQ();if(nq&&!D&&S==='c2'){box(388,196,84,38,'#ffa94d');tx(isObj(nq.id)?'Examinar':'Falar',430,220,'#ffa94d',13,'center')}
+ drawGear();dbox()}
+function queen(x,y){if(bigSpr('Rainha',x,y)){g.fillStyle='#d58cff';g.fillRect(x-10,y-15,20,4);g.fillRect(x-10,y-19,4,4);g.fillRect(x+6,y-19,4,4);g.fillStyle='#f2eefc';g.fillRect(x-6,y-6,12,8);g.fillStyle='#4a2a6a';g.fillRect(x-4,y-3,3,3);g.fillRect(x+1,y-3,3,3);return}g.fillStyle='#4a2a6a';g.fillRect(x-16,y+8,32,40);g.fillStyle='#d58cff';g.fillRect(x-16,y+8,32,4);g.fillStyle='#f2eefc';g.fillRect(x-10,y-12,20,22);g.fillStyle='#4a2a6a';g.fillRect(x-6,y-6,4,4);g.fillRect(x+2,y-6,4,4);g.fillRect(x-4,y+2,8,2)}
+function qs(b,p,r){if(b.sp>0)return;b.n++;
+ if(p===0){b.sp=1.4;if(b.n%2)b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:20,l:5});else b.bul.push({k:'d',x:A.x+20+r()*(A.w-40),y:A.y,vx:0,vy:30,l:1})}
+ else if(b.n%3===0){b.sp=1.3;const ya=A.y+12+r()*(A.h-24),yb=A.y+12+r()*(A.h-24),xa=A.x+14+r()*30,xb=A.x+A.w-14-r()*30;b.bul.push({k:'w',x:xa,y:ya,tx:xb,ty:yb,vx:0,vy:0,l:1.2},{k:'w',x:xb,y:yb,tx:xa,ty:ya,vx:0,vy:0,l:1.2})}
+ else{b.sp=.8;const y=A.y+8+r()*(A.h-16);b.bul.push({k:'b',x:A.x,y,vx:52,vy:0},{k:'b',x:A.x+A.w,y:A.y+A.h-(y-A.y),vx:-52,vy:0})}}
+function endQ(){S='qend';B.ph='x';say([['Rainha','Quebrem minhas máscaras. A vila ainda vai acreditar no que prefere.'],['Jordana','Verdade e reputação não são a mesma coisa.'],['Kael',C2.k===2?'Vou com vocês. Mas não esqueci o que você disse na praça.':'Vou com vocês. Isso não quer dizer que perdoei esta vila.']],()=>{F.kaelIn=true;startC3()})}
+function updE2(){if(tap&&T>.6){S='title';T=0}}
+function drawE2(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim do Capítulo 2',W/2,70,'#d9c8ff',24,'center');
+ wr('Kael aceitou viajar com o grupo, sem perdoar a vila. A Rainha das Máscaras foi derrotada, mas não convencida. O Capítulo 3 (Cidade dos Espelhos) ainda não existe.',60,110,360,20,999,'#d9d2ea');tx('toque para voltar ao título',W/2,245,'#6c6290',12,'center')}
+
+/* ---------- CAPÍTULO 1 — Raiz Velha ---------- */
+const GA=[['Lutar','Você não tem arma. O Guardião não recua.'],['Agir','Você mostra as mãos vazias. As raízes hesitam.'],['Defender','Você se protege atrás de uma raiz caída.'],['Fugir','A passagem se fecha atrás de você.']];
+const NG=['Raízes cruzam a arena, uma depois da outra.','O Guardião respira fundo. As sementes tremem.'];
+const RW1=[mkR(0,[[120,70,40,40],[300,170,50,40]],4),mkR(1,[[110,70,50,50],[300,170,60,40]],4),mkR(2,[[100,60,30,30],[100,180,30,30],[360,60,30,30],[360,180,30,30]],4),mkR(3,[[200,40,30,60],[200,170,30,60],[330,100,40,40]],4),mkR(4,[[120,60,40,40],[120,170,40,40]],4)];
+const RN1=['RAIZ VELHA','ACAMPAMENTO DAS RAÍZES','PASSAGEM DAS RAÍZES','PONTE QUE NÃO EXISTE','CÂMARA DO GUARDIÃO'],RB1=['#13201a','#15211b','#12201c','#101a1a','#0f1a16'];
+const OB1={o0:'Uma raiz gigante rompe o chão. Entalhado nela: RAIZ VELHA. Há pegadas recentes.',o3:'No mapa de Jordana há uma ponte aqui. No chão, só o abismo. Jordana: “A região está perdendo seus caminhos.”'};
+const NP1=[[{x:70,y:200,id:'o0'}],[{n:'Mira',x:90,y:205,c:'#c9a06a',id:'m'},{n:'Joca',x:230,y:120,c:'#6a8aa0',id:'j'},{n:'Tobias',x:400,y:130,c:'#8a6a3a',id:'T'}],[{x:170,y:140,id:'p0'},{x:240,y:140,id:'p1'},{x:310,y:140,id:'p2'}],[{n:'Aro',x:120,y:130,c:'#9a9a9a',id:'a'},{x:400,y:200,id:'o3'}],[{n:'Guardião',x:300,y:120,c:'#4a6a3a',id:'g'}]];
+const PN=['flor','semente','broto'];
+function startC1(){S='c2';RW=RW1;RN=RN1;RB=RB1;NP=NP1;OB=OB1;LAST=4;C2={room:0,cl:{},k:-1,open:false,told:false,cain:false,ch:1,seq:[]};pl.x=50;pl.y=130;ex.t=0;save('cap1');
+ say([['Jordana','A Raiz Velha ainda lembra da guerra. Siga por perto.'],['Narração','Arraste o dedo para andar. Perto de alguém ou de algo, toque em Falar.']])}
+function talk1(id){
+ if(id==='m')say([['Mira','Humano?! Fique longe das crianças. Foi gente como você que trouxe a guerra.'],['Mira','...Mas você também é só uma criança.']]);
+ else if(id==='j')say([['Joca','Dizem que os humanos venceram. Eu não acredito nessa história. Tem buraco demais.'],['Joca','Meu avô dizia que a passagem abre na ordem da raiz: semente, depois broto, depois flor.']]);
+ else if(id==='T'){F.tobias=true;say([['Tobias','Ei! Essa passagem é perigosa. O Guardião não gosta de visitantes.'],['Jordana','Estamos só de passagem.'],['Tobias','Então eu vou com vocês. Alguém precisa garantir que ninguém se machuque.'],['Narração','Tobias entrou no grupo.']])}
+ else if(id[0]==='p'){const n=+id[1];C2.seq.push(n);beep(300+n*150,.15);
+  if(C2.seq.length<3)say([['Narração','A pedra da '+PN[n]+' brilha.']]);
+  else if(C2.seq.join()==='1,2,0'){C2.open=true;say([['Narração','As raízes se abrem devagar. O caminho leste está livre.']])}
+  else{C2.seq=[];say([['Narração','As pedras se apagam. A ordem estava errada.']])}}
+ else if(id==='a')say([['Aro','Eu tinha um irmão... como era o nome dele? Ontem eu sabia.'],['Jordana','O mundo está esquecendo as coisas.']]);
+ else if(id==='g')say([['Guardião','Humanos. A mesma destruição, de novo.'],['Jordana','Não viemos lutar.']],()=>startBattle('g'))}
+function vine(b,r,v){b.bul.push(v?{k:'v',x:A.x+r()*(A.w-16),y:A.y,w:16,h:A.h,t:0}:{k:'v',x:A.x,y:A.y+r()*(A.h-14),w:A.w,h:14,t:0})}
+function gs(b,p,r){if(b.sp>0)return;
+ if(p===0){b.sp=1.1;if(b.n++%2)b.bul.push({k:'b',x:A.x,y:A.y+8+r()*(A.h-16),vx:52,vy:0});else vine(b,r,b.n%4<2)}
+ else if(p===1){b.sp=1;if(b.n++%2){const cx=A.x+r()*A.w,cy=A.y+10;for(let i=0;i<8;i++){const an=i*Math.PI/4;b.bul.push({k:'s',x:cx,y:cy,vx:Math.cos(an)*42,vy:Math.sin(an)*42})}}else b.bul.push({k:'v',x:A.x+(b.n%5)*26,y:A.y,w:14,h:A.h,t:0})}
+ else{b.sp=1.6;const cx=A.x+A.w/2,cy=A.y+A.h/2,g0=r()*6.28;for(let i=0;i<14;i++){const an=i*6.28/14;if(Math.abs(Math.atan2(Math.sin(an-g0),Math.cos(an-g0)))<.45)continue;b.bul.push({k:'b',x:cx,y:cy,vx:Math.cos(an)*38,vy:Math.sin(an)*38})}}}
+function guard(x,y){if(bigSpr('Guardião',x,y)){g.fillStyle='#2f7a3c';g.fillRect(x-14,y-15,28,4);g.fillRect(x-24,y+10,10,4);g.fillRect(x+14,y+20,12,4);g.fillStyle='#7ed87a';g.fillRect(x-8,y-14,4,4);g.fillRect(x+4,y-14,4,4);return}g.fillStyle='#3a2a1d';g.fillRect(x-14,y-10,28,58);g.fillStyle='#2f7a3c';g.fillRect(x-24,y+4,12,4);g.fillRect(x+12,y+14,14,4);g.fillStyle='#7ed87a';g.fillRect(x-8,y,5,5);g.fillRect(x+3,y,5,5);g.fillStyle='#5a4230';g.fillRect(x-14,y-10,28,3)}
+function endG(){S='qend';B.ph='x';F.guardSpared=!!B.agir;
+ say(B.agir?[['Guardião','...Suas mãos estavam vazias o tempo todo.'],['Guardião','Passem. Mas não confio em vocês.']]:[['Guardião','Vocês venceram. Isso não prova nada.'],['Guardião','Passem, antes que eu mude de ideia.']],
+ ()=>say([['Narração','Na parede atrás dele, uma inscrição antiga se acende: “Quando o mundo esquecer seu próprio nome, a criança abrirá a última porta.”'],['Jordana','Frases velhas. Não significam nada.']],()=>startC2()))}
+
+/* ---------- CAPÍTULO 3 — Cidade dos Espelhos ---------- */
+const isObj=id=>id[0]==='o'||/^[dpr]\d$/.test(id);
+let M3={hp:20,hard:0};
+const MA=[['Lutar','Seus golpes atravessam fumaça de sonho.'],['Agir','Você tenta acordar. Morpheus ri baixinho.'],['Defender','Você fecha os olhos. As estrelas continuam.'],['Fugir','Todas as portas levam de volta ao salão.']];
+const NM=['Estrelas viram projéteis.','Os pesadelos sabem o seu nome.'];
+const RW3=[mkR(0,[[130,60,40,40],[320,170,50,40]]),mkR(1,[[100,70,40,40],[200,170,40,40],[320,60,40,40]]),mkR(2,[[120,60,60,30],[300,60,60,30],[120,170,60,30],[300,170,60,30]]),mkR(3,[[150,40,30,60],[150,170,30,60],[300,40,30,60],[300,170,30,60]]),mkR(4,[[100,70,30,30],[250,170,30,30],[380,80,30,30]]),mkR(5,[[150,80,40,40],[380,150,40,60]])];
+const RN3=['PORTÃO DA CIDADE','PRAÇA DO FESTIVAL','ARQUIVO ANTIGO','RUA DOS ESPELHOS','JARDIM DOS SONHOS','SALÃO DE MORPHEUS'],RB3=['#1a1424','#241a30','#1d1a2c','#1a1a30','#161828','#120f22'];
+const OB3={o0:'Um cartaz de festa: A CIDADE QUE NUNCA DORME. Alguém escreveu embaixo: “por favor, me acordem”.',o3:'No espelho, uma criança sorri numa cozinha desconhecida. O reflexo não se move quando você se move.',o4:'Flores que só existem quando você pisca.'};
+const NP3=[[{x:70,y:200,id:'o0'}],[{n:'Lúcia',x:90,y:205,c:'#e0b84a',id:'l'},{n:'Rufo',x:230,y:115,c:'#6a8aa0',id:'r'},{n:'Íris',x:400,y:130,c:'#7a5ac8',id:'i'}],[{n:'Dante',x:240,y:120,c:'#3a8a8a',id:'D'},{x:150,y:130,id:'d0'},{x:330,y:130,id:'d1'},{x:240,y:205,id:'d2'}],[{x:240,y:130,id:'o3'}],[{x:180,y:130,id:'o4'}],[{n:'Morpheus',x:300,y:120,c:'#2a2050',id:'M'}]];
+const DOC=['Documento 1: o fim da guerra, escrito em um dia. A tinta é de outro.','Documento 2: nomes de mortos riscados e reescritos por outra mão.','Documento 3: a data da barreira foi corrigida duas vezes.'];
+const MQ=[[['Morpheus','Boa troca. A fenda não se abriu sozinha: alguém quis você aqui.'],['Narração','Algo se apaga em você. Você tenta lembrar de uma canção e não consegue.']],[['Morpheus','Sem troca, sem resposta. E sem gentileza.']],[['Morpheus','Uma lembrança falsa? Que ousadia. Eu prefiro a verdadeira.'],['Narração','Ele toma algo mais fundo do que você ofereceu. Você nem sabe o que perdeu.']]];
+function startC3(){S='c2';RW=RW3;RN=RN3;RB=RB3;NP=NP3;OB=OB3;LAST=5;C2={room:0,cl:{},k:-1,open:false,told:false,cain:false,ch:3};pl.x=50;pl.y=130;ex.t=0;save('cap3');
+ say([['Jordana','Uma cidade em festa no meio de tanta ruína. Desconfie das luzes.'],...(F.kaelIn?[['Kael','Festa demais para um mundo tão quieto.']]:[])])}
+function talk3(id){
+ if(id==='l')say([['Lúcia','Venha, venha! A festa nunca para. Se a música parar, a gente dorme.'],['Lúcia','E quando a gente dorme, o sonho continua depois de acordar.']]);
+ else if(id==='r')say([['Rufo','Ontem me vi num espelho, numa casa que nunca visitei, chorando por alguém que não conheço.']]);
+ else if(id==='i'){if(F.iris)return say([['Íris','Vamos ao arquivo. Dante deve saber algo.']]);F.iris=true;say([['Íris','Você também viu? Espelhos mostrando lembranças que não são de quem olha.'],['Íris','Sou Íris. Investigo isso há semanas. Posso ir com vocês?'],['Jordana','Talvez seja útil.'],['Narração','Íris entrou no grupo.']])}
+ else if(id==='D'){if(F.dante)return say([['Dante','Vamos. Mas fique alerta.']]);say([['Dante','Registros da guerra... estes papéis foram alterados depois de escritos. A tinta é mais nova que a data.'],['Dante','Examinem os três documentos. Eu confirmo.']])}
+ else if(id[0]==='d'){C2.cl[id]=1;say([['Narração',DOC[+id[1]]]],()=>{if(Object.keys(C2.cl).length===3&&!C2.open){C2.open=true;F.dante=true;say([['Íris','Alguém reescreveu a história. Dante, venha com a gente.'],['Dante','Eu vou. Preciso entender isso.'],['Narração','Dante entrou no grupo. A passagem leste foi liberada.']])}})}
+ else if(id==='M')say([['Morpheus','Que criança curiosa. Caiu de tão longe. Quer saber por quê?'],['Morpheus','Eu respondo. Em troca, uma lembrança sua.']],()=>ask(['Aceitar','Recusar','Enganar'],i=>{M3=[{hp:16,hard:0},{hp:20,hard:1},{hp:14,hard:0}][i];F.morph=i;say(MQ[i],()=>say([['Jordana','Fique atrás de mim.']],()=>startBattle('m')))}))}
+function ms(b,p,r){if(b.sp>0)return;const hd=b.hard?.75:1;
+ if(p===0){b.sp=.55*hd;const x=A.x+r()*A.w;if(b.n++%2)b.bul.push({k:'f',x,y:A.y-4,vx:(r()-.5)*20,vy:45});else b.bul.push({k:'x',x,y:A.y,vx:0,vy:28,l:1.3})}
+ else if(p===1){b.sp=1.5*hd;b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:18,l:5})}
+ else{b.sp=.75*hd;if(b.n%4===0)b.r2=rng(77);const r2=b.r2||r;b.n++;b.bul.push({k:'b',x:A.x+r2()*A.w,y:A.y-4,vx:0,vy:50})}}
+function morph(x,y){if(bigSpr('Morpheus',x,y)){g.fillStyle='#ffd84a';for(let i=0;i<6;i++)g.fillRect(x-14+i*5,y+8+(i%3)*10,2,2);g.fillStyle='#e8d9ff';g.fillRect(x-8,y-14,16,3);return}g.fillStyle='#1d1640';g.fillRect(x-14,y-6,28,54);g.fillStyle='#e8d9ff';g.fillRect(x-8,y-14,16,14);g.fillStyle='#1d1640';g.fillRect(x-5,y-8,3,3);g.fillRect(x+2,y-8,3,3);g.fillStyle='#ffd84a';for(let i=0;i<6;i++)g.fillRect(x-12+i*5,y+8+(i%3)*10,2,2)}
+function endM(){S='qend';B.ph='x';say([['Morpheus','Você me venceu no meu próprio sonho. Nem tudo o que viu hoje foi mentira.'],['Íris','Achei isto no salão: um registro de uma versão anterior da cidade. Os nomes são os mesmos. As datas, não.'],['Dante','Este sobrenome... é o da minha família. Numa lista de pessoas usadas em experimentos.'],['Jordana','Parem. Não continuem investigando.'],['Íris','Por quê?'],['Jordana','Ainda não posso explicar.']],()=>{save('fim3');S='end3';T=0})}
+function updE3(){if(tap&&T>.6)startC4()}
+function drawE3(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim do Capítulo 3',W/2,70,'#d9c8ff',24,'center');
+ wr('Íris achou o registro de uma versão anterior da cidade. Dante viu o sobrenome da família numa lista de experimentos. Jordana pediu que parassem, sem explicar. Um corredor leva a uma casa que não está em nenhum mapa.',60,110,360,20,999,'#d9d2ea');tx('toque para entrar na Casa dos Herdeiros',W/2,245,'#6c6290',12,'center')}
+
+/* ---------- CAPÍTULO 4 — Casa dos Herdeiros (refeito conforme a Bíblia, v0.9) ---------- */
+Object.assign(COL,{Helena:'#ff9cc0',Judas:'#c9b48a','Os Herdeiros':'#e8d9ff',Matriarca:'#d9a0a0',Zeus:'#ffe066',Athena:'#9fd0ff',Prometheus:'#ff9a5a',Sira:'#ff8a6a',Vael:'#d95a5a'});
+const HA=[['Lutar','Você tenta se impor. A família não reage: as regras reagem.'],['Agir','Você tenta conversar. Eles só respondem com palavras permitidas.'],['Defender','Você se afasta da mesa. A casa ajusta as paredes.'],['Fugir','Todas as portas exigem permissão.']];
+const NH=['A sala muda de lugar.','Todos atacam juntos.'];
+const RW4=[mkR(0,[[130,60,40,40],[320,170,50,40]],4),mkR(1,[[110,70,40,40],[320,170,50,40]],4),mkR(2,[[120,60,60,30],[300,60,60,30],[120,170,60,30],[300,170,60,30]],4),mkR(3,[[150,40,30,60],[300,170,30,60]],4),mkR(4,[[120,70,40,40],[380,150,40,60]],4)];
+const RN4=['RUA DAS CASAS PERFEITAS','JARDIM DA ENTRADA','SALA DE JANTAR','ESCRITÓRIO DOS CONTRATOS','SALÃO DA CASA'],RB4=['#201a24','#261c2a','#2a1d22','#1f1a20','#150f1a'];
+const OB4={o0:'Uma placa polida: SILÊNCIO APÓS AS 20H. VISITANTES DEVEM SER ANUNCIADOS. Nenhuma janela está aberta.'};
+const NP4=[[{x:70,y:200,id:'o0'}],[{n:'Helena',x:90,y:205,c:'#d98ca8',id:'h'}],[{n:'Matriarca',x:300,y:120,c:'#a86a6a',id:'f'}],[{n:'Judas',x:260,y:125,c:'#8a7a66',id:'J'}],[{n:'Herdeiros',x:300,y:120,c:'#3a2a50',id:'H'}]];
+function startC4(){S='c2';RW=RW4;RN=RN4;RB=RB4;NP=NP4;OB=OB4;LAST=4;C2={room:0,cl:{},k:-1,open:false,told:false,cain:false,ch:4,dn:0};Object.assign(F,{hrel:0,judas:-1,tj:0,trusted_judas:0,debt:0,hpress:-1,helenaIn:0});pl.x=50;pl.y=130;ex.t=0;save('cap4');
+ say([['Narração','Depois da cidade em festa, o caminho leva a um bairro onde todas as casas são perfeitas.'],['Jordana','Reparem: nenhuma janela está aberta.'],...(F.iris?[['Íris','Casas demais iguais. Alguém mandou fazer assim.']]:[]),...(F.dante?[['Dante','Conheço esse tipo de lugar: a ordem como forma de poder.']]:[])])}
+function dinner(){const n=C2.dn;
+ if(n===0)say([['Matriarca','Bem-vindos. Nesta casa a mesa tem regras: fala-se só o que está na lista, e a lista é curta.'],['Matriarca','“Não”, “quero” e “por quê” não estão nela.']],()=>ask(['Seguir as regras','Questionar','Falar normal'],i=>{C2.dn=1;say(i===0?[['Matriarca','Muito bem.']]:i===1?[['Matriarca','Perguntas ficam para depois do jantar. O jantar nunca termina a tempo.']]:[['Matriarca','Que pena. Vou anotar.'],['Narração','Os talheres param ao mesmo tempo. O ar fica frio.']])}));
+ else if(n===1)say([['Matriarca','Helena foi ao sótão hoje? Ela não deve ir lá. Você viu alguma coisa?']],()=>ask(['Dizer que não sei','Contar tudo','Perguntar por quê'],i=>{C2.dn=2;F.hrel+=i===0?1:i===1?-2:0;say(i===0?[['Matriarca','Hum.'],['Narração','Do outro lado da sala, Helena não levanta os olhos, mas os ombros dela relaxam.']]:i===1?[['Matriarca','Obrigada. Helena e eu vamos conversar depois.'],['Narração','Helena não olha para você. Algo se quebrou entre vocês.']]:[['Matriarca','Porque é o certo. Regras são uma forma de cuidado.'],['Jordana','Cuidado não precisa de medo.']])}));
+ else if(n===2){C2.dn=3;C2.open=true;say([['Matriarca','O jantar terminou. Judas cuida da papelada de vocês. Amanhã partem.'],['Narração','A passagem para o escritório foi liberada.']])}
+ else say([['Matriarca','Boa noite.']])}
+function talk4(id){
+ if(id==='h'){if(C2.hl)return say([['Helena',F.hrel>=2?'Obrigada por respeitar o que eu pedi.':F.hrel<0?'Prefiro não falar agora.':'Estou por aqui.']]);C2.hl=1;
+  say([['Helena','Ah! Visitas. Vocês estão bem? Eu sou Helena.'],['Helena','Minha família oferece abrigo a quem passa. Só peço que sigam as regras da casa.'],['Helena','E tem um sótão que eu não mostro a ninguém. Por favor, não vá lá.']],()=>ask(['Respeitar','Perguntar mais','Ir mesmo assim'],i=>{F.hrel+=i===0?2:i===1?-1:-2;F.hpress=i;say(i===0?[['Helena','Obrigada. De verdade.']]:i===1?[['Helena','Prefiro não falar disso. Por favor.']]:[['Helena','...Então tá.'],['Narração','Ela se afasta. Você sentiu a confiança diminuir.']])}))}
+ else if(id==='f')dinner();
+ else if(id==='J'){if(C2.jt)return say([['Judas',F.judas===0?'Nosso acordo está de pé.':F.judas===1?'Pequeno favor, pequena dívida.':'Sem contrato, sem proteção.']]);
+  say([['Judas','Ah, os hóspedes. Sou Judas. Administro os contratos e favores desta família.'],['Judas','Posso abrir a porta da frente. Cada favor cria uma dívida, claro.'],['Jordana','Cuidado com o que assinar.']],()=>ask(['Confiar','Negociar','Rejeitar'],i=>{F.judas=i;F.trusted_judas=i===0?1:0;F.debt=2-i;C2.jt=1;say(i===0?[['Judas','Excelente. Anotei dois favores. Cobrarei na hora certa.']]:i===1?[['Judas','Cauteloso. Gosto. Um favor, então.']]:[['Judas','Rejeitar é um direito. Mas sem contrato, a casa não tem motivo para facilitar.']])}))}
+ else if(id==='H')say([['Os Herdeiros','Hóspedes não saem sem se despedir. É a regra.'],['Matriarca','Sua presença desorganiza a casa.'],...(F.hrel<0?[['Helena','Eu... não queria que fosse assim.']]:[]),['Jordana','Fiquem atrás de mim.']],()=>startBattle('h'))}
+function hs(b,p,r){if(b.sp>0)return;b.n++;const hd=F.judas===2?.85:1;
+ if(p===0){b.sp=1*hd;if(b.n%3===0)b.bul.push({k:'x',x:A.x+r()*A.w,y:A.y,vx:0,vy:26,l:1.3});else{const cx=A.x+30+r()*(A.w-60);for(const dx of[-14,0,14])b.bul.push({k:'b',x:cx+dx,y:A.y-4+Math.abs(dx)*.5,vx:0,vy:46})}}
+ else if(p===1){b.sp=.7*hd;if(b.t<3.5)b.bul.push({k:'b',x:A.x+r()*A.w,y:A.y-4,vx:0,vy:48});else{const sd=b.n%2;b.bul.push({k:'b',x:sd?A.x:A.x+A.w,y:A.y+8+r()*(A.h-16),vx:sd?52:-52,vy:0})}}
+ else{b.sp=1.2*hd;vine(b,r,b.n%2===0);if(b.n%2)b.bul.push({k:'b',x:A.x,y:A.y+8+r()*(A.h-16),vx:50,vy:0});else b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:18,l:4})}}
+function heirs(x,y){if(IMG.npc&&NPN.indexOf('Herdeiros')>=0){for(let i=-1;i<=1;i++)bigSpr('Herdeiros',x+i*44,y);return}for(let i=-1;i<=1;i++){const a=x+i*40;g.fillStyle='#3a2a50';g.fillRect(a-10,y+8,20,34);g.fillStyle='#f1c9a0';g.fillRect(a-6,y-4,12,12);g.fillStyle='#d58c8c';g.fillRect(a-10,y+8,20,3)}}
+function endH(){S='qend';B.ph='x';const j=F.judas;say([['Os Herdeiros','Basta. A casa perdeu a sala... e a paciência.'],...(j===0?[['Judas','Pelo nosso acordo, vocês passam. Um favor será cobrado depois.']]:j===1?[['Judas','Pequeno favor, pequena dívida. Podem ir.']]:[['Narração','Os registros do escritório são lidos em voz alta na sala. Os segredos da família deixam de ser segredo.']]),
+ ...(F.hrel>=2?[['Helena','Eu cansei de pedir permissão. Posso ir com vocês?'],['Jordana','Se você quiser.']]:[['Helena','Prefiro ficar. Mas obrigada por ter vindo.']])],()=>{F.helenaIn=F.hrel>=2?1:0;save('fim4');S='end4';T=0})}
+function updE4(){if(tap&&T>.6)startC5()}
+function drawE4(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim do Capítulo 4',W/2,70,'#d9c8ff',24,'center');
+ wr('A casa perdeu o controle da sala. '+(F.helenaIn?'Helena decidiu seguir com o grupo.':'Helena decidiu ficar.')+' O caminho segue para o Olimpo.',60,110,360,20,999,'#d9d2ea');tx('toque para seguir para o Olimpo',W/2,245,'#6c6290',12,'center')}
+
+/* ---------- CAPÍTULO 5 — Olimpo Partido (rascunho conforme a Bíblia) ---------- */
+const ZA=[['Lutar','Seus golpes se perdem em uma tempestade.'],['Agir','Você tenta falar. Zeus ouve só a própria voz.'],['Defender','Você se abriga atrás de uma coluna. Ela racha.'],['Fugir','O céu fecha todas as saídas.']];
+const NZ=['Nuvens se juntam sobre o salão.','Correntes cruzam o chão. O julgamento se aproxima.'];
+const RW5=[mkR(0,[[130,60,40,40],[320,170,50,40]],4),mkR(1,[[110,70,40,40],[320,170,50,40]],4),mkR(2,[[120,60,40,40],[320,60,40,40],[120,170,40,40],[320,170,40,40]],4),mkR(3,[[150,40,30,60],[300,170,30,60]],4),mkR(4,[[200,60,40,40],[200,170,40,40]],4)];
+const RN5=['PORTÃO DAS TEMPESTADES','PRAÇA DOS TEMPLOS','SALÃO DO TRONO','TERRAÇO DOS DRACÔNICOS','ESCADARIA DA REVOLTA'],RB5=['#1a1c2a','#1e2233','#242030','#251d1d','#1c1a26'];
+const OB5={o0:'Colunas partidas. Um relâmpago cai sem som, como se alguém tivesse esquecido o trovão.',o4:'Degraus de mármore rachados. Lá embaixo, janelas acesas e gente se escondendo.'};
+const NP5=[[{x:70,y:200,id:'o0'}],[{n:'Athena',x:90,y:205,c:'#9fd0ff',id:'a'},{n:'Prometheus',x:360,y:125,c:'#ff9a5a',id:'p'}],[{n:'Zeus',x:300,y:120,c:'#ffe066',id:'z'}],[{n:'Sira',x:110,y:130,c:'#ff8a6a',id:'s'},{n:'Vael',x:340,y:130,c:'#d95a5a',id:'V'}],[{x:380,y:200,id:'o4'}]];
+function startC5(){S='c2';RW=RW5;RN=RN5;RB=RB5;NP=NP5;OB=OB5;LAST=4;C2={room:0,cl:{},k:-1,open:false,told:false,cain:false,ch:5};pl.x=50;pl.y=130;ex.t=0;save('cap5');
+ say([['Jordana','O Olimpo. O lugar mais alto de Elyndra, e já está caindo.'],...(F.kaelIn?[['Kael','Não gosto de lugares onde todos obedecem.']]:[]),...(F.helenaIn?[['Helena','Nunca saí tão longe de casa.']]:[])])}
+function talk5(id){
+ if(id==='a'){C2.cl.a=1;say([['Athena','Zeus diz que Elyndra enfraquece por causa das escolhas de quem vive aqui. Eu mantenho reuniões para que ninguém ataque ninguém.'],['Athena','Funciona cada vez menos. Os templos esquecem os próprios nomes.']])}
+ else if(id==='p'){C2.cl.p=1;say([['Prometheus','Já viu uma pedra mudar de lugar quando ninguém olha? Alguém está remendando o mundo, e os remendos aparecem.'],['Prometheus','Nem os deuses guardam todas as lembranças. Zeus sabe, e isso o assusta.'],['Jordana','Não repita isso para mais ninguém.']])}
+ else if(id==='z'){if(C2.open)return say([['Zeus','Eu... não lembro de ter construído este salão.']]);say([['Zeus','Mais intrusos. Vocês enfraquecem este mundo a cada escolha.'],['Zeus','Eu vou mantê-lo inteiro, nem que seja pelo medo.'],['Jordana','Medo não segura um mundo.']],()=>startBattle('z'))}
+ else if(id==='s'||id==='V'){C2.dr=C2.dr||{};C2.dr[id]=1;const k=F.kael;say(id==='s'?[['Sira','Só queremos um teto e comida. Uns aqui querem mais do que isso.'],['Kael','Sira. Faz tempo.']]:[['Vael','A vila nos deu cinzas. Eu pretendo devolver.'],['Kael','Vael. Não precisa ser assim.']],()=>{if(Object.keys(C2.dr).length===2&&!C2.jt){C2.jt=1;
+  say([['Kael','Metade quer um teto. A outra metade quer um incêndio. Eu conheço as duas fomes.'],['Kael',k===0?'Você ficou ao meu lado na vila. Isso me ajuda a decidir sem raiva.':k===2?'Você me deixou sozinho na vila. Eu lembro. Mas isso não decide quem eu sou.':'Eu fiquei muito tempo sozinho com isso.'],['Jordana','Você não precisa decidir sozinho.'],['Kael','Preciso. É a minha gente.'],['Narração','A passagem para a escadaria foi liberada.']])}})}}
+function revolt(){const k=F.kael;say([['Narração','Dracônicos descem a escadaria. Atrás das colunas, moradores do Olimpo e gente da Vila das Cinzas se escondem.'],['Vael','Hoje devolvemos o fogo.'],['Sira','Há crianças lá embaixo! Isso não é justiça!'],['Kael','Há gente da vila aí embaixo. Gente que me virou as costas.'],['Kael','Eu não vou ser a mão que acende o fogo de novo. Não é para provar nada. Eu decidi.'],
+ ['Narração','A tempestade que Zeus deixou solta desaba sobre a escadaria. Kael se coloca à frente de quem não consegue correr.'],['Narração','Quando a luz passa, Kael não está mais ali. Os dracônicos baixam as tochas.'],
+ ...(k===0?[['Narração','Você lembra do dia em que ficou ao lado dele na vila.']]:k===2?[['Narração','Você lembra do que disse na praça. Agora não há como desfazer.']]:[]),
+ ...(F.tobias?[['Tobias','Ele escolheu. Eu sei. Mesmo assim...']]:[]),...(F.iris?[['Íris','Vou lembrar o nome dele, ainda que o mundo esqueça.']]:[]),...(F.dante?[['Dante','Há perdas que não cabem em registros.']]:[]),
+ ['Sira','Ele protegeu gente que nunca o defendeu.'],['Narração','A música cessa. O grupo está menor, e mais silencioso.']],()=>{F.kaelIn=0;F.kaelDead=1;save('fim5');S='end5';T=0})}
+function zs(b,p,r){if(b.sp>0)return;b.n++;
+ if(p===0){b.sp=1.1;b.bul.push({k:'v',x:Math.max(A.x,Math.min(A.x+A.w-16,b.sx-8)),y:A.y,w:16,h:A.h,t:0});if(b.n%3===0)b.bul.push({k:'x',x:A.x+r()*A.w,y:A.y,vx:0,vy:26,l:1.3})}
+ else if(p===1){b.sp=.35;b.bul.push({k:'b',x:A.x+r()*A.w,y:A.y-4,vx:b.n%2?18:-18,vy:50});if(b.n%7===0)b.bul.push({k:'x',x:A.x+r()*A.w,y:A.y,vx:0,vy:26,l:1.3})}
+ else{b.sp=1.2;if(b.n%4===0)b.bul.push({k:'v',x:A.x+r()*(A.w-46),y:A.y,w:46,h:A.h,t:0});else b.bul.push({k:'v',x:A.x,y:A.y+r()*(A.h-14),w:A.w,h:14,t:0})}}
+function zeus(x,y){if(bigSpr('Zeus',x,y)){g.fillStyle='#ffe066';g.fillRect(x-10,y-15,20,4);g.fillRect(x-20,y+10,4,12);g.fillRect(x+16,y+10,4,12);return}g.fillStyle='#3a3050';g.fillRect(x-16,y+6,32,42);g.fillStyle='#f1c9a0';g.fillRect(x-8,y-8,16,16);g.fillStyle='#ffe066';g.fillRect(x-10,y-12,20,4);g.fillRect(x-14,y+14,4,10);g.fillRect(x+10,y+14,4,10)}
+function endZ(){S='qend';B.ph='x';say([['Zeus','Eu... o que eu estava fazendo? Esqueci o nome deste salão.'],['Athena','Ele está perdendo lembranças, como todos nós.'],['Prometheus','O mundo está sendo editado. Ele só teve medo antes dos outros.'],['Narração','Do terraço, vozes e passos. Os dracônicos estão se movendo.']],()=>{S='c2';C2.open=true})}
+function updE5(){if(tap&&T>.6)startC6()}
+function drawE5(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim do Capítulo 5',W/2,70,'#d9c8ff',24,'center');
+ wr('Kael protegeu quem o rejeitou e não voltou. O grupo está menor e mais silencioso. A estrada desce para um lugar de céu baixo e silêncio.',60,110,360,20,999,'#d9d2ea');tx('toque para entrar em Mortalha',W/2,245,'#6c6290',12,'center')}
+/* ---------- CENÁRIO: rios, pontes, escadas, portas (v1.0, só visual/colisão; sem mudança de história) ---------- */
+/* DEC[capítulo][sala] = lista de itens. river: faixa vertical com ponte na altura da saída (y 100-170); abyss: buraco sólido;
+   stairs: degraus decorativos (andáveis); door: porta na parede de cima. As portas das saídas são desenhadas automaticamente. */
+const DEC={
+1:{0:[{t:'river',x:230,w:24,s:'water'}],1:[{t:'door',x:60,c:'#5a3d2a'},{t:'door',x:200,c:'#4a3d2a'}],3:[{t:'abyss',x:340,y:205,w:116,h:37}],4:[{t:'stairs',x:258,y:100,w:36,h:52}]},
+2:{1:[{t:'river',x:190,w:28,s:'dry'}],2:[{t:'door',x:60,c:'#6a3d2a'},{t:'door',x:180,c:'#5a4030'},{t:'door',x:330,c:'#6a4a30'}],3:[{t:'river',x:260,w:24,s:'water'}],5:[{t:'stairs',x:250,y:104,w:40,h:50}]},
+3:{0:[{t:'river',x:220,w:24,s:'water'}],2:[{t:'door',x:70,c:'#4a3a6a'},{t:'door',x:400,c:'#4a3a6a'}],4:[{t:'river',x:140,w:24,s:'dream'}],5:[{t:'stairs',x:256,y:100,w:36,h:56}]},
+4:{0:[{t:'river',x:230,w:22,s:'canal'},{t:'door',x:60,c:'#6a3a4a'},{t:'door',x:170,c:'#6a3a4a'},{t:'door',x:330,c:'#6a3a4a'},{t:'door',x:400,c:'#6a3a4a'}],1:[{t:'door',x:200,c:'#6a3a4a'}],2:[{t:'door',x:60,c:'#5a3040'},{t:'door',x:400,c:'#5a3040'}],3:[{t:'door',x:80,c:'#5a3040'}],4:[{t:'stairs',x:252,y:100,w:36,h:56}]},
+5:{0:[{t:'stairs',x:200,y:100,w:70,h:56}],1:[{t:'river',x:210,w:24,s:'cloud'}],2:[{t:'door',x:80,c:'#8a8aa0'},{t:'stairs',x:252,y:96,w:36,h:56}],3:[{t:'stairs',x:408,y:100,w:44,h:70}],4:[{t:'stairs',x:250,y:60,w:200,h:150}]},
+6:{0:[{t:'river',x:230,w:26,s:'soul'}],1:[{t:'stairs',x:196,y:104,w:34,h:46}],2:[{t:'door',x:70,c:'#3a3050'},{t:'door',x:400,c:'#3a3050'},{t:'stairs',x:190,y:104,w:34,h:46}],3:[{t:'stairs',x:252,y:100,w:36,h:56}],4:[{t:'abyss',x:100,y:205,w:250,h:37}]},
+7:{0:[{t:'trail',pts:[[100,130],[150,130],[200,130],[250,130],[300,130],[350,130]]},{t:'door',x:60,c:'#2a2438'}],1:[{t:'river',x:200,w:24,s:'dry'},{t:'trail',pts:[[280,130],[330,130],[380,130],[430,130]]}],2:[{t:'door',x:70,c:'#2a2438'}],3:[{t:'stairs',x:252,y:100,w:36,h:50}],4:[{t:'trail',pts:[[120,130],[170,130],[220,130],[270,130],[320,130]]}],5:[{t:'abyss',x:90,y:205,w:280,h:37}],6:[{t:'door',x:80,c:'#2a2438'},{t:'door',x:380,c:'#2a2438'}]},
+8:{0:[{t:'door',x:60,c:'#2a2438'}],1:[{t:'stairs',x:252,y:100,w:36,h:50}],2:[{t:'abyss',x:90,y:205,w:280,h:37},{t:'river',x:230,w:24,s:'soul'}],4:[{t:'river',x:150,w:24,s:'dry'}]}
+};
+function decItems(){const d=DEC[C2.ch];return(d&&d[C2.room])||[]}
+function decRects(){const o=[];for(const it of decItems()){if(it.t==='river')o.push([it.x,28,it.w,72],[it.x,170,it.w,72]);else if(it.t==='abyss')o.push([it.x,it.y,it.w,it.h])}return o}
+const RIVC={water:['#1c4a6e','#5aa0cc'],dry:['#2a1f1a','#4a382c'],dream:['#3a2470','#c9a0ff'],canal:['#22405c','#6a90b0'],cloud:['#566494','#d4def5'],soul:['#0e2036','#7ab8ff']};
+function drawRiver(it){const[c0,c1]=RIVC[it.s]||RIVC.water,x=it.x,w=it.w;g.fillStyle=c0;g.fillRect(x,28,w,214);
+ if(it.s==='dry'){g.strokeStyle=c1;g.lineWidth=1;for(let i=0;i<12;i++){const yy=34+i*17;g.beginPath();g.moveTo(x+2,yy);g.lineTo(x+w/2,yy+5);g.lineTo(x+w-2,yy+1);g.stroke()}}
+ else{g.fillStyle=c1;g.globalAlpha=.35;for(let i=0;i<16;i++){const yy=28+((i*19+T*(it.s==='dream'?9:16))%214);g.fillRect(x+3+(i*7)%(w-10),yy,6,1.5)}g.globalAlpha=1;
+  if(it.s==='dream'){g.fillStyle='#fff';for(let i=0;i<5;i++)if((T*2+i)%3<1)g.fillRect(x+4+(i*9)%(w-6),40+i*40,2,2)}}
+ g.fillStyle=it.s==='canal'?'#5a6a7a':c1;g.globalAlpha=it.s==='canal'?1:.6;g.fillRect(x-(it.s==='canal'?3:0),28,it.s==='canal'?3:1,214);g.fillRect(x+w-(it.s==='canal'?0:1),28,it.s==='canal'?3:1,214);g.globalAlpha=1;
+ g.fillStyle='#6a4a2e';g.fillRect(x-7,100,w+14,70);g.fillStyle='#8a6240';for(let k=x-7;k<x+w+7;k+=5)g.fillRect(k,101,3,68);
+ g.fillStyle='#3a2518';g.fillRect(x-7,98,w+14,3);g.fillRect(x-7,169,w+14,3)}
+function drawStairs(it){const{x,y,w,h}=it,n=Math.max(4,Math.round(h/7));g.fillStyle='#2a2636';g.fillRect(x-2,y-2,w+4,h+4);
+ for(let i=0;i<n;i++){const yy=y+i*h/n;g.fillStyle=i%2?'#5a5468':'#6e6882';g.fillRect(x,yy,w,h/n-1);g.fillStyle='#8a84a0';g.fillRect(x,yy,w,1)}
+ g.fillStyle='#1c1828';g.fillRect(x-2,y-2,2,h+4);g.fillRect(x+w,y-2,2,h+4)}
+function drawDoorW(x,c){g.fillStyle='#1a1218';g.fillRect(x-2,3,22,25);g.fillStyle=c;g.fillRect(x,6,18,22);g.fillStyle='rgba(0,0,0,.3)';g.fillRect(x+3,9,5,8);g.fillRect(x+10,9,5,8);g.fillStyle='#ffd84a';g.fillRect(x+13,20,2,2)}
+function drawDecor(r,p){if(p===0){for(const it of decItems()){if(it.t==='river')drawRiver(it);else if(it.t==='stairs')drawStairs(it);else if(it.t==='trail'){for(const[tx0,ty0]of it.pts){const a=Math.max(0,Math.min(1,1.25-Math.hypot(tx0-pl.x-5,ty0-pl.y-5)/110));g.globalAlpha=a*.65;g.fillStyle='#8d80b3';g.fillRect(tx0-4,ty0-4,8,8)}g.globalAlpha=1}else if(it.t==='abyss'){g.fillStyle='#05040a';g.fillRect(it.x,it.y,it.w,it.h);g.fillStyle='#2a2438';for(let i=0;i<5;i++)g.fillRect(it.x+i*26,it.y,14,2)}}return}
+ for(const it of decItems())if(it.t==='door')drawDoorW(it.x,it.c);
+ if(C2.room<LAST){const lk=lockMsg();g.fillStyle='#2a1f2a';g.fillRect(452,94,28,6);g.fillRect(452,170,28,6);
+  if(lk){g.fillStyle='#5a3d2a';g.fillRect(458,100,22,70);g.fillStyle='#3a2518';for(let i=0;i<4;i++)g.fillRect(458,100+i*18,22,2);g.fillStyle='#ffd84a';g.fillRect(462,131,5,6)}
+  else{g.fillStyle='rgba(255,224,160,.10)';g.fillRect(440,100,40,70)}}
+ if(C2.room>0){g.fillStyle='#2a1f2a';g.fillRect(0,94,28,6);g.fillRect(0,170,28,6);g.fillStyle='rgba(255,224,160,.10)';g.fillRect(0,100,40,70)}}
+/* ---------- CAPÍTULO 6 — Mortalha (rascunho conforme a Bíblia; v1.1) ---------- */
+Object.assign(COL,{Hades:'#9a8ad8',Persephone:'#7ed8a0',Anubis:'#e0c060'});
+const HDA=[['Lutar','Seus golpes atravessam as almas. Não é isso que Hades mede.'],['Agir','Você diz o que fez e o que não fez. Hades escuta sem mudar de expressão.'],['Defender','Você se abriga atrás de uma corrente caída.'],['Fugir','Em Mortalha não há saída para quem foge do que fez.']];
+const NHD=['Chamas pálidas acendem sem lenha.','Correntes cruzam o chão. O julgamento se aproxima.'];
+const RW6=[mkR(0,[[130,60,40,40],[320,170,50,40]],4),mkR(1,[[120,70,40,40],[320,60,40,40],[320,170,40,40]],4),mkR(2,[[110,60,30,60],[110,170,30,60],[340,60,30,60],[340,170,30,60]],4),mkR(3,[[150,50,40,40],[150,170,40,40]],4),mkR(4,[[200,60,40,40],[200,170,40,40]],4)];
+const RN6=['PORTÃO DA MORTALHA','MARGEM DAS ALMAS','SALÃO DOS REGISTROS','TRONO DE HADES','PASSAGEM ROMPIDA'],RB6=['#14121e','#181426','#1a1522','#120e1c','#0c0a14'];
+const OB6={o0:'Um portão sem muros. Gravado nele: QUEM CRUZA DEIXA ALGO. QUEM FICA É LEMBRADO. Algumas letras foram apagadas.',o1:'Uma luz pequena paira perto da água, sem destino. Quando você chega perto, ela esquece que estava indo a algum lugar.',o2:'Uma balança de bronze com um prato vazio. Não por falta de peso: o registro que deveria estar ali sumiu.',o4:'O chão termina num risco escuro. Do outro lado, nada que a vista alcance.'};
+const NP6=[[{x:70,y:200,id:'o0'}],[{n:'Persephone',x:90,y:205,c:'#7ed8a0',id:'P'},{x:260,y:130,id:'o1'}],[{n:'Anubis',x:240,y:120,c:'#d4b050',id:'A'},{x:400,y:200,id:'o2'}],[{n:'Hades',x:300,y:120,c:'#3a3060',id:'h'}],[{x:380,y:200,id:'o4'}]];
+function startC6(){S='c2';RW=RW6;RN=RN6;RB=RB6;NP=NP6;OB=OB6;LAST=4;C2={room:0,cl:{},k:-1,open:false,told:false,cain:false,ch:6};F.tobias=1;Object.assign(F,{anubis:-1,tobiasDead:0,tobiasKeep:0,tobias_memory_kept:0});pl.x=50;pl.y=130;ex.t=0;save('cap6');
+ say([['Narração','Depois do Olimpo, a estrada desce até um lugar onde o céu fica baixo e o ar não se move.'],['Tobias','Pelo menos aqui ninguém grita. Isso é... bom, né?'],['Tobias','Eu ainda ouço a voz do Kael. Acho que vou ouvir por um tempo.'],['Tobias','Jordana, quando as pessoas somem desse jeito... para onde elas vão?'],['Jordana','Não é uma conversa para a porta de Mortalha. Fique perto de mim.'],...(F.iris?[['Íris','Ela mudou de assunto. De novo.']]:[]),['Narração','Arraste o dedo para andar. Perto de alguém ou de algo, toque em Falar.']])}
+function talk6(id){
+ if(id==='P'){if(C2.cl.P)return say([['Persephone','Os ciclos ainda podem voltar a girar. Mas alguém precisa pedir às almas que continuem.']]);C2.cl.P=1;
+  say([['Persephone','Vocês chegaram à margem de Mortalha. Aqui a vida e a morte se encontram, e o esquecimento espera do outro lado da água.'],['Persephone','Ainda acredito que dá para restaurar os ciclos. Se as almas voltarem a seguir seus caminhos, o mundo aprende a seguir também.'],['Persephone','Hades acha que fechar as passagens basta. Eu discordo: guardar demais também é uma forma de perder.'],['Tobias','Posso perguntar uma coisa? Quando alguém é lembrado, ele ainda está em algum lugar?'],['Persephone','Enquanto alguém o lembra, de um outro modo, sim.'],['Tobias','Então tá. Então eu consigo.'],['Jordana','Siga em frente. O guardião dos registros está esperando.']])}
+ else if(id==='A'){if(C2.cl.A)return say([['Anubis','O peso continua. Siga.']]);
+  say([['Anubis','Todo nome que passa por aqui é pesado. O seu foi chamado antes mesmo de você chegar.'],['Anubis','Não vim punir. Vim perguntar: o que você fez, e o que ficou depois?']],()=>ask(['Assumir o que fiz','Explicar meus motivos','Não fui só eu'],i=>{F.anubis=i;
+   say([...(i===0?[['Anubis','Assumir não apaga nada. Mas é o primeiro peso que se carrega sem derrubar os outros.']]:i===1?[['Anubis','Motivos explicam. Não desfazem. São dois pratos diferentes da balança.']]:[['Anubis','É verdade. Culpa dividida continua sendo culpa. Mas também é um peso que pode ser dividido.']]),
+    ...(F.kael===2?[['Anubis','Uma palavra dita numa praça de cinzas ainda está registrada. Não pelo que veio depois: pelo que ela ensinou a quem ouviu.']]:F.kael===0?[['Anubis','Uma mão estendida numa praça de cinzas também está registrada.']]:[['Anubis','O silêncio de quem ficou neutro numa praça de cinzas também pesa.']]),
+    ...(F.guardSpared?[['Anubis','Mãos vazias diante de um guardião. Isso também fica.']]:[]),
+    ['Anubis','Alguns inimigos que você enfrentou tinham motivos que se pode compreender. Compreender não apaga o que fizeram.'],['Anubis','Consequência não é castigo. É apenas o que fica.'],['Narração','A passagem para o trono foi liberada.']],()=>{C2.cl.A=1;C2.open=true})}))}
+ else if(id==='h'){if(C2.hd)return say([['Hades','Vá. A passagem não espera ninguém.']]);
+  say([['Hades','As fronteiras entre vivos, mortos e esquecidos estão se rompendo. Algumas almas não chegam ao destino. Outras são apagadas antes que alguém as lembre.'],['Hades','Você não é a causa. Mas seus passos pesam. Quero saber se você entende o peso das suas escolhas.'],['Jordana','Viemos ajudar.'],['Hades','Ajuda também é uma escolha com custo.'],['Tobias','Eu fico perto, tá?']],()=>startBattle('H'))}}
+function hds(b,p,r){if(b.sp>0)return;b.n++;
+ if(p===0){b.sp=1.3;if(b.n%2)b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:20,l:5});else b.bul.push({k:'v',x:A.x+r()*(A.w-16),y:A.y,w:16,h:A.h,t:0})}
+ else if(p===1){if(b.n%3===0){b.sp=1.3;const ya=A.y+12+r()*(A.h-24),yb=A.y+12+r()*(A.h-24),xa=A.x+14+r()*30,xb=A.x+A.w-14-r()*30;b.bul.push({k:'w',x:xa,y:ya,tx:xb,ty:yb,vx:0,vy:0,l:1.2},{k:'w',x:xb,y:yb,tx:xa,ty:ya,vx:0,vy:0,l:1.2})}
+  else{b.sp=.9;b.bul.push({k:'v',x:A.x,y:A.y+r()*(A.h-14),w:A.w,h:14,t:0});if(b.n%2)b.bul.push({k:'b',x:A.x,y:A.y+8+r()*(A.h-16),vx:50,vy:0})}}
+ else{b.sp=1.2;if(b.n%3===0)b.bul.push({k:'v',x:Math.max(A.x,Math.min(A.x+A.w-46,b.sx-23)),y:A.y,w:46,h:A.h,t:0});else if(b.n%3===1)b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:18,l:4});else b.bul.push({k:'x',x:A.x+r()*A.w,y:A.y,vx:0,vy:26,l:1.3})}}
+function hades(x,y){if(bigSpr('Hades',x,y)){for(let i=0;i<5;i++){g.fillStyle='rgba(138,184,255,'+(.4+.3*Math.sin(T*6+i))+')';g.fillRect(x-22+i*11,y-24-(i%2)*5,4,8)}return}g.fillStyle='#1c1830';g.fillRect(x-16,y+6,32,44);g.fillStyle='#3a3060';g.fillRect(x-16,y+6,32,4);g.fillStyle='#d9d2ea';g.fillRect(x-8,y-10,16,16);g.fillStyle='#1c1830';g.fillRect(x-10,y-14,20,6);g.fillStyle='#8ab8ff';g.fillRect(x-5,y-4,3,3);g.fillRect(x+2,y-4,3,3);for(let i=0;i<5;i++){g.fillStyle='rgba(138,184,255,'+(.4+.3*Math.sin(T*6+i))+')';g.fillRect(x-22+i*11,y-20-(i%2)*5,4,8)}}
+function endHd(){S='qend';B.ph='x';say([['Hades','Você carregou o peso sem fingir que era leve. Reconheço isso.'],['Hades','Reconhecer não é confiar. Mas a passagem que vocês procuram existe. Vão antes que ela se feche.']],()=>{S='c2';C2.hd=1})}
+function rupture(){
+ say([['Narração','A passagem final treme. O chão se abre numa linha escura e as almas da margem começam a deslizar para dentro dela.'],['Jordana','É uma ruptura. Se fechar com a gente do lado errado, não há volta.'],['Tobias','Alguém precisa segurar a passagem. Só até vocês cruzarem.'],['Jordana','Eu consigo segurar.'],['Tobias','Consegue. Mas você é a única que sabe para onde estamos indo. Eu sei fazer outra coisa: ficar.'],['Narração','Ele firma os dois pés, como se tivesse treinado isso a vida inteira. A linha escura para de crescer.'],['Tobias','Pega. É o apito do acampamento. Eu chamava as crianças com ele. Fica com você, tá? Caso alguém precise ser chamado.']],
+ ()=>{F.tobiasKeep=1;ask(['Prometer lembrar dele','Não conseguir falar'],i=>{F.tobias_memory_kept=i===0?1:0;
+  say([...(i===0?[['Você','Eu vou lembrar. Do apito, das piadas ruins, de tudo.'],['Tobias','As piadas eram boas. Mas tá bom.']]:[['Narração','Você tenta falar e não sai nada. Tobias sorri, como se tivesse ouvido mesmo assim.']]),
+   ['Jordana','Vão. Agora.'],['Narração','Vocês atravessam. Atrás, a passagem se fecha com um som baixo, quase gentil. Tobias não volta.'],
+   ...(F.iris?[['Íris','Vou escrever o nome dele ao lado do nome do Kael.']]:[]),...(F.dante?[['Dante','Mais um que o mundo vai tentar esquecer. Eu não vou deixar.']]:[]),...(F.helenaIn?[['Helena','Ele foi gentil comigo desde o primeiro dia.']]:[]),
+   ['Jordana','Eu poderia ter... não. Deixa.'],['Narração','Ela aperta o punho até os nós dos dedos ficarem pálidos e fala com a voz de sempre, só um pouco mais baixa.'],['Narração','Você percebe que Jordana também está perdendo gente que conhece há muito mais tempo que você.'],['Narração','O grupo está menor. O silêncio agora tem o formato dele.']],()=>{F.tobias=0;F.tobiasDead=1;save('fim6');S='end6';T=0})})})}
+function updE6(){if(tap&&T>.6)startC7()}
+function drawE6(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim do Capítulo 6',W/2,70,'#d9c8ff',24,'center');
+ wr('Tobias segurou a passagem para que os outros atravessassem. O apito dele ficou com você. Adiante, o chão perde as cores.',60,110,360,20,999,'#d9d2ea');tx('toque para entrar no Vazio',W/2,245,'#6c6290',12,'center')}
+/* ---------- CAPÍTULO 7 — Vazio (rascunho conforme a Bíblia; v1.2) ---------- */
+Object.assign(COL,{Nilo:'#9a9ab0',Erro:'#b8a8d8'});
+const ERA=[['Lutar','Seus golpes atravessam restos de padrões antigos.'],['Agir','Você pergunta o que ele quer. O erro só repete uma sílaba.'],['Defender','Você se encolhe atrás de um pedaço de cenário solto.'],['Fugir','As saídas se repetem, iguais, até onde a vista alcança.']];
+const NER=['Os padrões antigos voltam, trocados de lugar.','Tudo se repete, e quase igual.'];
+const RW7=[mkR(0,[[130,60,40,40],[320,170,50,40]],6),mkR(1,[[260,60,30,40],[300,180,50,40]],6),mkR(2,[[100,50,40,30],[100,180,40,30],[340,50,40,30],[340,180,40,30]],6),mkR(3,[[100,60,30,40],[360,180,40,40]],6),mkR(4,[[120,60,40,30],[340,60,40,30],[120,180,40,30],[340,180,40,30]],6),mkR(5,[[150,50,30,60],[150,170,30,60]],6),mkR(6,[[100,50,40,30],[100,190,40,30],[340,50,40,30],[340,190,40,30]],6)];
+const RN7=['LIMIAR DO VAZIO','PRAÇA SEM NOME','ARQUIVO SEM NOME','CORREDOR DAS ESTRUTURAS','SALA DOS MODELOS','DEFESA DO SISTEMA','SALA DOS ARQUIVOS'],RB7=['#0f0e14','#121018','#14121c','#100f18','#0d0c14','#0a0910','#0c0b12'];
+const OB7={o0:['Uma placa de madeira diz:','CUIDADO. O CAMINHO NÃO É O MESMO DE ONTEM.'],o1:['Uma placa na praça diz:','PRAÇA SEM NOME. AQUI NINGUÉM ESPERA NINGUÉM.']};
+function mkNP7(){return[[{x:70,y:200,id:'o0'}],[{n:'Nilo',x:90,y:205,c:'#9a9ab0',id:'n'},{x:360,y:200,id:'o1'}],[{x:150,y:130,id:'r0'},{x:240,y:130,id:'r1'},{x:330,y:130,id:'r2'}],[{x:240,y:130,id:'p0'}],[{x:240,y:130,id:'r3'}],[{n:'Erro Original',x:300,y:120,c:'#7a6a8a',id:'E'}],[{x:130,y:130,id:'r4'},{x:210,y:130,id:'r5'},{x:290,y:130,id:'r6'},{x:380,y:130,id:'r7'}]]}
+function fadeTxt(id){const[a,t]=OB[id];C2.er=C2.er||{};const n=C2.er[id]=(C2.er[id]||0)+1,f=Math.min(.7,.1*n),r=rng(id.charCodeAt(1)*31+n);return a+' '+t.replace(/[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/g,c=>r()<f?'_':c)}
+function startC7(){S='c2';RW=RW7;RN=RN7;RB=RB7;NP=mkNP7();OB=OB7;LAST=6;C2={room:0,cl:{},fl:{},k:-1,open:false,told:false,cain:false,ch:7,rc:0};F.iris=1;F.dante=1;Object.assign(F,{iris_records_found:0,dante_family_truth:0,author_records_found:0,irisGone:0,danteGone:0,irisDiary:0});pl.x=50;pl.y=130;ex.t=0;save('cap7');
+ say([['Narração','O Vazio não termina de existir. As cores chegam atrasadas.'],['Jordana','Fiquem juntos. Aqui, o que ninguém olha, some.'],['Íris','Quer dizer que a gente não pode desviar o olhar?'],['Dante','Eu não pretendia.'],...(F.helenaIn?[['Helena','Então eu vou olhar para todos vocês.']]:[]),['Narração','O apito de Tobias pesa no bolso. Arraste o dedo para andar.']])}
+const REC=['Registro: "Elyndra, versão 2". Os mesmos nomes, as mesmas ruas, uma guerra que terminou antes de começar.','Registro: "Elyndra, versão 5". Uma lista de nomes marcados TESTE. Ao lado de cada um, uma anotação: comportamento previsto.','Registro: "Habitantes usados como modelo". Pessoas transformadas em dados para testar formas de preservar a realidade.'];
+function talk7(id){
+ if(id==='n')say([['Nilo','Visitantes? Faz tempo que ninguém passa por aqui.'],['Íris','Nós passamos por aqui agora há pouco.'],['Nilo','Agora há pouco? Não lembro de vocês.'],['Narração','Ele fala como quem lê uma frase que acabou de esquecer.']]);
+ else if(/^r[0-2]$/.test(id)){C2.cl[id]=1;C2.rc=Object.keys(C2.cl).length;say([['Narração',REC[+id[1]]]],()=>{if(C2.rc===3&&!C2.open){C2.open=true;F.iris_records_found=1;say([['Íris','Versões anteriores. Elyndra já foi refeita outras vezes e alguém guardou cada rascunho.'],['Íris','E os nomes marcados TESTE eram gente. Pessoas usadas como dados para testar jeitos de conservar o mundo.'],['Jordana','Íris. Já chega por hoje.'],['Íris','Chega nada. Tem um índice no corredor, e ele aponta para onde isso foi guardado.'],['Dante','Eu vou com ela.'],['Narração','A passagem para o corredor foi liberada.']])}})}
+ else if(id==='p0'){if(C2.ir)return say([['Narração','A estrutura continua acesa, mas nada responde. Os símbolos estão em silêncio.']]);
+  say([['Íris','Isto é um índice. Estão apagando um conjunto de lembranças aqui dentro, uma por uma.'],['Jordana','Íris, não toque nisso.'],['Íris','Eu consigo travar o índice. Só preciso entrar na estrutura.'],['Dante','Íris!'],['Íris','Eu volto. Prometo.'],['Narração','Ela entra. Os símbolos se acendem em volta dela e depois se apagam, um por um. Íris não está mais ali.'],['Narração','Num degrau, um diário incompleto e uma sequência de símbolos riscados.'],['Jordana','Não sabemos o que aconteceu com ela.'],['Dante','Ela não morreu. Eu não aceito isso.'],...(F.helenaIn?[['Helena','Então vamos procurar. Juntos.']]:[])],()=>{F.iris=0;F.irisGone=1;C2.ir=1;NP[3].push({x:200,y:160,id:'p1'})})}
+ else if(id==='p1'){F.irisDiary=1;say([['Narração','O diário tem folhas arrancadas. Na última: "As datas não batem. Se o índice estiver certo, alguém conserva o mundo trocando gente por números."'],['Narração','Mais abaixo, outra linha: "Jordana sabe mais do que diz. Quero saber por quê." O resto está riscado.'],['Narração','Embaixo, uma sequência de símbolos: * o ^ * # ... A linha não termina.']])}
+ else if(id==='r3'){if(C2.dg)return say([['Narração','A gravação terminou. Só chiado.']]);
+  say([['Dante','Este é o arquivo da minha família. Eu preciso ver.'],['Narração','Uma gravação se acende: pessoas em fila assinando papéis sem ler. Uma voz fora do quadro anota: "comportamento previsto: obediência".'],['Dante','Meu avô assinou isso. Ninguém escolheu nada. Usaram a nossa história para fazer um modelo.'],['Jordana','Dante. Deixe isso aí.'],['Dante','A sequência no chão é a mesma do diário da Íris. Se ela foi por aqui...'],['Dante','Se eu descobrir onde isso termina, eu volto.'],['Narração','Ele pisa na linha de símbolos. O chão o aceita como aceitou a Íris. Dante some.'],['Jordana','De novo.'],...(F.helenaIn?[['Helena','Eu não vou deixar você sozinho aqui.']]:[]),['Narração','Ninguém sabe se ele foi absorvido, ou se está preso em outra camada.']],()=>{F.dante=0;F.danteGone=1;F.dante_family_truth=1;C2.dg=1})}
+ else if(id==='E'){if(C2.eh)return say([['Narração','Só restam letras soltas no chão.']]);
+  say([['Narração','Fragmentos de chefes que você enfrentou se juntam: raízes, máscaras, estrelas, correntes. Não há rosto.'],['Jordana','Isso não pensa. Só tenta corrigir o que não se encaixa.']],()=>startBattle('E'))}
+ else if(id==='r4'||id==='r5'||id==='r6'){C2.fl[id]=1;say([['Narração',id==='r4'?'Arquivo: PERSONAGENS. Uma lista longa de nomes. Alguns têm um traço ao lado: já esquecidos. Há nomes que você conhece, e um que você nunca ouviu.':id==='r5'?'Arquivo: REGIÕES. Raiz Velha, Vila das Cinzas, Cidade dos Espelhos... Abaixo, linhas em branco esperando um nome.':'Arquivo: VERSÃO_NUNCA_EXISTIU. Descreve um mundo em que ninguém precisava ser lembrado, porque ninguém tinha sido esquecido. Não há uma única pessoa nele.']])}
+ else if(id==='r7'){if(Object.keys(C2.fl).length<3)return say([['Jordana','Leia os outros primeiro.']]);
+  say([['Narração','O último arquivo tem um nome só: AUTOR.'],['Jordana','Esse não. Não abra o último.'],['Você','Por quê?'],['Jordana','Ainda não posso explicar.']],()=>ask(['Abrir mesmo assim','Respeitar o pedido'],i=>{F.author_records_found=i===0?1:0;
+   say([...(i===0?[['Narração','O arquivo se abre numa só linha: "O MUNDO NÃO PODE CONTINUAR ASSIM." Depois, só o cursor piscando, esperando.'],['Jordana','Fecha. Por favor.']]:[['Narração','Você tira a mão do arquivo. O cursor continua piscando, esperando.'],['Jordana','Obrigada.']]),['Jordana','Quando eu puder, eu explico. Não agora.'],['Narração','O Vazio não responde. Aqui, nem o eco volta.']],()=>{save('fim7');S='end7';T=0})}))}}
+function recog(){AUD.ov={k:'mus_cena_triste',ch:7,room:6};say([['Narração','Jordana para na porta da sala. Os olhos dela passam pelos arquivos antes de qualquer palavra.'],['Jordana','Eu conheço este lugar.'],['Narração','Ela diz isso baixo, como se não devesse. Depois não diz mais nada.']])}
+function hers(b,p,r){if(b.sp>0)return;b.n++;
+ if(p===0){b.sp=1;const m=b.n%4;if(m===0)b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:20,l:5});else if(m===1)b.bul.push({k:'v',x:A.x+r()*(A.w-16),y:A.y,w:16,h:A.h,t:0});else if(m===2)b.bul.push({k:'x',x:A.x+r()*A.w,y:A.y,vx:0,vy:26,l:1.3});else b.bul.push({k:'b',x:A.x,y:A.y+8+r()*(A.h-16),vx:50,vy:0})}
+ else if(p===1){b.sp=1.4;if(b.n%2)b.bul.push({k:'v',x:A.x+r()*(A.w-30),y:A.y,w:30,h:A.h,t:0});else b.bul.push({k:'b',x:A.x+r()*A.w,y:A.y-4,vx:0,vy:40})}
+ else{b.sp=.8;if(b.n%4===0)b.r2=rng(91);const r2=b.r2||r;if(b.n%5===0)b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:18,l:4});else b.bul.push({k:'b',x:A.x+r2()*A.w,y:A.y-4,vx:(r2()-.5)*20,vy:46})}}
+function erro(x,y){const f=Math.floor(T*8),r=rng(f%5+7),cs=['#7ed87a','#d58cff','#e8d9ff','#ffd84a','#ff9ccb'];for(let i=0;i<9;i++){g.fillStyle=cs[i%5];g.fillRect(x-22+r()*44,y-12+r()*56,6+r()*10,4+r()*8)}}
+function endEr(){S='qend';B.ph='x';say([['Narração','Os fragmentos se desfazem em letras soltas. Nenhum pede desculpas e nenhum tenta se vingar.'],['Jordana','Era só o sistema tentando se corrigir. Não era alguém.']],()=>{S='c2';C2.eh=1})}
+function updE7(){if(tap&&T>.6)startC8()}
+function drawE7(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim do Capítulo 7',W/2,70,'#d9c8ff',24,'center');
+ wr('Íris e Dante seguiram rastros para dentro do sistema e não voltaram. Ninguém sabe o que aconteceu com eles. O Núcleo está logo à frente.',60,110,360,20,999,'#d9d2ea');tx('toque para continuar',W/2,245,'#6c6290',12,'center')}
+/* ---------- CAPÍTULO 8 — O Núcleo (rascunho conforme a Bíblia; v1.3) ---------- */
+Object.assign(COL,{'Primeiro Autor':'#e8d9ff'});let GEN=false;
+const PAA=[['Lutar','Cada golpe apaga uma linha. Ele reescreve a linha.'],['Agir','Você pergunta o que ele quer salvar. Ele responde com uma lista de nomes.'],['Defender','Você se abriga atrás de uma frase que ele ainda não terminou.'],['Fugir','Não há margem. A página termina onde ele decide.']];
+const NPA=['As regras mudam. Algo nos seus movimentos vai se inverter.','Ele olha além do quadro: \"Um jogo nascido de Undertale, e ainda quer ser lembrado.\" Volta à página.'];
+const RW8=[mkR(0,[[140,60,40,40],[320,170,50,40]],4),mkR(1,[[100,50,40,30],[340,190,40,30]],4),mkR(2,[[120,50,40,30],[340,50,40,30]],4),mkR(3,[[100,60,30,40],[360,160,40,40]],4),mkR(4,[[120,50,40,30],[340,190,40,30]],4)];
+const RN8=['LIMIAR DO NÚCLEO','SALA DAS PROFECIAS','PONTE DO NÚCLEO','CÂMARA DO PRIMEIRO AUTOR','NÚCLEO INSTÁVEL'],RB8=['#0d0c14','#10101c','#0a0a14','#07060d','#12101c'];
+function mkNP8(){return[[{n:'Floris',x:300,y:125,c:'#ffd84a',id:'F'}],[{x:150,y:130,id:'r0'},{x:240,y:130,id:'r1'},{x:330,y:130,id:'r2'}],[],[{n:'Primeiro Autor',x:300,y:120,c:'#e8d9ff',id:'A'}],[{n:'Jordana',x:300,y:120,c:'#9fd7ff',id:'J'}]]}
+function startC8(){S='c2';RW=RW8;RN=RN8;RB=RB8;NP=mkNP8();OB={};LAST=4;C2={room:0,cl:{},fl:{},k:-1,open:false,told:false,cain:false,ch:8,rc:0};F.iris=0;F.dante=0;Object.assign(F,{jfall:0,prophecy_read:0,jordana_truth_known:0,sacrifice_understood:0,route_sacrifice:0,floris8:0,pa_defeated:0});pl.x=50;pl.y=130;ex.t=0;save('cap8');
+ say([['Narração','O Núcleo não tem céu nem chão. Só uma luz fina, como uma linha que não acaba.'],['Jordana','Estamos perto. Daqui em diante, eu vou na frente.'],...(F.helenaIn?[['Helena','Eu vim até aqui. Não vou voltar agora.']]:[]),['Narração','Arraste o dedo para andar.']])}
+const PROF=['Profecia (Raiz Velha): \"A criança abrirá a última porta.\" A palavra criança está riscada e reescrita a mão.','Profecia (Núcleo): \"O Messias não governa. O Messias escolhe.\" Abaixo, o desenho de três portas.','Profecia (fim da página): preservar o mundo como arquivo, permitir que ele se apague, ou assumir o custo de estabilizá-lo. \"O Messias é uma função, não uma pessoa.\"'];
+function jfall(){say([['Jordana','Daqui em diante eu abro o caminho. Não discuta.'],['Narração','Ela estende as mãos. Uma ponte se desenha à frente, linha por linha, e cada linha custa algo a ela.'],['Jordana','Corre. Não olha para trás.'],...(F.helenaIn?[['Helena','Eu fico deste lado. Vai.']]:[]),['Narração','A luz que sai dela é grande demais para a sala. Depois, nada. Não há corpo. Não há som.'],['Narração','Você atravessa a ponte sozinho, acreditando que perdeu a última companheira.']],()=>{F.jfall=1})}
+function pas(b,p,r){if(b.sp>0)return;b.n++;const m=b.n%5;b.sp=p===0?1.2:p===1?1:.8;
+ if(m===0)b.bul.push({k:'v',x:A.x+r()*(A.w-16),y:A.y,w:16,h:A.h,t:0});
+ else if(m===1)b.bul.push({k:'v',x:A.x,y:A.y+r()*(A.h-14),w:A.w,h:14,t:0});
+ else if(m===2){if(b.n%10===2)b.r2=rng(55);const r2=b.r2||r;b.bul.push({k:'b',x:A.x+r2()*A.w,y:A.y-4,vx:0,vy:44})}
+ else if(m===3)b.bul.push({k:'x',x:A.x+r()*A.w,y:A.y,vx:0,vy:28,l:1.3});
+ else{const cx=A.x+A.w/2,cy=A.y+6;for(let i=0;i<8;i++){const an=i*Math.PI/4+.2;b.bul.push({k:'s',x:cx,y:cy,vx:Math.cos(an)*38,vy:Math.sin(an)*38})}}}
+function autor(x,y){if(bigSpr('Primeiro Autor',x,y)){if(Math.floor(T*2)%2){g.fillStyle='#fff';g.fillRect(x+22,y+34,5,8)}for(let i=0;i<5;i++){g.fillStyle='rgba(232,217,255,'+(.15+i*.05)+')';g.fillRect(x-30+i*12,y+50+(i%2)*4,8,2)}return}g.fillStyle='#e8d9ff';g.fillRect(x-10,y+6,20,34);g.fillStyle='#f1c9a0';g.fillRect(x-6,y-6,12,12);g.fillStyle='#2a2438';g.fillRect(x-8,y-9,16,5);if(Math.floor(T*2)%2){g.fillStyle='#fff';g.fillRect(x+16,y+30,5,8)}for(let i=0;i<5;i++){g.fillStyle='rgba(232,217,255,'+(.15+i*.05)+')';g.fillRect(x-30+i*12,y+46+(i%2)*4,8,2)}}
+function endPa(){S='qend';B.ph='x';say([['Narração','A página se rasga. O Primeiro Autor cai de joelhos, mas as linhas do chão continuam se apagando.'],['Primeiro Autor','Vencido. E o Núcleo não me obedece mais. Eu não sei como pará-lo.'],['Narração','Ele se desfaz em palavras soltas. O Núcleo continua instável. O mundo não está salvo.']],()=>{S='c2';C2.pd=1;F.pa_defeated=1})}
+function routeCalc(){const k=F.kael,c=F.cain,j=F.judas,h=F.hrel||0,g=F.gods||0;
+ const sc={ruina:(k===2)+(c===1)+(j===2)+(h<0)+(F.guardSpared?0:1),criador:(j===1)+(c===2)+(F.author_records_found?1:0),vazio:(F.irisDiary?2:0)+(F.author_records_found?0:1),deuses:g>=4?3:g>=3?2:0,paz:(k===0)+(c===0)+(F.guardSpared?1:0)+(h>=2)+(F.tobiasKeep?1:0)+(F.helenaIn?1:0)};
+ let best='neutra',m=2;for(const n of['ruina','criador','vazio','deuses','paz'])if(sc[n]>m){m=sc[n];best=n}return best}
+const ROPT={paz:'Chamar todos para ajudar',ruina:'Tomar o controle do Núcleo',deuses:'Pedir ajuda aos deuses',criador:'Negociar a preservação',vazio:'Fechar o Vazio, esquecendo',neutra:'Estabilizar só em parte'};
+const RJ={paz:'Eles vieram. Não é perfeito, mas foi o que vocês construíram.',ruina:'Você vai conseguir. É isso que me assusta.',deuses:'Alguns vão ouvir. Não conte com todos.',criador:'Se você assinar isso, ninguém vai saber o que é verdade depois.',vazio:'Vai doer, e você nem vai lembrar de onde dói.',neutra:'Isso segura um pedaço. O resto fica como está.'};
+function finalAsk(){const rt=routeCalc();ask(['Estabilizar o Núcleo','Preservar como arquivo','Permitir o apagamento',ROPT[rt]],i=>{
+ if(i===1)return say([['Narração','Você vê Elyndra guardada em cada detalhe, perfeita e parada. Os habitantes viram nomes numa lista.'],['Jordana','Era isso que ele queria. Isso não é viver.']],finalAsk);
+ if(i===2)return say([['Narração','Você vê as luzes se apagando uma a uma. Sem dor. Sem ninguém para lembrar.'],['Jordana','Isso também é um fim. Mas não foi para isso que você chegou até aqui.']],finalAsk);
+ if(i===3)return say([['Jordana',RJ[rt]]],()=>startE8(rt));
+ say([['Jordana','Não. Pensa de novo.'],['Jordana','Pela primeira vez eu não estou guiando ninguém. Estou pedindo.'],['Você','Alguém precisa escolher. Eu escolho.'],['Jordana','Então eu vou me lembrar. Eu prometo.']],()=>{F.sacrifice_understood=1;F.route_sacrifice=1;startE8('sacrificio')})})}
+
+function talk8(id){
+ if(id==='F'){if(C2.fl0)return say([['Narração','Floris já foi embora. Só ficou a marca do pé no chão.']]);
+  say([['Floris','Demorou. Eu cheguei antes, claro.'],['Floris','Eu sempre soube que este mundo era instável. Por isso nunca me importei em ser querido.'],['Floris','Aquele símbolo na parede. Eu já vi. Ele assina tudo o que dói.'],['Floris','Não vou te ajudar. Se o Núcleo ficar de pé, eu fico de pé junto. É só isso.'],['Narração','Ele sai pela esquerda sem dizer para onde.']],()=>{C2.fl0=1;F.floris8=1;NP[0].length=0})}
+ else if(/^r[0-2]$/.test(id)){C2.cl[id]=1;C2.rc=Object.keys(C2.cl).length;say([['Narração',PROF[+id[1]]]],()=>{if(C2.rc===3&&!C2.open){C2.open=true;F.prophecy_read=1;say([['Jordana','Uma função. Alguém que consiga escolher entre três caminhos.'],['Jordana','Preciso abrir o caminho até ele. Fiquem atrás de mim.'],['Narração','A passagem para a ponte foi liberada.']])}})}
+ else if(id==='A'){if(C2.pd)return say([['Narração','Só restam palavras soltas no chão.']]);
+  say([['Narração','Uma figura de costas escreve numa página que não termina. Cada palavra vira chão.'],['Primeiro Autor','Você chegou. Escrevi tantas versões de você que perdi a conta.'],['Primeiro Autor','Elyndra está sumindo. Eu só convertia tudo em arquivo, para que nada desaparecesse.'],['Primeiro Autor','Pessoas são informação. Informação pode ser guardada, restaurada, corrigida.'],['Você','E quem vive lá dentro?'],['Primeiro Autor','Vive? Dados não precisam viver. Precisam durar.']],()=>startBattle('P'))}
+ else if(id==='J'){if(C2.jv)return finalAsk();
+  say([['Jordana','Estou aqui. Eu disse que ia na frente.'],['Jordana','Eu não morri. Usei o que tinha para abrir o caminho, e levei tempo para me reconstituir.'],['Jordana','Sou a entidade mais poderosa de Elyndra. Conheço a estrutura original do mundo.'],['Jordana','Não contei porque você precisava escolher por conta própria. E porque, se eu agisse direto, o colapso viria mais rápido.'],['Jordana','O Primeiro Autor tentou preservar tudo. O processo separou memória de experiência.'],['Jordana','O mundo poderia continuar como arquivo. Só que ninguém dentro dele estaria vivendo de verdade.'],['Jordana','Sua Determinação pode estabilizar o Núcleo. O preço é perder a ligação com a existência. Procurei outra saída. Não achei nenhuma segura.']],()=>{C2.jv=1;F.jfall=0;F.jordana_truth_known=1;finalAsk()})}}
+let e8=0,e8r='sacrificio';
+const ENDR={
+sacrificio:['A Determinação se abre como uma mão. Os cenários deixam de falhar.','As memórias voltam. As almas encontram seus caminhos.','A barreira e a guerra poderão ser revistas, sem depender de uma versão oficial.','O preço é definitivo. Você perde a ligação com o mundo e não volta.','Jordana guarda a lembrança. Leva até um lugar tranquilo e a deixa ali.|\"O mundo continua não porque foi perfeito, mas porque alguém escolheu que ele ainda merecia uma chance.\"|Os habitantes ainda terão preconceito, luto e reconstrução pela frente.'],
+paz:['Você chama todos. Kael e Tobias já não estão, mas o que deixaram segura uma ponta do Núcleo.','O mundo se estabiliza por uma solução coletiva, incompleta. Os caminhos de reconciliação continuam abertos.','Você sobrevive, mas o que você era não volta inteiro. Sobreviver teve um custo.'],
+neutra:['O Núcleo se estabiliza só em parte. Algumas regiões despertam, outras ficam como estavam.','Ninguém concorda sobre o que aconteceu. Cada região conta uma versão.','Você desaparece do mapa. Uns dizem que partiu, outros que ficou. As consequências são permanentes.'],
+ruina:['Você toma o Núcleo à força. Tem poder de sobra para atravessá-lo.','O mundo racha por onde você passa. Quem ainda confiava em você deixa de confiar.','O Primeiro Autor não foi o único culpado. Você assume o que fez.'],
+deuses:['Alguns deuses respondem ao chamado. Outros não vêm.','Eles seguram parte do Núcleo e percebem que o poder deles não decide por quem vive em Elyndra.','Os deuses não são solução para tudo. As escolhas dos habitantes continuam sendo deles.'],
+criador:['Você negocia com o que restou do Primeiro Autor: guardar Elyndra como arquivo.','Tudo fica registrado, nítido, completo.','Ninguém sabe se quem vive lá dentro continua vivendo de verdade.'],
+vazio:['Você fecha o Vazio. Para isso, entrega as lembranças que mais importavam.','O Nada para de crescer.','Você já não lembra o nome de quem esperava por você, nem por que doeu.']};
+function startE8(rt){rt=rt||F.route||'sacrificio';if(!ENDR[rt])rt='sacrificio';e8r=rt;S='end8';e8=0;T=0;F.route=rt;save('fim8');
+ try{if(rt==='sacrificio')localStorage.setItem('elyndra_unlock','1');const E=JSON.parse(localStorage.getItem('elyndra_ends')||'[]');if(!E.includes(rt)){E.push(rt);localStorage.setItem('elyndra_ends',JSON.stringify(E))}}catch(e){}}
+function e8pages(){return ENDR[e8r].concat([['CRÉDITOS|Um jogo de Weslley Nunes|Obrigado por jogar.'+(e8r==='sacrificio'?'|Um novo modo foi aberto no menu.':'')]]).map(p=>String(p).split('|'))}
+function updE8(){const n=e8pages().length;if(e8<n){if(tap&&T>.6){e8++;T=0}}else if(e8r==='sacrificio'){if(T>5){S='title';T=0}}else if(tap&&T>.6){S='title';T=0}}
+function drawE8(){g.fillStyle='#07060d';g.fillRect(0,0,W,H);const P=e8pages();if(e8<P.length){P[e8].forEach((l,i)=>wr(l,50,80+i*58,380,20,999,e8===P.length-1&&i===0?'#ffe98a':e8r==='sacrificio'&&e8===4&&i===1?'#9fd7ff':'#d9d2ea'));tx('toque para continuar',W/2,250,'#6c6290',12,'center')}else if(e8r==='sacrificio'){tx('ELYNDRA_FINAL_02.SAVE',W/2,120,'#7ed87a',18,'center');tx('> há uma parte que Jordana não contou, e que',W/2,150,'#9a9ab0',13,'center');if(Math.floor(T*2)%2)tx('_',W/2+150,150,'#9a9ab0',13,'left')}}
+
+/* ---------- SISTEMA SONORO v1.5 ---------- */
+const RUSH=[0.9, 0.9, 0.9, 1.09, 1.13, 1.34, 1.34, 1.36, 1.47, 1.52, 1.7, 2.13, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3];
+const AUD={ok:0,buf:{},pend:{},cur:null,curKey:'',olds:[],ov:null,acv:null,acvT:-999,amb:null,ambKey:'',stepD:0,lx:0,ly:0,rk:'',ch:-1,hp:0,bl:0,sfxT:{},toast:'',toastT:0,fx:null,sb:null,ab:null,bt:0,jf:0,cl:0,S0:'',pos:{},duck:1,pc:0,over:0,t:0};
+const VOZES=['protagonista','jordana','floris','tobias','kael','iris','dante','helena','judas','cain','zeus','hades','anubis','morpheus','guardiao','erro_original','primeiro_autor','nilo','narracao'];
+const VZ={'voce':'protagonista','morfeu':'morpheus','rainha':'narracao','patriarca':'narracao'};
+const CHM=[null,'mus_raiz_velha','mus_vila_cinzas','mus_cidade_espelhos','mus_casa_herdeiros','mus_olimpo','mus_mortalha','mus_vazio','mus_nucleo'];
+const SPK={'Anubis':'mus_chefe_anubis','Cain':'mus_chefe_cain','Judas':'mus_chefe_judas'};
+const ACV=[['acervo_a_thousand_miles','A Thousand Miles',[1,3,4]],['acervo_take_on_me','Take On Me',[1,3]],['acervo_another_one_bites_the_dust','Another One Bites the Dust',[2,5]],['acervo_be_my_baby','Be My Baby',[3,4]],['acervo_blue_dabadee','Blue (Da Ba Dee)',[1,3]],['acervo_in_the_end','In the End',[6,8]],['acervo_moves_like_jagger','Moves Like Jagger',[3,4]],['acervo_hey_ya','Hey Ya!',[1]],['acervo_seven_nation_army','Seven Nation Army',[5,8]]];
+function audInit(){if(AUD.ok||!AC)return;try{AC.resume();const c=AC.createDynamicsCompressor();c.threshold.value=-16;c.ratio.value=4;c.connect(AC.destination);AUD.sb=AC.createGain();AUD.ab=AC.createGain();AUD.sb.connect(c);AUD.ab.connect(c);
+ const ir=AC.createBuffer(2,AC.sampleRate*1.1|0,AC.sampleRate);for(let h=0;h<2;h++){const d=ir.getChannelData(h);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)}
+ const cv=AC.createConvolver();cv.buffer=ir;const wg=AC.createGain();wg.gain.value=.12;cv.connect(wg);wg.connect(c);AUD.fx=cv;AUD.ok=1;
+ ['ui_selecionar','ui_confirmar','passo_terra','bat_dano_leve','bat_menu_mover'].forEach(n=>getBuf(n));
+ document.addEventListener('visibilitychange',()=>{try{if(document.hidden){AUD.cur&&AUD.cur.pause();AC.suspend()}else{AC.resume();AUD.cur&&AUD.cur.play().catch(()=>{})}}catch(e){}})}catch(e){}}
+function embed(p){const e=window.AUDIO_EMBED;return e&&e[p]}
+function getBuf(name){const p='audio/sfx/'+name+'.ogg';if(AUD.buf[p])return Promise.resolve(AUD.buf[p]);if(AUD.pend[p])return AUD.pend[p];
+ const e=embed(p);const pr=e?Promise.resolve(Uint8Array.from(atob(e),c=>c.charCodeAt(0)).buffer):fetch(p).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()});
+ return AUD.pend[p]=pr.then(b=>new Promise((ok,no)=>AC.decodeAudioData(b,ok,no))).then(b=>AUD.buf[p]=b).catch(()=>null)}
+function sfx(name,o={}){if(!AUD.ok||!CFG.snd||CFG.sv<=0)return;const now=AC.currentTime,gap=o.gap??.03;if(AUD.sfxT[name]>now-gap)return;AUD.sfxT[name]=now;
+ getBuf(name).then(b=>{if(!b)return;const s=AC.createBufferSource();s.buffer=b;s.playbackRate.value=(o.rate||1)*(1+(Math.random()-.5)*(o.var??.06));const g=AC.createGain();g.gain.value=(o.v??1)*CFG.sv;s.connect(g);g.connect(AUD.sb);if(o.fx!==0&&AUD.fx&&/pedra|marmore|vidro|chefe|cena|stg|bat_game|explosao/.test(name))g.connect(AUD.fx);s.start()})}
+function voz(who){const k=String(who).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ /g,'_');const v=VZ[k]||(VOZES.includes(k)?k:'narracao');sfx('voz_'+v,{v:.4,var:.14,gap:.02})}
+function playAmb(name){if(!AUD.ok||name===AUD.ambKey)return;AUD.ambKey=name;const old=AUD.amb,t=AC.currentTime;if(old){old.g.gain.cancelScheduledValues(t);old.g.gain.setValueAtTime(old.g.gain.value,t);old.g.gain.linearRampToValueAtTime(0,t+1.5);setTimeout(()=>{try{old.s.stop()}catch(e){}},1700)}AUD.amb=null;if(!name)return;
+ getBuf(name).then(b=>{if(!b||AUD.ambKey!==name)return;const s=AC.createBufferSource();s.buffer=b;s.loop=true;const g=AC.createGain();g.gain.value=0;s.connect(g);g.connect(AUD.ab);s.start();g.gain.linearRampToValueAtTime(.5*CFG.sv*(CFG.snd?1:0),AC.currentTime+1.8);AUD.amb={s,g}})}
+function mkAud(key){const a=new Audio();a.loop=!/final|creditos|pos_cred/.test(key);a.preload='auto';a.volume=0;a.tv=1;const u=key.startsWith('acervo_')?['audio/musica/'+key+'.ogg']:['audio/musica/'+key+'.ogg','audio/sint/'+key+'.ogg'];let i=0;
+ const set=()=>{const p=u[i];a.src=embed(p)?'data:audio/ogg;base64,'+embed(p):p};
+ a.onerror=()=>{if(++i<u.length){set();a.play().catch(()=>{})}else a.dead=1};
+ a.onplaying=()=>{if(key.startsWith('acervo_')&&!a.shown){a.shown=1;const m=ACV.find(x=>x[0]===key);AUD.toast=m?m[1]:'';AUD.toastT=4.5}};
+ if(AUD.pos[key]&&!/chefe|genocide/.test(key))a.addEventListener('loadedmetadata',()=>{try{a.currentTime=AUD.pos[key]%a.duration}catch(e){}},{once:true});set();return a}
+function playMus(key){if(!AUD.ok||key===AUD.curKey)return;const old=AUD.cur;if(old){if(AUD.curKey)AUD.pos[AUD.curKey]=old.currentTime;old.tv=0;AUD.olds.push(old)}AUD.curKey=key;AUD.cur=null;if(!key)return;const a=mkAud(key);AUD.cur=a;const p=a.play();if(p&&p.catch)p.catch(()=>{})}
+function musKey(){
+ if(S==='fones')return null;if(S==='title')return 'mus_titulo';if(S==='pro'||S==='explore')return 'mus_abertura_prologo';if(S==='jord')return 'mus_tema_jordana';
+ if(S==='battle'){if(GEN)return 'mus_chefe_genocide';return B.pa?'mus_chefe_primeiro_autor':B.er?'mus_chefe_erro_original':B.g?'mus_chefe_guardiao':B.q?'mus_chefe_rainha':B.mo?'mus_chefe_morpheus':B.he?'mus_chefe_herdeiros':B.z?'mus_chefe_zeus':B.hd?'mus_chefe_hades':'mus_tema_floris'}
+ if(S==='end8'){const n=e8pages().length;if(e8>=n)return e8r==='sacrificio'?'mus_pos_creditos':null;return e8===n-1?'mus_creditos':e8r==='sacrificio'?'mus_final_sacrificio':'mus_final_'+e8r}
+ if(S==='choice'&&C2.ch===8)return 'mus_tema_protagonista';
+ if(S==='c2'){const ch=C2.ch,rm=C2.room;
+  if(AUD.ov&&AUD.ov.ch===ch&&AUD.ov.room===rm)return AUD.ov.k;
+  if(D&&D.l[D.i]){const sp=D.l[D.i][0];if(SPK[sp]){AUD.ov={k:SPK[sp],ch,room:rm};return AUD.ov.k}if(ch===8&&sp==='Floris'){AUD.ov={k:'mus_tema_floris',ch,room:rm};return AUD.ov.k}}
+  if(AUD.acv&&AUD.acv.ch===ch&&AUD.acv.room===rm)return AUD.acv.k;
+  if(ch===8)return rm===4?'mus_tema_jordana':rm===2?'mus_cena_triste':rm===3?'mus_nucleo_instavel':'mus_nucleo';
+  return CHM[ch]||AUD.curKey}
+ return AUD.curKey}
+function ambFor(){if(S==='explore')return 'amb_vento_floresta';if(S!=='c2')return AUD.ambKey;const ch=C2.ch,r=C2.room;
+ return ch===1?(r===3?'amb_chuva_leve':r<2?'amb_vento_floresta':'amb_grilos_noite'):ch===2?(r%2?'amb_vila_cinzas':'amb_fogueira'):ch===3?(r<2?'amb_praca':'amb_espelhos'):ch===4?(r<3?'amb_chuva_janela':'amb_salao_herdeiros'):ch===5?(r===0?'amb_chuva_forte':'amb_olimpo_vento_alto'):ch===6?(r===0?'amb_caverna_gotas':'amb_mortalha'):ch===7?'amb_vazio_silencio':ch===8?(r===2?'amb_abismo':C2.pd?'amb_nucleo_instavel':'amb_nucleo_zumbido'):null}
+function rushMul(){if(!(S==='battle'&&B&&B.er&&!B.pa))return 1;const a=AUD.cur,t=a&&!a.dead&&a.currentTime>0&&/erro/.test(AUD.curKey)?a.currentTime:AUD.bt,i=Math.min(RUSH.length-1,t/3),k=i|0;return (RUSH[k]*(1-(i-k))+RUSH[Math.min(k+1,RUSH.length-1)]*(i-k))*.9}
+const STEP=['','terra','cinzas','vidro','marmore','nuvem','alma','vazio','digital'];
+function audTick(dt){if(!AUD.ok)return;AUD.t+=dt;const c2=S==='c2',now=AUD.t;
+ if(S!==AUD.S0){if(S==='battle'){AUD.bt=0;AUD.over=0;sfx('bat_inicio');sfx('stg_chefe_aparece',{v:.6});const k=B.pa?'chefe_autor_escreve':B.er?'chefe_erro_fragmento':B.g?'chefe_guardiao_raiz':B.q?'chefe_rainha_mascaras':B.mo?'chefe_morpheus_sono':B.he?'chefe_herdeiros_selos':B.z?'chefe_zeus_raio':B.hd?'chefe_hades_alma':'floris_risada';sfx(k.startsWith('f')?'chefe_'+k:k,{v:.7})}
+  if(AUD.S0==='battle'&&S!=='battle'&&B&&B.hp>0&&B.ph!=='over')sfx('bat_vitoria');
+  if(S==='end8')sfx(e8r==='sacrificio'?'cena_sacrificio':'cena_mundo_reconecta');if(S!=='end8')AUD.pc=0;AUD.S0=S}
+ if(S==='battle'&&B){if(AUD.hp&&B.hp<AUD.hp-.01){sfx(GEN?'bat_genocide_hit':AUD.hp-B.hp>=5?'bat_dano_forte':'bat_dano_leve');if(B.hp<=6)sfx('bat_hp_baixo',{v:.5,gap:1})}else if(AUD.hp&&B.hp>AUD.hp+.01)sfx('bat_cura');AUD.hp=B.hp;
+  if(B.ph==='dodge')AUD.bt+=dt;if(B.ph==='over'&&!AUD.over){AUD.over=1;sfx('bat_game_over')}
+  const n=B.bul.length;if(n>AUD.bl){const k=B.bul[n-1].k;sfx(k==='v'?'bat_telegraph':k==='s'?'bat_explosao_radial':k==='x'?'bat_projetil_rapido':'bat_projetil_bolha',{v:.35,gap:.18})}AUD.bl=n}else AUD.hp=0;
+ if((c2||S==='explore')&&!D){const d=Math.hypot(pl.x-AUD.lx,pl.y-AUD.ly);if(d<20)AUD.stepD+=d;AUD.lx=pl.x;AUD.ly=pl.y;if(AUD.stepD>13){AUD.stepD=0;sfx('passo_'+(S==='explore'?'terra':C2.ch===8&&C2.room===2?'ponte_nucleo':STEP[C2.ch]||'terra'),{v:.45,var:.1,gap:.05})}}
+ if(c2){const k=C2.ch+'.'+C2.room;if(C2.ch!==AUD.ch){if(AUD.ch>0)sfx('stg_fim_capitulo',{v:.6});AUD.ch=C2.ch;AUD.cl=Object.keys(C2.cl||{}).length}
+  if(k!==AUD.rk){if(AUD.rk&&AUD.rk.split('.')[0]==C2.ch)sfx(C2.ch>=7?'amb_porta_vazio':C2.ch===5||C2.ch===8?'amb_porta_pedra':'amb_porta_abrir',{v:.6});AUD.rk=k;
+   if(!D&&!GEN&&C2.ch!==7&&now-AUD.acvT>150&&Math.random()<.3&&!(AUD.ov&&AUD.ov.ch===C2.ch&&AUD.ov.room===C2.room)){const L=ACV.filter(a=>a[2].includes(C2.ch));if(L.length){AUD.acv={k:L[Math.random()*L.length|0][0],ch:C2.ch,room:C2.room};AUD.acvT=now}}else if(AUD.acv&&(AUD.acv.ch!==C2.ch||AUD.acv.room!==C2.room))AUD.acv=null}
+  const cl=Object.keys(C2.cl||{}).length;if(cl>AUD.cl)sfx('stg_descoberta',{v:.6});AUD.cl=cl}
+ if(F.jfall!==AUD.jf){sfx(F.jfall?'cena_jordana_cai':'cena_jordana_volta');AUD.jf=F.jfall}
+ if(S==='end8'&&e8>=e8pages().length&&e8r==='sacrificio'&&!AUD.pc){AUD.pc=1;sfx('cena_arquivo_save')}
+ if(AUD.cur&&AUD.cur.dead){if(AUD.curKey.startsWith('acervo_')){AUD.acv=null}AUD.cur=null;AUD.curKey='?'}
+ const mk=musKey();if(mk!==undefined&&mk!==AUD.curKey)playMus(mk);playAmb(ambFor());
+ AUD.duck+=((D?.55:1)-AUD.duck)*Math.min(1,dt*4);const mv=CFG.snd?CFG.mv*AUD.duck:0;
+ [AUD.cur,...AUD.olds].forEach(a=>{if(!a)return;const t=a.tv*mv,st=dt/1.4;a.volume=Math.max(0,Math.min(1,a.volume+Math.max(-st,Math.min(st,t-a.volume))))});
+ AUD.olds=AUD.olds.filter(a=>{if(a.volume<.01&&a.tv===0){a.pause();return false}return true});
+ if(AUD.toastT>0){AUD.toastT-=dt;g.globalAlpha=Math.min(1,AUD.toastT);box(10,6,300,22,'#6c6290');tx('♪ '+AUD.toast,20,22,'#d9d2ea',11);g.globalAlpha=1}}
+function updFones(){if(tap&&T>.4){audInit();S='title';T=0;sfx('ui_confirmar')}}
+function drawFones(){g.fillStyle='#05040a';g.fillRect(0,0,W,H);tx('ELYNDRA',W/2,64,'#d9c8ff',26,'center');g.strokeStyle='#fff';g.lineWidth=4;g.beginPath();g.arc(W/2,128,24,Math.PI,0);g.stroke();g.fillStyle='#fff';g.fillRect(W/2-30,126,10,20);g.fillRect(W/2+20,126,10,20);tx('Este jogo fica melhor',W/2,178,'#fff',15,'center');tx('com fones de ouvido.',W/2,198,'#fff',15,'center');tx('Toque para continuar',W/2,242,'#6c6290',12,'center')}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;
+ try{
+  if(S==='fones')updFones();else if(S==='title')updTitle();else if(S==='pro')updPro(dt);else if(S==='explore')updExplore(dt);else if(S==='battle')updBattle(dt);else if(S==='jord')updJord(dt);else if(S==='end')updEnd();else if(S==='c2')updC2(dt);else if(S==='choice')updCh();else if(S==='qend')dlg(dt);else if(S==='end2')updE2();else if(S==='end3')updE3();else if(S==='opt')updOpt();else if(S==='end4')updE4();else if(S==='diary')updDiary();else if(S==='end5')updE5();else if(S==='end6')updE6();else if(S==='end7')updE7();else if(S==='end8')updE8();
+  if(S==='fones')drawFones();else if(S==='title')drawTitle();else if(S==='pro')drawPro();else if(S==='explore')drawExplore();else if(S==='battle')drawBattle();else if(S==='jord')drawJord();else if(S==='c2')drawC2();else if(S==='choice'){drawC2();drawCh()}else if(S==='qend')drawBattle();else if(S==='end2')drawE2();else if(S==='end3')drawE3();else if(S==='opt')drawOpt();else if(S==='end4')drawE4();else if(S==='diary')drawDiary();else if(S==='end5')drawE5();else if(S==='end6')drawE6();else if(S==='end7')drawE7();else if(S==='end8')drawE8();else drawEnd();
+ }catch(e){console.error(e)}
+ try{audTick(dt)}catch(e){}tap=false;drag.x=0;drag.y=0;requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script></body></html>
