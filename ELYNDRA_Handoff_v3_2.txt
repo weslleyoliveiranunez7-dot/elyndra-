@@ -1,0 +1,20 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versao do jogo: 3.2 | Data: 02/11/2026 | Este arquivo: ELYNDRA_Handoff_v3_2.txt | Jogo: www/index.html
+(Leia junto com v3.1 e anteriores. Nunca sobrescrever handoff anterior.)
+
+MUDANCAS DA v3.2: ANIMACOES DE COMBATE + ATAQUES TEMATICOS (so www/index.html, so visual; hitbox e dano nao mudaram)
+1) BALAS TEMATICAS (bSkin, chamada no desenho das balas 'b' e 's'; 'v','x','w','d','f','m','p' ficam como eram):
+   Floris petalas girando | Rainha cacos de espelho | Guardiao folhas na direcao do voo | Morpheus estrelas de 4 pontas brilhando
+   Herdeiros orbes-fantasma com rastro | Zeus raios em zigue-zague | Hades chamas azuis | Erro quadrados glitch ciano/rosa | Autor letras e simbolos.
+   Cor das colunas/linhas 'v' por chefe: tabela VCOL (chave = BKEY(b): fl,q,g,mo,he,z,hd,er,pa).
+2) GOLPE DO JOGADOR (strikeFx, 0,6 s, so quando acerta; maior no acerto perfeito): Floris corte em X + petalas | Rainha corte + cacos caindo
+   Guardiao tres cortes verdes + folhas | Morpheus explosao de estrelas + anel | Herdeiros ondas concentricas | Zeus raio do alto + clarao
+   Hades chamas subindo + anel | Erro faixas glitch | Autor tracos de tinta + letras. O inimigo treme (recuo) ao ser atingido; acerto perfeito treme a tela.
+3) GOLPE DO INIMIGO: ao comecar cada round, anel de energia na cor do chefe, 10 particulas do tema do chefe e leve investida/aumento do sprite.
+4) Titulo/versao v3.2. Sem asset novo. Se quiser mexer: bSkin, strikeFx e VCOL ficam antes de "Jordana" no index.html.
+
+LIMITES
+- Testado em Chromium headless com os 9 chefes (golpe + esquiva + capturas de tela), sem erro de JS (um raio negativo nos Herdeiros foi achado e corrigido).
+- NAO testado em celular/APK; nao medido desempenho em aparelho fraco (maximo de 70 particulas ja existia).
+- Padroes de ataque (posicao/tempo das balas) nao foram alterados; so a aparencia.
+PENDENTES (herdados): build do APK com erro | abertura/trailer | audio em cenas | quests nos Caps. 1-8.
