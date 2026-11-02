@@ -1,0 +1,15 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versao do jogo: 3.3 | Data: 02/11/2026 | Este arquivo: ELYNDRA_Handoff_v3_3.txt | Jogo: www/index.html
+(Leia junto com v3.2 e anteriores. Nunca sobrescrever handoff anterior.)
+
+MUDANCAS DA v3.3: ALIANCAS DEPENDENTES DAS ESCOLHAS (so www/index.html)
+1) IRIS (Cap. 3, npc 'i'): agora pergunta Aceitar/Recusar. Aceitar -> F.iris=1, F.irisAlly=1. Recusar -> F.irisRef=1 (falar de novo reabre a oferta).
+   Se recusada, no Cap. 7 ela alcanca o grupo sozinha (fala extra em talk7); o roteiro do Cap. 7 (F.iris=1 forcado) nao mudou.
+2) TOBIAS (Cap. 3, npc 'T'): se F.kael===2 (apoiou a vila contra o Kael no Cap. 2) ele desconfia: Pedir desculpa -> entra (F.tobiasTrust=1);
+   Seguir sem ele -> F.tobiasLate=1 (nao entra agora; no Cap. 6 alcanca o grupo com fala propria, F.tobias=1 forcado como antes).
+   Qualquer outra escolha do Kael -> entra normalmente (F.tobiasTrust=1).
+3) DANTE: a fala de chamada vem de Jordana quando Iris nao esta no grupo.
+4) FINAIS (sc): paz +1 por F.irisAlly e +1 por F.tobiasTrust; ruina +1 por F.irisRef e +1 por F.tobiasLate.
+5) Novas flags em resetF: irisRef, irisAlly, tobiasLate, tobiasTrust. Versao/titulo 3.3.
+NAO MUDOU: Kael (entra sempre; arco do Cap. 5 depende dele), Helena (ja dependia de hrel), Cap. 7/8 roteirizados.
+LIMITES: so verificada a sintaxe do JS; nao testado jogando. Ramos novos (recusar Iris, Tobias com k===2) precisam de teste manual.
