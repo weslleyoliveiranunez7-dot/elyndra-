@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ELYNDRA — v2.8</title>
+<title>ELYNDRA — v2.9</title>
 <style>
 :root{box-sizing:border-box;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -65,10 +65,10 @@ function spr(k,sx,sy,sw,sh,dx,dy,flip,sc){const im=IMG[k];if(!im)return false;sc
 const TPAT={};
 function tileFill(ch,col,x,y,w,h){const im=IMG.tiles;if(!im)return false;const k=ch+'_'+col;let p=TPAT[k];if(!p){const c=document.createElement('canvas');c.width=c.height=16;c.getContext('2d').drawImage(im,col*16,ch*16,16,16,0,0,16,16);p=TPAT[k]=g.createPattern(c,'repeat')}g.save();g.beginPath();g.rect(x,y,w,h);g.clip();g.fillStyle=p;g.fillRect(x,y,w,h);g.restore();return true}
 function setMove(d,dt){const m=d.x||d.y;pl.mv=!!m;if(m){const ax=Math.abs(d.x),ay=Math.abs(d.y),hz=pl.dir===1||pl.dir===3,useH=!ay?true:!ax?false:hz?ax>=ay*.7:ax>ay*1.43;pl.dir=useH?(d.x<0?1:3):(d.y<0?2:0);pl.fr+=dt*7}else pl.fr=0}
-const TRL=[];function trail(){const l=TRL[TRL.length-1];if(l&&Math.hypot(l.x-pl.x,l.y-pl.y)>40)TRL.length=0;if(!l||TRL.length===0||Math.hypot(l.x-pl.x,l.y-pl.y)>=2){TRL.push({x:pl.x,y:pl.y,dir:pl.dir});if(TRL.length>40)TRL.shift()}}
-function drawPlayer(x,y){const fr=pl.mv?(Math.floor(pl.fr)%4):0,d=pl.dir,row=d===1||d===3?1:d===2?2:0;if(!spr('prot',fr*20,row*30,20,30,x+5-10,y+12-30,d===3))child(x,y)}
+const TRL=[];function trail(){const l=TRL[TRL.length-1];if(l&&Math.hypot(l.x-pl.x,l.y-pl.y)>40)TRL.length=0;if(!l||TRL.length===0||Math.hypot(l.x-pl.x,l.y-pl.y)>=2){TRL.push({x:pl.x,y:pl.y,dir:pl.dir});if(TRL.length>100)TRL.shift()}}
+function drawPlayer(x,y){const fr=pl.mv?(Math.floor(pl.fr)%4):0,d=pl.dir,side=d===1||d===3,row=side?1:d===2?2:0,col=side?(d===1?0:2)+(fr&1):fr;if(!spr('prot',col*20,row*30,20,30,x+5-10,y+12-30,false))child(x,y)}
 function jfPos(){const t=TRL.length>9?TRL[TRL.length-9]:null;return{x:t?t.x:pl.x-14,y:t?t.y:pl.y,dir:t?t.dir:pl.dir}}
-function drawJordF(j){const row=pl.mv&&Math.floor(pl.fr)%2?1:0;if(!spr('jordana',j.dir*28,row*38,28,38,j.x+5-14,j.y+12-38))jordana(pl.x-14,pl.y-24)}
+function drawJordF(j){const row=pl.mv?[0,1,0,2][Math.floor(pl.fr)%4]:0;if(!spr('jordana',j.dir*28,row*38,28,38,j.x+5-14,j.y+12-38))jordana(pl.x-14,pl.y-24)}
 function npcSpr(n,x,y){if(n==='Floris')return flSpr(x+5,y+8,1,1);if(n==='Jordana')return spr('jordana',0,0,28,38,x+5-14,y+14-38);if(n==='Erro Original'){erro(x+5,y);return true}const i=NPN.indexOf(n);if(i<0||!IMG.npc)return false;spr('npc',(Math.floor(T*1.5+i)%2)*20,i*30,20,30,x+5-10,y+14-30);if(n==='Kael'){g.fillStyle='#ffb36b';g.fillRect(Math.round(x-1),Math.round(y-19),3,5);g.fillRect(Math.round(x+8),Math.round(y-19),3,5)}return true}
 function flSpr(x,y,s,a){if(!IMG.floris)return false;const sc=s>=1.2?2:1,f=(F.evil?2:0)+Math.floor(T*2)%2;g.globalAlpha=a;spr('floris',f*32,0,32,40,x-16*sc,y-16*sc,false,sc);g.globalAlpha=1;return true}
 function jordBat(x,y,a){const im=IMG.jordana_bat;if(!im)return jordana(x,y,a);g.globalAlpha=a;spr('jordana_bat',0,0,im.width,im.height,x-im.width/2,y-4);g.globalAlpha=1}
@@ -230,17 +230,22 @@ function talk(id){if(id[0]==='o')return say([['Narração',C2.ch===7?fadeTxt(id)
   else say([['Kael',C2.told?'Siga a trilha leste.':'Fale com os outros. Depois decida se ainda quer falar comigo.']])}
  else if(id==='c'){if(C2.cain)return say([['Cain','Não tenho mais nada a dizer.','triste']]);
   say([['Cain','Esta marca eu carrego há muito tempo. Sei por que foi dada. Não vou contar tudo.','triste']],()=>ask(['Escutar','Desconfiar','Negociar'],i=>{F.cain=i;say(CAINL[i],()=>{C2.cain=true;say([['Rainha','Quanta gente barulhenta... e quanta verdade perigosa.','feliz'],['Jordana','Fique atrás de mim.',2],['Rainha','Verdade? Aqui só existe o que a vila acredita.','bravo']],()=>startBattle(true))})}))}}
-function nearQ(){for(const q of NP[C2.room])if(Math.hypot(q.x-pl.x,q.y-pl.y)<30)return q;return null}
+function nearQ(){for(const q of NP[C2.room])if(!isJoined(q)&&Math.hypot(q.x-pl.x,q.y-pl.y)<30)return q;return null}
 function updC2(dt){ex.t+=dt;if(C2.ch===5)F.gods=Math.max(F.gods||0,Object.keys(C2.cl).length+Object.keys(C2.dr||{}).length);if(dlg(dt))return;if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}if(C2.ch===5&&C2.room===4&&!C2.rv){C2.rv=1;revolt();return}if(C2.ch===6&&C2.room===4&&!C2.rv){C2.rv=1;rupture();return}if(C2.ch===7&&C2.room===6&&!C2.rv){C2.rv=1;recog();return}if(C2.ch===8&&C2.room===2&&!C2.rv){C2.rv=1;jfall();return}let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}
  setMove(d,dt);const sp=58*dt;if(!hit2(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit2(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
  if(pl.x>466){const lk=lockMsg();if(lk){pl.x=440;say([[F.jfall?'Narração':'Jordana',lk]])}else if(C2.room<LAST){C2.room++;pl.x=30;ex.t=0}}
  else if(pl.x<10&&C2.room>0){C2.room--;pl.x=440;ex.t=0}
  const nq=nearQ();if(nq&&tap&&(inRect(ptr,388,196,84,38)||K[' ']||K.enter||K[CFG.kb.ok]))talk(nq.id)}
+const FOLL=[['tobias','#8a6a3a','Tobias'],['kaelIn','#d9482f','Kael'],['iris','#7a5ac8','Íris'],['dante','#3a8a8a','Dante'],['helenaIn','#d98ca8','Helena']],JOINF={Tobias:'tobias',Kael:'kaelIn','Íris':'iris',Dante:'dante',Helena:'helenaIn'};
+const isJoined=q=>!!(q.n&&JOINF[q.n]&&F[JOINF[q.n]]),isJordF=q=>q.n==='Jordana'&&!F.jfall;
+function trailAt(n,fb){const t=TRL.length>n?TRL[TRL.length-n]:null;return{x:t?t.x:Math.max(8,pl.x-fb),y:t?t.y:pl.y,dir:t?t.dir:pl.dir}}
+function followers(){const L=[];if(!F.jfall){const p=trailAt(9,14);L.push({j:1,x:p.x,y:p.y,dir:p.dir})}let k=1;for(const[key,c,nm]of FOLL)if(F[key]){const p=trailAt(9+k*9,14+k*14);L.push({nm,c,x:p.x,y:p.y});k++}return L}
+function drawFol(f){if(f.j)return drawJordF(f);if(!npcSpr(f.nm,f.x,f.y-4)){g.fillStyle=f.c;g.fillRect(f.x,f.y-6,10,12);g.fillStyle='#f1c9a0';g.fillRect(f.x+1,f.y-12,8,7)}}
 function drawC2(){trail();const r=C2.room;g.fillStyle=RB[r];g.fillRect(0,0,W,H);const rr=rng(r*77+3);if(tileFill(C2.ch,0,0,0,W,H)){g.globalAlpha=.35;g.fillStyle=RB[r];g.fillRect(0,0,W,H);g.globalAlpha=1}else{g.fillStyle=r===5?'#2a2238':'#33231f';for(let i=0;i<70;i++)g.fillRect((rr()*480)|0,(rr()*270)|0,6,2);
  g.fillStyle='#4a403c';for(let i=0;i<10;i++)g.fillRect((rr()*440+20)|0,(rr()*200+35)|0,5,3)}
  drawDecor(r,0);for(const[a,b,w,h]of RW[r]){if(!tileFill(C2.ch,1,a,b,w,h)){g.fillStyle=r===5?'#2b2438':'#3a2a2a';g.fillRect(a,b,w,h)}g.fillStyle=r===5?'#4a3d66':'#5a4040';g.fillRect(a,b,w,3)}
- drawDecor(r,1);for(const q of NP[r]){if(isObj(q.id)){g.fillStyle='#5a4230';g.fillRect(q.x,q.y,4,16);g.fillRect(q.x-5,q.y-4,14,8)}else if(!npcSpr(q.n,q.x,q.y)){g.fillStyle=q.c;g.fillRect(q.x,q.y+4,10,10);g.fillStyle='#f1c9a0';g.fillRect(q.x+1,q.y-2,8,7);if(q.id==='k'){g.fillStyle='#ffb36b';g.fillRect(q.x,q.y-5,2,4);g.fillRect(q.x+8,q.y-5,2,4)}if(q.id==='c'){g.fillStyle='#b3001b';g.fillRect(q.x+3,q.y+7,4,4)}}}
- const JF=F.jfall?null:jfPos();if(JF&&JF.y<=pl.y)drawJordF(JF);{let fi=0;for(const[k,c,nm]of[['tobias','#8a6a3a','Tobias'],['kaelIn','#d9482f','Kael'],['iris','#7a5ac8','Íris'],['dante','#3a8a8a','Dante'],['helenaIn','#d98ca8','Helena']])if(F[k]){const fx=Math.round(pl.x-32-fi++*14);if(!npcSpr(nm,fx,pl.y-4)){g.fillStyle=c;g.fillRect(fx,pl.y-6,10,12);g.fillStyle='#f1c9a0';g.fillRect(fx+1,pl.y-12,8,7)}}}drawPlayer(pl.x,pl.y);if(JF&&JF.y>pl.y)drawJordF(JF);
+ drawDecor(r,1);for(const q of NP[r]){if(isJoined(q)||isJordF(q))continue;if(isObj(q.id)){g.fillStyle='#5a4230';g.fillRect(q.x,q.y,4,16);g.fillRect(q.x-5,q.y-4,14,8)}else if(!npcSpr(q.n,q.x,q.y)){g.fillStyle=q.c;g.fillRect(q.x,q.y+4,10,10);g.fillStyle='#f1c9a0';g.fillRect(q.x+1,q.y-2,8,7);if(q.id==='k'){g.fillStyle='#ffb36b';g.fillRect(q.x,q.y-5,2,4);g.fillRect(q.x+8,q.y-5,2,4)}if(q.id==='c'){g.fillStyle='#b3001b';g.fillRect(q.x+3,q.y+7,4,4)}}}
+ const FL=followers();FL.forEach(f=>{if(f.y<=pl.y)drawFol(f)});drawPlayer(pl.x,pl.y);FL.forEach(f=>{if(f.y>pl.y)drawFol(f)});
  g.fillStyle='rgba(200,190,180,.35)';for(let i=0;i<26;i++)g.fillRect(Math.round((i*53+Math.sin(T+i)*14+480)%480),Math.round((T*14+i*41)%270),2,2);
  if(ex.t<3.5){g.globalAlpha=Math.min(1,3.5-ex.t);tx(RN[r],W/2,60,'#d9c8ff',20,'center');g.globalAlpha=1}
  if(r===2&&C2.ch>=2&&C2.ch<=3)tx('Pistas: '+Object.keys(C2.cl).length+'/3',12,262,'#ffe98a',11);
