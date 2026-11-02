@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ELYNDRA — v3.6</title>
+<title>ELYNDRA — v3.8</title>
 <style>
 :root{box-sizing:border-box;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -22,7 +22,7 @@ const COL={Floris:'#ffd84a',Jordana:'#9fd7ff','Narração':'#a99ec4'};
 const KBD={up:'w',down:'s',left:'a',right:'d',ok:'e',menu:'escape'};const CFG={snd:1,vib:1,ts:28,easy:0,mv:.8,sv:.9,kb:{...KBD}};try{Object.assign(CFG,JSON.parse(localStorage.getItem('elyndra_cfg'))||{})}catch(e){}CFG.kb=Object.assign({},KBD,CFG.kb||{});
 function saveCfg(){try{localStorage.setItem('elyndra_cfg',JSON.stringify(CFG))}catch(e){}}
 /* ---------- v3.0 — SAVES: 3 SLOTS + PONTOS DE SAVE + PORCENTAGEM ---------- */
-const VER='3.6',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
+const VER='3.8',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
 let SL=[null,null,null],curSlot=-1,PLAY=0,NOSAVE=0,SPCD=0;
 const NOPLAY=['title','slots','opt','keys','pad','diary','fones','intro','rato'];
 function preU(n){let u=PRO_U;for(let k=1;k<n&&k<=8;k++)u+=CHR[k];return u}
@@ -103,7 +103,7 @@ function jordana(x,y,a=1){g.globalAlpha=a;g.fillStyle='#1b1830';g.fillRect(x-9,y
 const stars=Array.from({length:50},(_,i)=>[(i*97)%480,(i*53)%270,i%3+1]);
 function unlocked(){try{return localStorage.getItem('elyndra_unlock')==='1'}catch(e){return false}}
 function menuItems(){const m=SL.some(Boolean)?['Novo jogo','Continuar','Opções']:['Novo jogo','Opções'];if(unlocked())m.push('Modo Genocide');return m}
-function resetF(){Object.assign(F,{pts:0,evil:false,jordana:false,tobias:0,kaelIn:0,iris:0,dante:0,kael:-1,cain:-1,morph:-1,guardSpared:false,hrel:0,judas:-1,tj:0,trusted_judas:0,debt:0,hpress:-1,helenaIn:0,irisRef:0,irisAlly:0,tobiasLate:0,tobiasTrust:0,kaelDead:0,tobiasDead:0,tobiasKeep:0,tobias_memory_kept:0,anubis:-1,iris_records_found:0,dante_family_truth:0,author_records_found:0,irisGone:0,danteGone:0,irisDiary:0,gods:0,route:'',jfall:0,prophecy_read:0,jordana_truth_known:0,sacrifice_understood:0,route_sacrifice:0,floris8:0,pa_defeated:0,atk:0,par:0,agr:0,hits:0,bt:{}});M3={hp:20,hard:0}}
+function resetF(){Object.assign(F,{pts:0,evil:false,jordana:false,tobias:0,kaelIn:0,iris:0,dante:0,kael:-1,cain:-1,morph:-1,guardSpared:false,hrel:0,judas:-1,tj:0,trusted_judas:0,debt:0,hpress:-1,helenaIn:0,karma:0,tfN:0,irisRef:0,irisAlly:0,tobiasLate:0,tobiasTrust:0,kaelDead:0,tobiasDead:0,tobiasKeep:0,tobias_memory_kept:0,anubis:-1,iris_records_found:0,dante_family_truth:0,author_records_found:0,irisGone:0,danteGone:0,irisDiary:0,gods:0,route:'',jfall:0,prophecy_read:0,jordana_truth_known:0,sacrifice_understood:0,route_sacrifice:0,floris8:0,pa_defeated:0,atk:0,par:0,agr:0,hits:0,bt:{}});M3={hp:20,hard:0}}
 function startNew(i,gen){curSlot=i;SL[i]=null;slotsStore();PLAY=0;sfx(gen?'ui_genocide_ativar':'ui_novo_jogo');resetF();F.gen=gen?1:0;GEN=!!gen;startPro()}
 function loadSlot(i){const s=SL[i];if(!s)return;curSlot=i;PLAY=s.t||0;cont(s)}
 function resumePoint(s){NOSAVE=1;try{const f={1:startC1,2:startC2,3:startC3,4:startC4,5:startC5,6:startC6,7:startC7,8:startC8}[s.ch];f();Object.assign(F,s.F);C2=JSON.parse(JSON.stringify(s.C2));pl.x=s.px;pl.y=s.py;D=null;ex.t=0;TRL.length=0;S='c2'}finally{NOSAVE=0}}
@@ -151,12 +151,12 @@ function drawSlots(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);
 let optBack='title',optDel=0;const TSN={18:'lento',28:'normal',45:'rápido'};
 function openOpt(){optBack=S;optDel=0;S='opt'}
 function optItems(){const L=[['Som: '+(CFG.snd?'ligado':'desligado'),'snd'],['Vibração: '+VLN[CFG.vl|0],'vib'],['Tremor da tela: '+(CFG.shake?'ligado':'desligado'),'shk'],['Texto: '+TSN[CFG.ts],'ts'],['Dano nas batalhas: '+(CFG.easy?'reduzido':'normal'),'easy'],['Música: '+Math.round(CFG.mv*100)+'%','mv'],['Efeitos: '+Math.round(CFG.sv*100)+'%','sv']];
- if(FSOK)L.push(['Tela cheia: '+(inFS()?'ligada':'desligada')+' (tecla F)','fs']);L.push(['Controle: '+(PAD.on?PAD.name:'nenhum conectado'),'pad']);L.push(['Teclas do teclado (PC)','keys']);if(optBack==='explore'||optBack==='c2')L.push(['Diário','diary']);
+ if(FSOK)L.push(['Tela cheia: '+(inFS()?'ligada':'desligada')+' (tecla F)','fs']);L.push(['Controle: '+(PAD.on?PAD.name:'nenhum conectado'),'pad']);L.push(['Teclas do teclado (PC)','keys']);if(optBack==='explore'||optBack==='c2')L.push(['Diário','diary']);L.push(['Conquistas','ach']);
  if(optBack==='explore'||optBack==='c2')L.push([optDel?'Toque de novo: o que não foi salvo se perde':'Voltar ao título','title']);L.push(['Voltar','back']);return L}
 function OST(){const n=optItems().length;return n>12?18:n>11?19:n>9?21:26}function OH(){const n=optItems().length;return n>12?16:n>11?17:n>9?19:23}
 function updOpt(){if(!tap)return;const od=optDel;optDel=0;optItems().forEach(([n,k],i)=>{if(!inRect(ptr,90,28+i*OST(),300,OH()))return;
  if(k==='mv'){CFG.mv=CFG.mv>.85?.7:CFG.mv>.55?.4:CFG.mv>.1?0:1;saveCfg()}else if(k==='sv'){CFG.sv=CFG.sv>.85?.7:CFG.sv>.55?.4:CFG.sv>.1?0:1;saveCfg();beep(500)}else if(k==='snd'){CFG.snd^=1;saveCfg();beep(500)}else if(k==='vib'){CFG.vl=((CFG.vl|0)+1)%4;CFG.vib=CFG.vl>0?1:0;saveCfg();VIB.play('hit')}else if(k==='shk'){CFG.shake^=1;saveCfg();if(CFG.shake)VIB.play('slam')}else if(k==='fs'){toggleFS()}else if(k==='pad'){S='pad';PAD.wait=null}else if(k==='ts'){CFG.ts=CFG.ts===18?28:CFG.ts===28?45:18;saveCfg();beep(500)}else if(k==='easy'){CFG.easy^=1;saveCfg();beep(500)}
- else if(k==='diary'){S='diary'}else if(k==='keys'){S='keys';kbWait=null}
+ else if(k==='diary'){S='diary'}else if(k==='ach'){S='ach'}else if(k==='keys'){S='keys';kbWait=null}
  else if(k==='title'){if(od){S='title';T=0;D=null;curSlot=-1;ptr=null;P0=null}else optDel=1}
  else{S=optBack;ptr=null;P0=null}})}
 function drawOpt(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('OPÇÕES',W/2,16,'#d9c8ff',18,'center');optItems().forEach(([n,k],i)=>{box(90,28+i*OST(),300,OH(),k==='title'&&optDel?'#ff4d6d':'#8d80b3');tx(n,240,28+i*OST()+OH()/2+5,'#fff',13,'center')})}
@@ -217,7 +217,7 @@ const NTXT=b=>b.q?NQ:b.g?NG:b.mo?NM:b.he?NH:b.z?NZ:b.hd?NHD:b.er?(b.pa?NPA:NER):
 function endBattle(b){b.eh=0;b.ed=0;F.bt=F.bt||{};F.bt[BKEY(b)]={atk:b.na,par:b.np,hit:b.nh,agr:b.agir?1:0,turn:b.turn};
  (b.q?endQ():b.g?endG():b.mo?endM():b.he?endH():b.z?endZ():b.hd?endHd():b.er?(b.pa?endPa():endEr()):startJord())}
 function startBattle(q){S='battle';J=null;D=null;B={q:q===true,g:q==='g',mo:q==='m',he:q==='h',z:q==='z',hd:q==='H',er:q==='E'||q==='P',pa:q==='P',hard:q==='m'&&M3.hard,hp:q==='m'?M3.hp+10:30,mx:30,eh:EHP(q),em:EHP(q),ed:EHP(q),na:0,np:0,nh:0,turn:0,ph:'menu',txt:GEN?'MODO GENOCIDE. Ele não quer mais ser convencido.':'Floris bloqueia o caminho.',t:0,sh:false,bul:[],sx:0,sy:0,inv:0,n:0}}
-function startDodge(){const b=B;if(!b.tf&&b.eh>0&&b.eh<=b.em*.5){b.tf=1;b.tft=T;beep(180,.4,.08);vib(80)}b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn);b.oi=-1;b.last=-9;b.lt=0;b.pd=1.6+Math.random()*1.8;b.pf=null}
+function startDodge(){const b=B;if(!b.tf&&b.eh>0&&b.eh<=b.em*.5){b.tf=1;b.tft=T;F.tfN=(F.tfN|0)+1;beep(180,.4,.08);vib(80)}b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn);b.oi=-1;b.last=-9;b.lt=0;b.pd=1.6+Math.random()*1.8;b.pf=null}
 function updBattle(dt){const b=B;b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);if(tap&&b.ph!=='over'&&inRect(ptr,440,0,40,30)){openOpt();return}
  if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,10+i*118,222,110,36)){beep(500);b.msel=i;b.txt=(b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1){b.agir=1;F.agr=(F.agr|0)+1}b.sh=i===2;if(i===0){b.ph='atk';b.at=0;b.ax=0;b.ar=null;b.ak=0}else{b.ph='msg';b.t=0}}})}
  else if(b.ph==='msg'){b.t+=dt;if(b.t>3.2||(tap&&b.t>.8))startDodge()}
@@ -238,7 +238,7 @@ function updBattle(dt){const b=B;b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);if(tap&&b.ph
     if(Math.hypot(o.x-b.sx,o.y-b.sy)<9){b.hp=Math.min(b.mx,b.hp+2);b.np++;F.par=(F.par|0)+1;b.pf={t:T,x:o.x,y:o.y};beep(900);vib(15);b.bul.splice(i,1)}continue}
    if(o.k==='v'){o.t+=dt;if(o.t>1.3){b.bul.splice(i,1);continue}if(o.t>.8&&b.sx+3>o.x&&b.sx-3<o.x+o.w&&b.sy+3>o.y&&b.sy-3<o.y+o.h)h=true}
    else{if(o.gr>0)o.gr-=dt;if(o.k==='d'){o.l-=dt;if(o.l<=0){for(const sg of[-1,1])b.bul.push({k:'b',x:o.x,y:o.y,vx:sg*34,vy:o.vy+14});b.bul.splice(i,1);continue}}if(o.k==='w'){o.l-=dt;if(o.l<=0){o.x=o.tx;o.y=o.ty;o.k='b';o.gr=.4;const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx=dx/m*40;o.vy=dy/m*40}}if(o.k==='x'){o.l-=dt;if(o.l<=0){for(let q=0;q<6;q++){const an=q*Math.PI/3;b.bul.push({k:'b',x:o.x,y:o.y,vx:Math.cos(an)*40,vy:Math.sin(an)*40})}b.bul.splice(i,1);continue}}if(o.k==='m'){o.l-=dt;if(o.l<=0){b.bul.splice(i,1);continue}const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx+=dx/m*70*dt;o.vy+=dy/m*70*dt;const v=Math.hypot(o.vx,o.vy);if(v>36){o.vx*=36/v;o.vy*=36/v}}const rm_=(GEN?1.3:1)*Math.min(isRush()?1.9:1.5,Math.sqrt(rushMul()));o.x+=o.vx*dt*rm_;o.y+=o.vy*dt*rm_;if(o.x<A.x-10||o.x>A.x+A.w+10||o.y<A.y-10||o.y>A.y+A.h+10){b.bul.splice(i,1);continue}if(o.k!=='f'&&o.k!=='w'&&!(o.gr>0)&&Math.hypot(o.x-b.sx,o.y-b.sy)<6.5)h=true}
-   if(h&&b.inv<=0){b.hp-=CFG.easy?(b.sh?2:3):(b.sh?3:(GEN?6:5));b.nh++;F.hits=(F.hits|0)+1;b.inv=1;beep(120,.15,.06);vib(40)}}
+   if(h&&b.inv<=0){b.hp-=Math.max(1,(CFG.easy?(b.sh?2:3):(b.sh?3:(GEN?6:5)))+kDm());b.nh++;F.hits=(F.hits|0)+1;b.inv=1;beep(120,.15,.06);vib(40)}}
   if(b.hp<=0){b.hp=0;b.ph='over';b.t=0}
   else if(b.t>=(b.er&&!b.pa?10:7)){b.turn++;b.ph='menu';const nt=NTXT(b);b.txt=nt[(b.turn-1)%nt.length];b.sh=false;b.bul=[]}}
  else if(b.ph==='over'&&tap&&(b.ov0===undefined||T-b.ov0>1.4)&&b.t++>0)startBattle(b.q?true:b.g?'g':b.mo?'m':b.he?'h':b.z?'z':b.hd?'H':b.er?(b.pa?'P':'E'):0)}
@@ -251,6 +251,25 @@ function dnOverlay(){if(S==='c2'&&C2.ch>=6)return;const p=dnPhase(),h=p*24,sun=M
  if(tw>0){g.globalAlpha=tw*.2;g.fillStyle='#ff8a3a';g.fillRect(0,0,W,H)}
  g.globalAlpha=1;const x=452,y=14,day=sun>0;g.fillStyle=day?'#ffd84a':'#dfe6ff';g.fillRect(x-4,y-4,8,8);if(!day){g.fillStyle='#10143a';g.fillRect(x-1,y-5,6,7)}
  tx(sun>.35?'DIA':sun>-.05?(p<.5?'AMANHECER':'ENTARDECER'):'NOITE',x-10,y+22,'#d9c8ff',9,'right')}
+/* v3.7 — conquistas (globais, localStorage) e karma (por jogo, F.karma) */
+const ACH=[['golpe','Primeiro Golpe','Acertar um ataque em batalha',()=>(F.atk|0)>=1],['parry','Reflexos','Fazer 10 parries',()=>(F.par|0)>=10],['calejado','Calejado','Sofrer 50 acertos',()=>(F.hits|0)>=50],
+['kael','Ao lado do Kael','Apoiar o Kael na vila',()=>F.kael===0],['guardiao','Mãos Vazias','Poupar o Guardião',()=>!!F.guardSpared],['helena','Casa Aberta','Helena segue com o grupo',()=>!!F.helenaIn],
+['confianca','Confiança','Íris e Tobias entram por confiança',()=>!!(F.irisAlly&&F.tobiasTrust)],['apito','O Apito','Guardar a lembrança do Tobias',()=>!!F.tobiasKeep],['forma','Forma Final','Ver um chefe se transformar',()=>(F.tfN|0)>=1],['formas','Colecionador','Ver 5 transformações',()=>(F.tfN|0)>=5],
+['bom','Coração Bondoso','Karma +3 ou mais',()=>(F.karma|0)>=3],['frio','Coração Frio','Karma -3 ou menos',()=>(F.karma|0)<=-3],['final','Primeiro Final','Ver um final',()=>routesDone().length>=1],['todos','Todos os Finais','Ver todos os finais',()=>routesDone().length>=ROUTES.length]];
+let ACHQ=[],ACHT=0,ACHN=0;
+function achGet(){try{return JSON.parse(localStorage.getItem('elyndra_ach'))||{}}catch(e){return{}}}
+function achCheck(){if(curSlot<0)return;const u=achGet();let ch=false;for(const[id,n,d,f]of ACH){if(u[id])continue;let ok=false;try{ok=f()}catch(e){}if(ok){u[id]=1;ch=true;ACHQ.push(n)}}if(ch)try{localStorage.setItem('elyndra_ach',JSON.stringify(u))}catch(e){}}
+let KQ=[];function kar(n){if(!n)return;F.karma=(F.karma|0)+n;KQ.push(n)}
+function kDm(){const k=F.karma|0;return k<=-3?1:k>=3?-1:0}
+function achTick(dt){ACHN-=dt;if(ACHN<=0){ACHN=1;achCheck()}ACHT-=dt;
+ let m=null,c='#ffe98a';if(KQ.length&&ACHT<=0){const n=KQ.shift();m=(n>0?'Escolha positiva ':'Escolha negativa ')+(n>0?'+':'')+n+' (karma '+(F.karma|0)+')';c=n>0?'#8ee08a':'#ff7a7a';ACHT=2.2;ACHQ.unshift(null);ACHQ.__m=[m,c]}
+ else if(ACHQ.length&&ACHT<=0&&ACHQ[0]!==null){ACHQ.__m=['Conquista: '+ACHQ.shift(),'#ffe98a'];ACHT=3}
+ if(ACHT>0&&ACHQ.__m){const[t,col]=ACHQ.__m;g.globalAlpha=Math.min(1,ACHT*2);g.fillStyle='#000';g.fillRect(90,4,300,20);g.strokeStyle=col;g.lineWidth=1;g.strokeRect(90.5,4.5,299,19);tx(t,240,19,col,11,'center');g.globalAlpha=1}
+ if(ACHT<=0&&ACHQ[0]===null)ACHQ.shift()}
+function updAch(){if(tap){S='opt';ptr=null;P0=null}}
+function drawAch(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);const u=achGet(),k=F.karma|0;tx('CONQUISTAS  '+ACH.filter(a=>u[a[0]]).length+'/'+ACH.length,W/2,22,'#d9c8ff',16,'center');
+ ACH.forEach(([id,n,d],i)=>{const x=i%2?250:20,y=44+Math.floor(i/2)*26,ok=u[id];tx((ok?'✔ ':'? ')+(ok?n:'???'),x,y,ok?'#ffe98a':'#6c6290',11);tx(d,x+14,y+11,ok?'#d9d2ea':'#51496e',8)});
+ tx('Karma: '+(k>0?'+':'')+k+(k>=3?' — o grupo confia em você (menos dano, final de paz favorecido)':k<=-3?' — o mundo desconfia (mais dano, final de ruína favorecido)':' — neutro'),W/2,236,k>=3?'#8ee08a':k<=-3?'#ff7a7a':'#b9a8d8',9,'center');tx('toque para voltar',W/2,256,'#6c6290',11,'center')}
 /* v3.4 — fundo de batalha estilo Undertale: preto + grade verde, variacao tematica por chefe */
 const BGT={fl:['#1f7a2e',24,'p'],q:['#1d6b4a',28,'d'],g:['#2a8a2a',16,'p'],mo:['#1a6f5f',32,'s'],he:['#1d5f3a',20,'f'],z:['#4f9a1f',24,'z'],hd:['#1a7a6a',28,'u'],er:['#1fb04a',12,'e'],pa:['#2ac85a',20,'i']};
 function bgBattle(b){const k=BKEY(b),[c0,n,m]=BGT[k]||BGT.fl,c=b.tf?'#b02a2a':c0;g.fillStyle='#000';g.fillRect(0,0,W,H);
@@ -366,7 +385,7 @@ function drawCh(){CH.o.forEach((t,i)=>{const[x,y,w,h]=chR(i,CH.o.length);box(x,y
 function updCh(){if(tap)CH.o.forEach((t,i)=>{if(inRect(ptr,...chR(i,CH.o.length))){beep(500);S='c2';CH.cb(i)}})}
 function talk(id){if(id[0]==='o')return say([['Narração',C2.ch===7?fadeTxt(id):OB[id]]]);if(C2.ch===1)return talk1(id);if(C2.ch===3)return talk3(id);if(C2.ch===4)return talk4(id);if(C2.ch===5)return talk5(id);if(C2.ch===6)return talk6(id);if(C2.ch===7)return talk7(id);if(C2.ch===8)return talk8(id);const n=Object.keys(C2.cl).length;
  if(id==='v'||id==='d'||id==='b'){C2.cl[id]=1;const l=LN[id].slice();if(Object.keys(C2.cl).length===3&&n<3)l.push(['Jordana','Três histórias, uma só origem: alguém fabricou essas acusações. Fale com o Kael.',2]);say(l)}
- else if(id==='k'){if(C2.k<0)say([['Kael','Não preciso da sua ajuda. Humanos só aparecem quando querem algo.','bravo'],['Narração','Moradores observam de longe. Alguns se afastam quando você chega perto de Kael.']],()=>ask(['Apoiar Kael','Ficar neutro','Concordar com a vila'],i=>{C2.k=i;F.kael=i;say(CK[i])}));
+ else if(id==='k'){if(C2.k<0)say([['Kael','Não preciso da sua ajuda. Humanos só aparecem quando querem algo.','bravo'],['Narração','Moradores observam de longe. Alguns se afastam quando você chega perto de Kael.']],()=>ask(['Apoiar Kael','Ficar neutro','Concordar com a vila'],i=>{C2.k=i;F.kael=i;kar(i===0?2:i===2?-2:0);say(CK[i])}));
   else if(n>=3&&!C2.told){C2.told=true;C2.open=true;say([['Kael','Tentei apagar o fogo do depósito. Quando acabou, só havia cinzas e o meu nome nas bocas.','triste'],['Kael',C2.k===0?'Você ficou ao meu lado. Isso conta. Vamos descobrir quem assinou essas ordens.':'Se quer a verdade, a trilha leste leva às marcas de condenação. Alguém lá sabe quem assina essas ordens.'],['Narração','A passagem leste foi liberada.']])}
   else say([['Kael',C2.told?'Siga a trilha leste.':'Fale com os outros. Depois decida se ainda quer falar comigo.']])}
  else if(id==='c'){if(C2.cain)return say([['Cain','Não tenho mais nada a dizer.','triste']]);
@@ -428,7 +447,7 @@ function talk1(id){
  if(id==='m')say([['Mira','Humano?! Fique longe das crianças. Foi gente como você que trouxe a guerra.','bravo'],['Mira','...Mas você também é só uma criança.','triste']]);
  else if(id==='j')say([['Joca','Dizem que os humanos venceram. Eu não acredito nessa história. Tem buraco demais.'],['Joca','Meu avô dizia que a passagem abre na ordem da raiz: semente, depois broto, depois flor.','feliz']]);
  else if(id==='T'){if(F.tobias)return say([['Tobias','Estou aqui. Vamos.']]);const j=()=>{F.tobias=true;F.tobiasTrust=1;F.tobiasLate=0;say([['Tobias','Então eu vou com vocês. Alguém precisa garantir que ninguém se machuque.','feliz'],['Narração','Tobias entrou no grupo.']])};
-  if(F.kael===2)say([['Tobias','Ei! Essa passagem é perigosa. O Guardião não gosta de visitantes.','surpreso'],['Tobias','Você é quem ficou do lado da vila contra o Kael, né? Eu estava lá. Não esqueci.','triste']],()=>ask(['Pedir desculpa','Seguir sem ele'],i=>{if(i===0)say([['Tobias','Hm. Pelo menos você disse. Tá bom.']],j);else{F.tobiasLate=1;say([['Tobias','Tá. Eu fico aqui. Se precisarem, eu alcanço vocês.','triste']])}}));
+  if(F.kael===2)say([['Tobias','Ei! Essa passagem é perigosa. O Guardião não gosta de visitantes.','surpreso'],['Tobias','Você é quem ficou do lado da vila contra o Kael, né? Eu estava lá. Não esqueci.','triste']],()=>ask(['Pedir desculpa','Seguir sem ele'],i=>{if(i===0){kar(1);say([['Tobias','Hm. Pelo menos você disse. Tá bom.']],j)}else{F.tobiasLate=1;kar(-1);say([['Tobias','Tá. Eu fico aqui. Se precisarem, eu alcanço vocês.','triste']])}}));
   else say([['Tobias','Ei! Essa passagem é perigosa. O Guardião não gosta de visitantes.','surpreso'],['Jordana','Estamos só de passagem.']],j)}
  else if(id[0]==='p'){const n=+id[1];C2.seq.push(n);beep(300+n*150,.15);
   if(C2.seq.length<3)say([['Narração','A pedra da '+PN[n]+' brilha.']]);
@@ -442,7 +461,7 @@ function gs(b,p,r){if(b.sp>0)return;
  else if(p===1){b.sp=1;if(b.n++%2){const cx=A.x+r()*A.w,cy=A.y+10;for(let i=0;i<8;i++){const an=i*Math.PI/4;b.bul.push({k:'s',x:cx,y:cy,vx:Math.cos(an)*42,vy:Math.sin(an)*42})}}else b.bul.push({k:'v',x:A.x+(b.n%5)*26,y:A.y,w:14,h:A.h,t:0})}
  else{b.sp=1.6;const cx=A.x+A.w/2,cy=A.y+A.h/2,g0=r()*6.28;for(let i=0;i<14;i++){const an=i*6.28/14;if(Math.abs(Math.atan2(Math.sin(an-g0),Math.cos(an-g0)))<.45)continue;b.bul.push({k:'b',x:cx,y:cy,vx:Math.cos(an)*38,vy:Math.sin(an)*38})}}}
 function guard(x,y){if(bigSpr('Guardião',x,y)){g.fillStyle='#2f7a3c';g.fillRect(x-14,y-15,28,4);g.fillRect(x-24,y+10,10,4);g.fillRect(x+14,y+20,12,4);g.fillStyle='#7ed87a';g.fillRect(x-8,y-14,4,4);g.fillRect(x+4,y-14,4,4);return}g.fillStyle='#3a2a1d';g.fillRect(x-14,y-10,28,58);g.fillStyle='#2f7a3c';g.fillRect(x-24,y+4,12,4);g.fillRect(x+12,y+14,14,4);g.fillStyle='#7ed87a';g.fillRect(x-8,y,5,5);g.fillRect(x+3,y,5,5);g.fillStyle='#5a4230';g.fillRect(x-14,y-10,28,3)}
-function endG(){S='qend';B.ph='x';F.guardSpared=!!B.agir;
+function endG(){S='qend';B.ph='x';F.guardSpared=!!B.agir;kar(F.guardSpared?2:-1);
  say(B.agir?[['Guardião','...Suas mãos estavam vazias o tempo todo.','surpreso'],['Guardião','Passem. Mas não confio em vocês.']]:[['Guardião','Vocês venceram. Isso não prova nada.'],['Guardião','Passem, antes que eu mude de ideia.']],
  ()=>say([['Narração','Na parede atrás dele, uma inscrição antiga se acende: “Quando o mundo esquecer seu próprio nome, a criança abrirá a última porta.”'],['Jordana','Frases velhas. Não significam nada.',2]],()=>startC2()))}
 
@@ -462,10 +481,10 @@ function startC3(){S='c2';RW=RW3;RN=RN3;RB=RB3;NP=NP3;OB=OB3;LAST=5;C2={room:0,c
 function talk3(id){
  if(id==='l')say([['Lúcia','Venha, venha! A festa nunca para. Se a música parar, a gente dorme.','feliz'],['Lúcia','E quando a gente dorme, o sonho continua depois de acordar.','triste']]);
  else if(id==='r')say([['Rufo','Ontem me vi num espelho, numa casa que nunca visitei, chorando por alguém que não conheço.','triste']]);
- else if(id==='i'){if(F.iris)return say([['Íris','Vamos ao arquivo. Dante deve saber algo.']]);say([['Íris','Você também viu? Espelhos mostrando lembranças que não são de quem olha.','surpreso'],['Íris','Sou Íris. Investigo isso há semanas. Posso ir com vocês?','feliz']],()=>ask(['Aceitar','Recusar'],i=>{if(i===0){F.iris=true;F.irisAlly=1;F.irisRef=0;say([['Jordana','Talvez seja útil.',1],['Narração','Íris entrou no grupo.']])}else{F.irisRef=1;say([['Jordana','Desculpe. Não podemos arriscar mais ninguém.',2],['Íris','Entendo. Vou seguir sozinha. Se mudar de ideia, eu fico por aqui.','triste']])}}))}
+ else if(id==='i'){if(F.iris)return say([['Íris','Vamos ao arquivo. Dante deve saber algo.']]);say([['Íris','Você também viu? Espelhos mostrando lembranças que não são de quem olha.','surpreso'],['Íris','Sou Íris. Investigo isso há semanas. Posso ir com vocês?','feliz']],()=>ask(['Aceitar','Recusar'],i=>{if(i===0){F.iris=true;F.irisAlly=1;F.irisRef=0;kar(1);say([['Jordana','Talvez seja útil.',1],['Narração','Íris entrou no grupo.']])}else{F.irisRef=1;kar(-1);say([['Jordana','Desculpe. Não podemos arriscar mais ninguém.',2],['Íris','Entendo. Vou seguir sozinha. Se mudar de ideia, eu fico por aqui.','triste']])}}))}
  else if(id==='D'){if(F.dante)return say([['Dante','Vamos. Mas fique alerta.']]);say([['Dante','Registros da guerra... estes papéis foram alterados depois de escritos. A tinta é mais nova que a data.','surpreso'],['Dante','Examinem os três documentos. Eu confirmo.']])}
  else if(id[0]==='d'){C2.cl[id]=1;say([['Narração',DOC[+id[1]]]],()=>{if(Object.keys(C2.cl).length===3&&!C2.open){C2.open=true;F.dante=true;say([[F.iris?'Íris':'Jordana','Alguém reescreveu a história. Dante, venha com a gente.','surpreso'],['Dante','Eu vou. Preciso entender isso.'],['Narração','Dante entrou no grupo. A passagem leste foi liberada.']])}})}
- else if(id==='M')say([['Morpheus','Que criança curiosa. Caiu de tão longe. Quer saber por quê?','feliz'],['Morpheus','Eu respondo. Em troca, uma lembrança sua.','feliz']],()=>ask(['Aceitar','Recusar','Enganar'],i=>{M3=[{hp:16,hard:0},{hp:20,hard:1},{hp:14,hard:0}][i];F.morph=i;say(MQ[i],()=>say([['Jordana','Fique atrás de mim.',2]],()=>startBattle('m')))}))}
+ else if(id==='M')say([['Morpheus','Que criança curiosa. Caiu de tão longe. Quer saber por quê?','feliz'],['Morpheus','Eu respondo. Em troca, uma lembrança sua.','feliz']],()=>ask(['Aceitar','Recusar','Enganar'],i=>{M3=[{hp:16,hard:0},{hp:20,hard:1},{hp:14,hard:0}][i];F.morph=i;kar(i===0?1:i===2?-1:0);say(MQ[i],()=>say([['Jordana','Fique atrás de mim.',2]],()=>startBattle('m')))}))}
 function ms(b,p,r){if(b.sp>0)return;const hd=b.hard?.75:1;
  if(p===0){b.sp=.55*hd;const x=A.x+r()*A.w;if(b.n++%2)b.bul.push({k:'f',x,y:A.y-4,vx:(r()-.5)*20,vy:45});else b.bul.push({k:'x',x,y:A.y,vx:0,vy:28,l:1.3})}
  else if(p===1){b.sp=1.5*hd;b.bul.push({k:'m',x:A.x+r()*A.w,y:A.y,vx:0,vy:18,l:5})}
@@ -493,7 +512,7 @@ function dinner(){const n=C2.dn;
  else say([['Matriarca','Boa noite.','feliz']])}
 function talk4(id){
  if(id==='h'){if(C2.hl)return say([['Helena',F.hrel>=2?'Obrigada por respeitar o que eu pedi.':F.hrel<0?'Prefiro não falar agora.':'Estou por aqui.']]);C2.hl=1;
-  say([['Helena','Ah! Visitas. Vocês estão bem? Eu sou Helena.','feliz'],['Helena','Minha família oferece abrigo a quem passa. Só peço que sigam as regras da casa.'],['Helena','E tem um sótão que eu não mostro a ninguém. Por favor, não vá lá.','triste']],()=>ask(['Respeitar','Perguntar mais','Ir mesmo assim'],i=>{F.hrel+=i===0?2:i===1?-1:-2;F.hpress=i;say(i===0?[['Helena','Obrigada. De verdade.','feliz']]:i===1?[['Helena','Prefiro não falar disso. Por favor.','triste']]:[['Helena','...Então tá.','triste'],['Narração','Ela se afasta. Você sentiu a confiança diminuir.']])}))}
+  say([['Helena','Ah! Visitas. Vocês estão bem? Eu sou Helena.','feliz'],['Helena','Minha família oferece abrigo a quem passa. Só peço que sigam as regras da casa.'],['Helena','E tem um sótão que eu não mostro a ninguém. Por favor, não vá lá.','triste']],()=>ask(['Respeitar','Perguntar mais','Ir mesmo assim'],i=>{F.hrel+=i===0?2:i===1?-1:-2;F.hpress=i;kar(i===0?1:i===2?-1:0);say(i===0?[['Helena','Obrigada. De verdade.','feliz']]:i===1?[['Helena','Prefiro não falar disso. Por favor.','triste']]:[['Helena','...Então tá.','triste'],['Narração','Ela se afasta. Você sentiu a confiança diminuir.']])}))}
  else if(id==='f')dinner();
  else if(id==='J'){if(C2.jt)return say([['Judas',F.judas===0?'Nosso acordo está de pé.':F.judas===1?'Pequeno favor, pequena dívida.':'Sem contrato, sem proteção.']]);
   say([['Judas','Ah, os hóspedes. Sou Judas. Administro os contratos e favores desta família.','feliz'],['Judas','Posso abrir a porta da frente. Cada favor cria uma dívida, claro.','feliz'],['Jordana','Cuidado com o que assinar.',2]],()=>ask(['Confiar','Negociar','Rejeitar'],i=>{F.judas=i;F.trusted_judas=i===0?1:0;F.debt=2-i;C2.jt=1;say(i===0?[['Judas','Excelente. Anotei dois favores. Cobrarei na hora certa.','feliz']]:i===1?[['Judas','Cauteloso. Gosto. Um favor, então.','feliz']]:[['Judas','Rejeitar é um direito. Mas sem contrato, a casa não tem motivo para facilitar.','bravo']])}))}
@@ -661,7 +680,7 @@ function pas(b,p,r){if(b.sp>0)return;b.n++;const m=b.n%5;b.sp=p===0?1.2:p===1?1:
 function autor(x,y){if(bigSpr('Primeiro Autor',x,y)){if(Math.floor(T*2)%2){g.fillStyle='#fff';g.fillRect(x+22,y+34,5,8)}for(let i=0;i<5;i++){g.fillStyle='rgba(232,217,255,'+(.15+i*.05)+')';g.fillRect(x-30+i*12,y+50+(i%2)*4,8,2)}return}g.fillStyle='#e8d9ff';g.fillRect(x-10,y+6,20,34);g.fillStyle='#f1c9a0';g.fillRect(x-6,y-6,12,12);g.fillStyle='#2a2438';g.fillRect(x-8,y-9,16,5);if(Math.floor(T*2)%2){g.fillStyle='#fff';g.fillRect(x+16,y+30,5,8)}for(let i=0;i<5;i++){g.fillStyle='rgba(232,217,255,'+(.15+i*.05)+')';g.fillRect(x-30+i*12,y+46+(i%2)*4,8,2)}}
 function endPa(){S='qend';B.ph='x';say([['Narração','A página se rasga. O Primeiro Autor cai de joelhos, mas as linhas do chão continuam se apagando.'],['Primeiro Autor','Vencido. E o Núcleo não me obedece mais. Eu não sei como pará-lo.'],['Narração','Ele se desfaz em palavras soltas. O Núcleo continua instável. O mundo não está salvo.']],()=>{S='c2';C2.pd=1;F.pa_defeated=1})}
 function routeCalc(){const k=F.kael,c=F.cain,j=F.judas,h=F.hrel||0,g=F.gods||0;
- const sc={ruina:(F.irisRef?1:0)+(F.tobiasLate?1:0)+(k===2)+(c===1)+(j===2)+(h<0)+(F.guardSpared?0:1)+((F.atk|0)>=24?1:0),criador:(j===1)+(c===2)+(F.author_records_found?1:0),vazio:(F.irisDiary?2:0)+(F.author_records_found?0:1),deuses:g>=4?3:g>=3?2:0,paz:(F.irisAlly?1:0)+(F.tobiasTrust?1:0)+(k===0)+(c===0)+(F.guardSpared?1:0)+(h>=2)+(F.tobiasKeep?1:0)+(F.helenaIn?1:0)+((F.agr|0)>(F.atk|0)/3?1:0)};
+ const sc={ruina:((F.karma|0)<=-3?1:0)+(F.irisRef?1:0)+(F.tobiasLate?1:0)+(k===2)+(c===1)+(j===2)+(h<0)+(F.guardSpared?0:1)+((F.atk|0)>=24?1:0),criador:(j===1)+(c===2)+(F.author_records_found?1:0),vazio:(F.irisDiary?2:0)+(F.author_records_found?0:1),deuses:g>=4?3:g>=3?2:0,paz:((F.karma|0)>=3?1:0)+(F.irisAlly?1:0)+(F.tobiasTrust?1:0)+(k===0)+(c===0)+(F.guardSpared?1:0)+(h>=2)+(F.tobiasKeep?1:0)+(F.helenaIn?1:0)+((F.agr|0)>(F.atk|0)/3?1:0)};
  let best='neutra',m=2;for(const n of['ruina','criador','vazio','deuses','paz'])if(sc[n]>m){m=sc[n];best=n}return best}
 const ROPT={paz:'Chamar todos para ajudar',ruina:'Tomar o controle do Núcleo',deuses:'Pedir ajuda aos deuses',criador:'Negociar a preservação',vazio:'Fechar o Vazio, esquecendo',neutra:'Estabilizar só em parte'};
 const RJ={paz:'Eles vieram. Não é perfeito, mas foi o que vocês construíram.',ruina:'Você vai conseguir. É isso que me assusta.',deuses:'Alguns vão ouvir. Não conte com todos.',criador:'Se você assinar isso, ninguém vai saber o que é verdade depois.',vazio:'Vai doer, e você nem vai lembrar de onde dói.',neutra:'Isso segura um pedaço. O resto fica como está.'};
@@ -703,6 +722,58 @@ const VZ={'voce':'protagonista','morfeu':'morpheus','rainha':'narracao','patriar
 const CHM=[null,'mus_raiz_velha','mus_vila_cinzas','mus_cidade_espelhos','mus_casa_herdeiros','mus_olimpo','mus_mortalha','mus_vazio','mus_nucleo'];
 const SPK={'Anubis':'mus_chefe_anubis','Cain':'mus_chefe_cain','Judas':'mus_chefe_judas'};
 const ACV=[['acervo_a_thousand_miles','A Thousand Miles',[1,3,4]],['acervo_take_on_me','Take On Me',[1,3]],['acervo_another_one_bites_the_dust','Another One Bites the Dust',[2,5]],['acervo_be_my_baby','Be My Baby',[3,4]],['acervo_blue_dabadee','Blue (Da Ba Dee)',[1,3]],['acervo_in_the_end','In the End',[6,8]],['acervo_moves_like_jagger','Moves Like Jagger',[3,4]],['acervo_hey_ya','Hey Ya!',[1]],['acervo_seven_nation_army','Seven Nation Army',[5,8]]];
+/* v3.8 — MUSICA ORIGINAL GERATIVA (WebAudio): menu, abertura, ambiente dos capitulos e chefes. Sem arquivos; revezamento de variacoes. */
+const SC={mp:[0,2,4,7,9],np:[0,3,5,7,10],dor:[0,2,3,5,7,9,10],lyd:[0,2,4,6,7,9,11],mix:[0,2,4,5,7,9,10],min:[0,2,3,5,7,8,10],hm:[0,2,3,5,7,8,11],phr:[0,1,3,5,7,8,10],wt:[0,2,4,6,8,10],maj:[0,2,4,5,7,9,11],pd:[0,1,4,5,7,8,10]};
+const GMAP={
+ mus_intro:{r:50,s:'dor',b:62,l:'pk',grow:[[0,'pk'],[10,'pkx'],[16,'pkax'],[40,'pkalx'],[70,'pkalbx'],[90,'pkalbdx']],P:[[0,5,3,4],[0,3,5,4]]},
+ mus_titulo:{r:50,s:'dor',b:68,l:'pkalx',P:[[0,5,3,4],[0,3,5,4],[0,4,5,3]]},
+ mus_abertura_prologo:{r:57,s:'lyd',b:72,l:'pakx',P:[[0,4,3,0],[0,2,4,3],[0,3,0,4]]},
+ mus_raiz_velha:{r:48,s:'mp',b:84,l:'palx',P:[[0,2,3,1],[0,3,1,4],[2,0,3,1]]},
+ mus_vila_cinzas:{r:45,s:'min',b:58,l:'pklx',P:[[0,5,3,6],[0,3,0,5]]},
+ mus_cidade_espelhos:{r:53,s:'wt',b:76,l:'palx',P:[[0,2,4,1],[1,3,0,4]]},
+ mus_casa_herdeiros:{r:52,s:'hm',b:70,l:'pkalx',P:[[0,3,4,0],[0,5,3,4]]},
+ mus_olimpo:{r:50,s:'mix',b:80,l:'pkalbx',P:[[0,3,4,0],[0,4,5,3],[0,5,3,4]]},
+ mus_mortalha:{r:43,s:'phr',b:50,l:'pkx',P:[[0,1,0,6],[0,5,1,0]]},
+ mus_vazio:{r:46,s:'wt',b:46,l:'kx',P:[[0,3,1,4],[2,5,0,3]]},
+ mus_nucleo:{r:45,s:'min',b:90,l:'pkabx',P:[[0,5,3,4],[0,2,5,4]]},
+ mus_nucleo_instavel:{r:45,s:'pd',b:104,l:'pkabdx',P:[[0,1,0,4],[0,3,1,4]]},
+ mus_acampamento:{r:48,s:'mp',b:66,l:'palx',P:[[0,3,1,4]]},
+ mus_tema_floris:{r:52,s:'min',b:126,l:'pabdl',P:[[0,5,3,4],[0,3,4,5]]},
+ mus_chefe_rainha:{r:57,s:'hm',b:134,l:'pabdl',P:[[0,5,3,4],[0,3,4,0]]},
+ mus_chefe_guardiao:{r:47,s:'mix',b:118,l:'pabdl',P:[[0,4,5,3],[0,3,4,0]]},
+ mus_chefe_morpheus:{r:50,s:'wt',b:104,l:'pabdlx',P:[[0,2,4,1],[1,3,5,2]]},
+ mus_chefe_herdeiros:{r:52,s:'phr',b:124,l:'pabdl',P:[[0,1,0,5],[0,6,5,1]]},
+ mus_chefe_zeus:{r:55,s:'maj',b:142,l:'pabdl',P:[[0,4,5,3],[0,3,4,0],[0,5,3,4]]},
+ mus_chefe_hades:{r:41,s:'pd',b:112,l:'pabdl',P:[[0,1,0,4],[0,5,4,1]]},
+ mus_chefe_genocide:{r:40,s:'phr',b:150,l:'pabdl',P:[[0,1,0,1],[0,6,1,0]]},
+ mus_chefe_anubis:{r:45,s:'pd',b:92,l:'pkabl',P:[[0,1,0,4]]},
+ mus_chefe_cain:{r:48,s:'dor',b:96,l:'pkabl',P:[[0,3,0,4]]},
+ mus_chefe_judas:{r:46,s:'hm',b:100,l:'pkabl',P:[[0,5,0,4]]}};
+const GM={t:null,rot:{},nb:null};
+const gmN=(sc,r,d)=>{const n=sc.length,q=Math.floor(d/n);return r+sc[d-q*n]+12*q};
+function gmNote(T,t,m,d,ty,v,o={}){const os=AC.createOscillator(),gn=AC.createGain(),f=AC.createBiquadFilter(),a=o.a||.01,r=o.r||.25;os.type=ty;os.frequency.value=440*Math.pow(2,(m-69)/12);if(o.det)os.detune.value=o.det;f.type='lowpass';f.frequency.value=o.lp||2600;
+ gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(v,t+a);if(o.pl)gn.gain.setTargetAtTime(0,t+a,d/4);else gn.gain.setTargetAtTime(0,t+Math.max(a,d),r/3);os.connect(f);f.connect(gn);gn.connect(T.g);os.start(t);os.stop(t+d+r*2+.5)}
+function gmNoise(T,t,d,ft,fq,v,sw){if(!GM.nb){GM.nb=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const x=GM.nb.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=Math.random()*2-1}
+ const s=AC.createBufferSource(),f=AC.createBiquadFilter(),gn=AC.createGain();s.buffer=GM.nb;s.loop=true;f.type=ft;f.frequency.setValueAtTime(fq,t);if(sw)f.frequency.linearRampToValueAtTime(sw,t+d);gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(v,t+(sw?d*.5:.003));gn.gain.setTargetAtTime(0,t+(sw?d*.5:.005),sw?d*.25:d/4);s.connect(f);f.connect(gn);gn.connect(T.g);s.start(t);s.stop(t+d*1.6+.1)}
+function gmKick(T,t,v){const o=AC.createOscillator(),gn=AC.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(42,t+.12);gn.gain.setValueAtTime(v,t);gn.gain.exponentialRampToValueAtTime(.001,t+.22);o.connect(gn);gn.connect(T.g);o.start(t);o.stop(t+.25)}
+function gmMotif(sp){const n=SC[sp.s].length,m=[];let d=Math.floor(Math.random()*n);for(let i=0;i<8;i++){d=Math.max(0,Math.min(n+2,d+Math.floor(Math.random()*5)-2));m.push(d)}return m}
+function gmPlay(key){const sp=GMAP[key];if(!sp||!AC)return;GM.rot[key]=(GM.rot[key]|0)+1;const g=AC.createGain(),s=AC.createGain();g.gain.value=0;s.gain.value=.5;g.connect(AUD.ab);g.connect(s);if(AUD.fx)s.connect(AUD.fx);
+ const T={key,sp,g,s,step:0,bar:0,v:(GM.rot[key]-1)%sp.P.length,mo:gmMotif(sp),mi:0,t0:AC.currentTime,next:AC.currentTime+.08,ev:AC.currentTime+5+Math.random()*6};T.iv=setInterval(()=>{try{gmSched(T)}catch(e){}},60);GM.t=T;gmSched(T)}
+function gmStop(){const T=GM.t;if(!T)return;GM.t=null;clearInterval(T.iv);try{T.g.gain.cancelScheduledValues(AC.currentTime);T.g.gain.setTargetAtTime(0,AC.currentTime,.5)}catch(e){}setTimeout(()=>{try{T.g.disconnect();T.s.disconnect()}catch(e){}},3500)}
+function gmVol(mv){const T=GM.t;if(T)try{T.g.gain.setTargetAtTime(mv*.9,AC.currentTime,.5)}catch(e){}}
+function gmSched(T){const sp=T.sp,sc=SC[sp.s],r=sp.r,boss=/chefe|floris/.test(T.key)&&T.key!=='mus_chefe_anubis'&&!/cain|judas/.test(T.key),tf=boss&&S==='battle'&&B&&B.tf;
+ while(T.next<AC.currentTime+.3){const t=T.next,sd=60/(sp.b*(tf?1.12:1))/4,s=T.step%16,bar=Math.floor(T.step/16);
+  let L=sp.l;if(sp.grow){const el=t-T.t0;for(const[x,l]of sp.grow)if(el>=x)L=l}
+  const pr=sp.P[T.v],dg=pr[bar%pr.length],ch=[dg,dg+2,dg+4],has=c=>L.indexOf(c)>=0,drm=has('d'),wv=['triangle','sine','triangle'][T.v%3];
+  if(s===0){if(bar>0&&bar%8===0){T.v=(T.v+1)%sp.P.length;T.mo=gmMotif(sp)}
+   if(has('p')){const dur=sd*16;for(const d of ch){const m=gmN(sc,r,d);gmNote(T,t,m,dur,boss?'sawtooth':'triangle',boss?.022:.04,{a:boss?.05:1.2,r:1.2,lp:boss?1100:1400,det:-6});gmNote(T,t,m,dur,boss?'square':'sine',boss?.012:.03,{a:boss?.05:1.2,r:1.2,lp:900,det:6})}}
+   if(has('k')&&bar%2===0)gmNote(T,t,gmN(sc,r,dg)-24,sd*32,'sine',.09,{a:2,r:2,lp:300})}
+  if(has('b')){if(drm&&(s%2===0)){gmNote(T,t,gmN(sc,r,dg)-24+(s===6||s===14?12:0),sd*1.7,'sawtooth',.1,{a:.005,r:.1,lp:520+(tf?500:0),pl:1})}else if(!drm&&s===0)gmNote(T,t,gmN(sc,r,dg)-24,sd*14,'triangle',.1,{a:.1,r:.6,lp:420})}
+  if(has('a')){if(boss){gmNote(T,t,gmN(sc,r,ch[[0,1,2,1][s%4]])+24-(s>7?12:0),sd*.9,'square',.02+(tf?.012:0),{a:.005,r:.08,lp:2800,pl:1})}else if(s%2===0&&Math.random()<.55){gmNote(T,t,gmN(sc,r,Math.random()<.5?ch[Math.floor(Math.random()*3)]:Math.floor(Math.random()*sc.length))+(Math.random()<.5?12:24),sd*4,wv,.05,{a:.005,r:.5,lp:3200,pl:1})}}
+  if(has('l')){const ps=boss?[0,3,6,8,11,14]:[0,6,10];if(ps.includes(s)&&(boss||Math.random()<.6)){const m=gmN(sc,r+12,T.mo[T.mi++%8]);gmNote(T,t,m,sd*(boss?2:5),boss?'sawtooth':wv,boss?.03:.05,{a:.01,r:boss?.2:.8,lp:boss?3000:2400,pl:boss?0:1})}}
+  if(drm){if(s===0||s===8||(tf&&s===10))gmKick(T,t,.5);if(s===4||s===12)gmNoise(T,t,.14,'bandpass',1800,.18);if(s%2===0||tf)gmNoise(T,t,.04,'highpass',7000,.05)}
+  if(has('x')&&t>T.ev){T.ev=t+9+Math.random()*16;if(Math.random()<.6)gmNote(T,t,gmN(sc,r,Math.floor(Math.random()*sc.length))+36,3,'sine',.05,{a:.005,r:1.5,pl:1});else gmNoise(T,t,4,'bandpass',400,.05,1400)}
+  T.step++;T.next+=sd}}
 function audInit(){if(AUD.ok||!AC)return;try{AC.resume();const c=AC.createDynamicsCompressor();c.threshold.value=-16;c.ratio.value=4;c.connect(AC.destination);AUD.sb=AC.createGain();AUD.ab=AC.createGain();AUD.sb.connect(c);AUD.ab.connect(c);
  const ir=AC.createBuffer(2,AC.sampleRate*1.1|0,AC.sampleRate);for(let h=0;h<2;h++){const d=ir.getChannelData(h);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3)}
  const cv=AC.createConvolver();cv.buffer=ir;const wg=AC.createGain();wg.gain.value=.12;cv.connect(wg);wg.connect(c);AUD.fx=cv;AUD.ok=1;
@@ -722,9 +793,9 @@ function mkAud(key){const a=new Audio();a.loop=!/final|creditos|pos_cred/.test(k
  a.onerror=()=>{if(++i<u.length){set();a.play().catch(()=>{})}else a.dead=1};
  a.onplaying=()=>{if(key.startsWith('acervo_')&&!a.shown){a.shown=1;const m=ACV.find(x=>x[0]===key);AUD.toast=m?m[1]:'';AUD.toastT=4.5}};
  if(AUD.pos[key]&&!/chefe|genocide/.test(key))a.addEventListener('loadedmetadata',()=>{try{a.currentTime=AUD.pos[key]%a.duration}catch(e){}},{once:true});set();return a}
-function playMus(key){if(!AUD.ok||key===AUD.curKey)return;const old=AUD.cur;if(old){if(AUD.curKey)AUD.pos[AUD.curKey]=old.currentTime;old.tv=0;AUD.olds.push(old)}AUD.curKey=key;AUD.cur=null;if(!key)return;const a=mkAud(key);AUD.cur=a;const p=a.play();if(p&&p.catch)p.catch(()=>{})}
+function playMus(key){if(!AUD.ok||key===AUD.curKey)return;const old=AUD.cur;if(old){if(AUD.curKey)AUD.pos[AUD.curKey]=old.currentTime;old.tv=0;AUD.olds.push(old)}AUD.curKey=key;AUD.cur=null;gmStop();if(!key)return;if(GMAP[key]){gmPlay(key);return}const a=mkAud(key);AUD.cur=a;const p=a.play();if(p&&p.catch)p.catch(()=>{})}
 function musKey(){
- if(S==='fones'||S==='intro')return null;if(S==='bintro')return BI&&BI.retry?AUD.curKey:null;if(S==='title'||S==='rato')return 'mus_titulo';if(S==='pro'||S==='explore')return 'mus_abertura_prologo';if(S==='jord')return 'mus_tema_jordana';
+ if(S==='fones')return null;if(S==='intro')return 'mus_intro';if(S==='bintro')return BI&&BI.retry?AUD.curKey:null;if(S==='title'||S==='rato')return 'mus_titulo';if(S==='pro'||S==='explore')return 'mus_abertura_prologo';if(S==='jord')return 'mus_tema_jordana';
  if(S==='battle'){if(GEN)return 'mus_chefe_genocide';return B.pa?'mus_chefe_primeiro_autor':B.er?'mus_chefe_erro_original':B.g?'mus_chefe_guardiao':B.q?'mus_chefe_rainha':B.mo?'mus_chefe_morpheus':B.he?'mus_chefe_herdeiros':B.z?'mus_chefe_zeus':B.hd?'mus_chefe_hades':'mus_tema_floris'}
  if(S==='end8'){const n=e8pages().length;if(e8>=n)return e8r==='sacrificio'?'mus_pos_creditos':null;return e8===n-1?'mus_creditos':e8r==='sacrificio'?'mus_final_sacrificio':'mus_final_'+e8r}
  if(S==='choice'&&C2.ch===8)return 'mus_tema_protagonista';
@@ -762,13 +833,13 @@ function audTick(dt){if(!AUD.ok)return;AUD.t+=dt;const c2=S==='c2',now=AUD.t;
  if((c2||S==='explore')&&!D){const d=Math.hypot(pl.x-AUD.lx,pl.y-AUD.ly);if(d<20)AUD.stepD+=d;AUD.lx=pl.x;AUD.ly=pl.y;if(AUD.stepD>13){AUD.stepD=0;sfx('passo_'+(S==='explore'?'terra':C2.ch===8&&C2.room===2?'ponte_nucleo':STEP[C2.ch]||'terra'),{v:.45,var:.1,gap:.05})}}
  if(c2){const k=C2.ch+'.'+C2.room;if(C2.ch!==AUD.ch){if(AUD.ch>0)sfx('stg_fim_capitulo',{v:.6});AUD.ch=C2.ch;AUD.cl=Object.keys(C2.cl||{}).length}
   if(k!==AUD.rk){if(AUD.rk&&AUD.rk.split('.')[0]==C2.ch)sfx(C2.ch>=7?'amb_porta_vazio':C2.ch===5||C2.ch===8?'amb_porta_pedra':'amb_porta_abrir',{v:.6});AUD.rk=k;
-   if(!D&&!GEN&&C2.ch!==7&&now-AUD.acvT>150&&Math.random()<.3&&!(AUD.ov&&AUD.ov.ch===C2.ch&&AUD.ov.room===C2.room)){const L=ACV.filter(a=>a[2].includes(C2.ch));if(L.length){AUD.acv={k:L[Math.random()*L.length|0][0],ch:C2.ch,room:C2.room};AUD.acvT=now}}else if(AUD.acv&&(AUD.acv.ch!==C2.ch||AUD.acv.room!==C2.room))AUD.acv=null}
+   if(0&&!D&&!GEN&&C2.ch!==7&&now-AUD.acvT>150&&Math.random()<.3&&!(AUD.ov&&AUD.ov.ch===C2.ch&&AUD.ov.room===C2.room)){const L=ACV.filter(a=>a[2].includes(C2.ch));if(L.length){AUD.acv={k:L[Math.random()*L.length|0][0],ch:C2.ch,room:C2.room};AUD.acvT=now}}else if(AUD.acv&&(AUD.acv.ch!==C2.ch||AUD.acv.room!==C2.room))AUD.acv=null}
   const cl=Object.keys(C2.cl||{}).length;if(cl>AUD.cl)sfx('stg_descoberta',{v:.6});AUD.cl=cl}
  if(F.jfall!==AUD.jf){sfx(F.jfall?'cena_jordana_cai':'cena_jordana_volta');AUD.jf=F.jfall}
  if(S==='end8'&&e8>=e8pages().length&&e8r==='sacrificio'&&!AUD.pc){AUD.pc=1;sfx('cena_arquivo_save')}
  if(AUD.cur&&AUD.cur.dead){if(AUD.curKey.startsWith('acervo_')){AUD.acv=null}AUD.cur=null;AUD.curKey='?'}
  const mk=musKey();if(mk!==undefined&&mk!==AUD.curKey)playMus(mk);playAmb(ambFor());
- AUD.duck+=((D?.55:1)-AUD.duck)*Math.min(1,dt*4);const mv=CFG.snd?CFG.mv*AUD.duck:0;
+ AUD.duck+=((D?.55:1)-AUD.duck)*Math.min(1,dt*4);const mv=CFG.snd?CFG.mv*AUD.duck:0;gmVol(mv);
  [AUD.cur,...AUD.olds].forEach(a=>{if(!a)return;const t=a.tv*mv,st=dt/1.4;a.volume=Math.max(0,Math.min(1,a.volume+Math.max(-st,Math.min(st,t-a.volume))))});
  AUD.olds=AUD.olds.filter(a=>{if(a.volume<.01&&a.tv===0){a.pause();return false}return true});
  if(AUD.toastT>0){AUD.toastT-=dt;g.globalAlpha=Math.min(1,AUD.toastT);box(10,6,300,22,'#6c6290');tx('♪ '+AUD.toast,20,22,'#d9d2ea',11);g.globalAlpha=1}}
@@ -784,7 +855,7 @@ const ICAP=[[1,'Havia uma noite quieta, daquelas que cheiram a chuva e chá.',5.
  [16,'Dentro do livro, cada página guardava alguém.',6],[30,'Alguns vão te ajudar. Outros, nem tanto.',6],[50,'Todos querem ser lembrados.',6],
  [70.2,'Mas, no fim, sempre existe uma fogueira.',5.5],[77,'E gente disposta a ficar.',5],[83.5,'As suas escolhas vão decidir o resto.',5.5]];
 function introStart(){S='intro';T=0;Object.assign(INT,{t:0,started:0,wait:0,fade:0,pg:-1,star:0,logo:0,aerr:0,key:0,amb:null});
- try{const a=new Audio('audio/trailer/lifelight_abertura.ogg');a.preload='auto';a.volume=CFG.snd?Math.min(1,CFG.mv):0;a.onerror=()=>{INT.aerr=1};INT.a=a;const p=a.play();if(p&&p.catch)p.catch(()=>{INT.aerr=1})}catch(e){INT.aerr=1}}
+ INT.a=null;INT.aerr=1}
 function introEnd(){const a=INT.a;if(a){let v=a.volume;const iv=setInterval(()=>{v-=.08;if(v<=0){clearInterval(iv);try{a.pause()}catch(e){}}else try{a.volume=v}catch(e){}},50)}INT.a=null;try{playAmb('')}catch(e){}S='title';T=0}
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();
  if(S==='intro'&&(k==='enter'||k==='escape'||k===' '))INT.key=1;
@@ -1112,10 +1183,10 @@ let last=performance.now();
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;if(curSlot>=0&&!NOPLAY.includes(S))PLAY+=dt;
  try{
   padTick(dt);
-  if(S==='fones')updFones();else if(S==='intro')updIntro(dt);else if(S==='rato')updRato();else if(S==='pad')updPad();else if(S==='title')updTitle();else if(S==='pro')updPro(dt);else if(S==='explore')updExplore(dt);else if(S==='battle')updBattle(dt);else if(S==='bintro')updBI(dt);else if(S==='jord')updJord(dt);else if(S==='end')updEnd();else if(S==='c2')updC2(dt);else if(S==='choice')updCh();else if(S==='qend')dlg(dt);else if(S==='end2')updE2();else if(S==='end3')updE3();else if(S==='opt')updOpt();else if(S==='slots')updSlots();else if(S==='keys')updKeys();else if(S==='end4')updE4();else if(S==='diary')updDiary();else if(S==='end5')updE5();else if(S==='end6')updE6();else if(S==='end7')updE7();else if(S==='end8')updE8();
+  if(S==='fones')updFones();else if(S==='intro')updIntro(dt);else if(S==='rato')updRato();else if(S==='pad')updPad();else if(S==='title')updTitle();else if(S==='pro')updPro(dt);else if(S==='explore')updExplore(dt);else if(S==='battle')updBattle(dt);else if(S==='bintro')updBI(dt);else if(S==='jord')updJord(dt);else if(S==='end')updEnd();else if(S==='c2')updC2(dt);else if(S==='choice')updCh();else if(S==='qend')dlg(dt);else if(S==='end2')updE2();else if(S==='end3')updE3();else if(S==='opt')updOpt();else if(S==='slots')updSlots();else if(S==='keys')updKeys();else if(S==='end4')updE4();else if(S==='diary')updDiary();else if(S==='ach')updAch();else if(S==='end5')updE5();else if(S==='end6')updE6();else if(S==='end7')updE7();else if(S==='end8')updE8();
   vibTick(dt);if(VIB.sh>0){g.setTransform(1,0,0,1,0,0);g.fillStyle='#000';g.fillRect(0,0,W,H);g.setTransform(1,0,0,1,Math.round((Math.random()-.5)*2*VIB.sh),Math.round((Math.random()-.5)*2*VIB.sh))}
-  if(S==='fones')drawFones();else if(S==='intro')drawIntro();else if(S==='rato')drawRato();else if(S==='pad')drawPad();else if(S==='title')drawTitle();else if(S==='pro')drawPro();else if(S==='explore'){drawExplore();dnOverlay()}else if(S==='battle')drawBattle();else if(S==='bintro')drawBI();else if(S==='jord')drawJord();else if(S==='c2'){drawC2();dnOverlay()}else if(S==='choice'){drawC2();dnOverlay();drawCh()}else if(S==='qend')drawBattle();else if(S==='end2')drawE2();else if(S==='end3')drawE3();else if(S==='opt')drawOpt();else if(S==='slots')drawSlots();else if(S==='keys')drawKeys();else if(S==='end4')drawE4();else if(S==='diary')drawDiary();else if(S==='end5')drawE5();else if(S==='end6')drawE6();else if(S==='end7')drawE7();else if(S==='end8')drawE8();else drawEnd();g.setTransform(1,0,0,1,0,0);padDraw();
+  if(S==='fones')drawFones();else if(S==='intro')drawIntro();else if(S==='rato')drawRato();else if(S==='pad')drawPad();else if(S==='title')drawTitle();else if(S==='pro')drawPro();else if(S==='explore'){drawExplore();dnOverlay()}else if(S==='battle')drawBattle();else if(S==='bintro')drawBI();else if(S==='jord')drawJord();else if(S==='c2'){drawC2();dnOverlay()}else if(S==='choice'){drawC2();dnOverlay();drawCh()}else if(S==='qend')drawBattle();else if(S==='end2')drawE2();else if(S==='end3')drawE3();else if(S==='opt')drawOpt();else if(S==='slots')drawSlots();else if(S==='keys')drawKeys();else if(S==='end4')drawE4();else if(S==='diary')drawDiary();else if(S==='ach')drawAch();else if(S==='end5')drawE5();else if(S==='end6')drawE6();else if(S==='end7')drawE7();else if(S==='end8')drawE8();else drawEnd();g.setTransform(1,0,0,1,0,0);padDraw();
  }catch(e){g.setTransform(1,0,0,1,0,0);console.error(e)}
- try{audTick(dt)}catch(e){}padEnd();tap=false;drag.x=0;drag.y=0;requestAnimationFrame(frame)}
+ try{audTick(dt)}catch(e){}try{achTick(dt)}catch(e){}padEnd();tap=false;drag.x=0;drag.y=0;requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 </script></body></html>
