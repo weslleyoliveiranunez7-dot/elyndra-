@@ -1,0 +1,29 @@
+ELYNDRA — HANDOFF PARA OUTRA IA
+Versao do jogo: 2.8 | Data: 02/11/2026 | Este arquivo: ELYNDRA_Handoff_v2_8.txt | Jogo: www/index.html
+(Leia junto com v2.7 e anteriores. Nunca sobrescrever handoff anterior.)
+
+MUDANCAS DA v2.8: CORACAO DE ELYNDRA (so www/index.html; bloco novo "v2.8 — CORACAO DE ELYNDRA" logo antes de "let last=performance.now()")
+Pedido: mostrar o coracao vermelho do jogador antes de cada batalha, trocar o ponto vermelho pelo coracao em tudo que represente a alma, animacao suave sem girar/deformar.
+1) Sprite proprio: grade HG (11x10) com paleta HGP: n = normal, g = Modo Genocide (vermelho escuro), f = flash branco de dano. Cristal dourado no centro (a Determinacao).
+   soulSprite(tipo,cx,cy,s) desenha em tamanho inteiro (cache por tipo+escala). Nada gira nem estica: o tamanho so muda em passos inteiros de pixel; o "bater" e feito por brilho (halo) e aneis.
+2) Chamada antes da batalha: estado novo S='bintro' (BI, updBI, drawBI). startBattle foi embrulhada: cria a batalha como antes e entra em 'bintro'.
+   Linha do tempo (biTimes): pisca 3x com o snapshot da tela anterior (0,75 s) -> escurece (ate 0,95) -> coracao surge com pop e bate 2x com aneis na cor do chefe (ate 1,85) ->
+   voa ate o botao LUTAR com rastro, encolhendo, enquanto a arena aparece (ate 2,55) -> pouso com anel (ate 2,85) -> S='battle'. Toque depois de 0,45 s da fase do coracao pula para o pouso.
+   Retry apos "Levante-se." usa versao curta (1,0 s) sem piscar; a musica nao corta nesse caso. Na chamada completa a musica anterior corta (musKey devolve null em 'bintro').
+3) Ponto vermelho substituido: na esquiva (antes fillRect 6x6) agora soulDraw(b). Tambem: cursor do controle (padHeart) usa o mesmo sprite.
+   soulDraw: no menu/mensagem o coracao fica ao lado do botao escolhido (b.msel, gravado ao tocar no botao); na esquiva desliza do botao para a arena (0,22 s) e volta ao fim do turno (0,26 s).
+   Respostas visuais: halo pulsando (mais rapido e escuro com HP <= 6), flash branco + anel + tremor ao levar dano, piscar semitransparente durante a invulnerabilidade,
+   anel e fagulhas verdes ao curar, anel ciano ao DEFENDER. Hitbox e logica de dano NAO foram alteradas (raio 6,5 como antes; o coracao visivel tem ~11 px).
+4) Game over: soulOver(b) — o coracao treme, racha (zigue-zague), parte em duas metades que caem com estilhacos; o texto "Levante-se." so aparece depois de 1,3 s.
+   O retry por toque so conta depois de 1,4 s (b.ov0 = inicio do game over); continua precisando de 2 toques, como antes.
+5) Audio: audTick nao toca mais 'bat_vitoria' ao entrar em 'bintro' (condicao ganhou S!=='bintro'). Sons da chamada: bat_telegraph (piscadas), cena_batida_coracao + vibracao 'heart' (batidas), bat_arena_muda (voo).
+   Os sons de inicio de batalha (bat_inicio, stg_chefe_aparece, grito do chefe) e a vibracao 'boss'/'start' agora tocam no POUSO (quando S vira 'battle'), nao mais no clique.
+6) Titulo do jogo: v2.8. Nenhum asset novo (tudo por codigo).
+
+LIMITES
+- Testado em Chromium headless (Playwright): chamada completa, menu, troca de botao, esquiva, dano, HP baixo, defender, game over, retry curto, Modo Genocide e chefe Zeus; sem erros de JS.
+- NAO testado em celular, APK ou gamepad real; desempenho no celular nao medido.
+- O coracao da esquiva mede ~11 px (antes 6 px). Se achar grande/pequeno: soulSprite com s=1 em soulDraw (ou trocar a grade HG).
+- Se algum fluxo chamar startBattle fora do jogo normal (ex.: testes), ele passa pela chamada de ~2,85 s; para desligar, basta remover o bloco "{const _sb=startBattle; ...}".
+
+PROXIMAS PARTES: 3 audio em cenas | 4 quests dentro dos Caps. 1-8 (mapas, inimigos, cutscenes). Pendentes da conversa anterior: build do APK com erro e abertura/trailer que nao funcionou (nao tratados nesta versao).
