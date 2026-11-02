@@ -1,0 +1,6 @@
+ELYNDRA — HANDOFF v3.5 (02/11/2026) | Jogo: www/index.html (ler com v3.4 e anteriores)
+MUDANCA: TRANSFORMACAO DOS CHEFES (todos: Floris, Rainha, Guardiao, Morpheus, Herdeiros, Zeus, Hades, Erro, Autor).
+- Gatilho: no inicio da esquiva (startDodge), quando vida inimiga b.eh <= 50% de b.em; dispara uma vez (b.tf=1, b.tft=T).
+- Efeito: clarao branco + faixa com nome da forma (TFN) por 1,6 s, com invulnerabilidade do jogador nesse tempo; sprite 15% maior, tremendo, com aura na cor do chefe (VCOL);
+  ataques 35% mais frequentes (b.sp); grade do fundo (bgBattle) fica vermelha. Funcoes tfPre/tfPost antes de drawBattle.
+- Padroes de bala, dano e HP nao mudaram. Reinicia a cada startBattle. Verificado so sintaxe JS; nao testado jogando.
