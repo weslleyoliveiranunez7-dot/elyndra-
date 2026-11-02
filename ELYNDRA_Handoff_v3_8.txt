@@ -1,0 +1,10 @@
+ELYNDRA — HANDOFF v3.8 (02/11/2026) | Jogo: www/index.html (ler com v3.7 e anteriores)
+MUDANCA: MUSICA ORIGINAL GERATIVA (WebAudio, sem arquivos) + fim das musicas extras na gameplay.
+1) Acervo (A Thousand Miles etc.) DESLIGADO na gameplay: 'if(0&&...' no sorteio de AUD.acv. A abertura animada nao usa mais lifelight (agora gerada; INT.aerr=1, tempo por timer).
+2) Motor: bloco "v3.8" antes de audInit: tabela GMAP (chave de musica -> {r raiz MIDI, s escala, b bpm, l camadas, P progressoes, grow}), gmPlay/gmStop/gmVol/gmSched.
+   Camadas: p pad | k drone | b baixo | a arpejo | l melodia (motivo aleatorio) | d bateria | x eventos de atmosfera (sinos/vento aleatorios).
+3) Gerado: abertura (mus_intro, 100 s, camadas entram aos poucos), menu/titulo, prologo/Raiz Velha, Caps. 1-8, acampamento, chefes (Floris, Rainha, Guardiao, Morpheus,
+   Herdeiros, Zeus, Hades, Genocide, Anubis, Cain, Judas) e Nucleo. Chefe transformado (b.tf): andamento +12%, kick extra, arpejo mais forte.
+4) REVEZAMENTO: a cada entrada na mesma musica usa outra progressao (GM.rot); a cada 8 compassos troca de progressao e gera novo motivo; ondas do arpejo alternam; eventos aleatorios.
+5) Continuam em arquivo (sint): Erro Original (Rush E), Primeiro Autor, temas Jordana/protagonista/cena triste, finais e creditos. Ambientes (amb_*) e SFX nao mudaram.
+6) Testado em Chromium headless: as 24 musicas geram sinal e sem erro de JS. NAO ouvido por mim nem testado em celular; ajuste de gosto: GMAP (bpm/escala) e ganhos em gmSched.
