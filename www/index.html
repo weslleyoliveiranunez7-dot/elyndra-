@@ -250,7 +250,7 @@ const BNAME=b=>b.pa?'Autor':b.er?'Erro':b.g?'Guardião':b.q?'Rainha':b.mo?'Morph
 const BKEY=b=>b.pa?'pa':b.er?'er':b.g?'g':b.q?'q':b.mo?'mo':b.he?'he':b.z?'z':b.hd?'hd':'fl';
 const NTXT=b=>b.q?NQ:b.g?NG:b.mo?NM:b.he?NH:b.z?NZ:b.hd?NHD:b.er?(b.pa?NPA:NER):NEXT;
 /* fim de batalha: grava a consequencia (golpes, parries, conversas) em F, que vai nos 3 slots, e chama o final do chefe */
-function endBattle(b){F.mhp=30;b.eh=0;b.ed=0;F.bt=F.bt||{};F.bt[BKEY(b)]={atk:b.na,par:b.np,hit:b.nh,agr:b.agir?1:0,turn:b.turn};
+function endBattle(b){F.mhp=Math.max(1,Math.min(30,Math.ceil(b.hp||1)));b.eh=0;b.ed=0;F.bt=F.bt||{};F.bt[BKEY(b)]={atk:b.na,par:b.np,hit:b.nh,agr:b.agir?1:0,turn:b.turn};
  (b.q?endQ():b.g?endG():b.mo?endM():b.he?endH():b.z?endZ():b.hd?endHd():b.er?(b.pa?endPa():endEr()):startJord())}
 function startBattle(q){S='battle';J=null;D=null;B={q:q===true,g:q==='g',mo:q==='m',he:q==='h',z:q==='z',hd:q==='H',er:q==='E'||q==='P',pa:q==='P',hard:q==='m'&&M3.hard,hp:Math.max(1,Math.min(q==='m'?M3.hp+10:30,F.mhp||30)),mx:30,eh:EHP(q),em:EHP(q),ed:EHP(q),na:0,np:0,nh:0,turn:0,ph:'menu',txt:GEN?'MODO GENOCIDE. Ele não quer mais ser convencido.':'Floris bloqueia o caminho.',t:0,sh:false,bul:[],sx:0,sy:0,inv:0,n:0}}
 function startDodge(){const b=B;if(!b.tf&&b.eh>0&&b.eh<=b.em*.5){b.tf=1;b.tft=T;F.tfN=(F.tfN|0)+1;beep(180,.4,.08);vib(80)}b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn);b.oi=-1;b.last=-9;b.lt=0;b.pd=1.6+Math.random()*1.8;b.pf=null}
@@ -430,7 +430,7 @@ function talk(id){if(id==='bk')return getBike();if(id[0]==='o')return say([['Nar
 const SVP={1:[[1,160,190],[3,170,150]],2:[[1,160,130],[4,160,190]],3:[[1,160,70],[4,240,130]],4:[[1,170,150],[3,220,170]],5:[[1,150,150],[3,240,140]],6:[[1,150,140],[2,230,180]],7:[[1,240,130],[4,130,120]],8:[[1,190,160],[2,180,90]]};
 function spHit(x,y){for(const[rm,cx,cy]of SVP[C2.ch]||[])if(rm===C2.room&&x<cx+7&&x+10>cx-7&&y<cy+6&&y+10>cy-8)return true;return false}
 function nearSP(){for(const p of SVP[C2.ch]||[])if(p[0]===C2.room&&Math.hypot(p[1]-pl.x-5,p[2]-pl.y-5)<30)return p;return null}
-function openSave(){F.mhp=30;beep(500);slMode='save';slPrev='c2';slConf=-1;slDelC=-1;S='slots';ptr=null;P0=null}
+function openSave(){beep(500);slMode='save';slPrev='c2';slConf=-1;slDelC=-1;S='slots';ptr=null;P0=null}
 function drawSP(pass){for(const[rm,x,y]of SVP[C2.ch]||[]){if(rm!==C2.room||(y<=pl.y+6)!==(pass===0))continue;
  const p=.5+.5*Math.sin(T*3),by=Math.round(Math.sin(T*2)*1.5);
  const gr=g.createRadialGradient(x,y-4,2,x,y-4,28);gr.addColorStop(0,'rgba(126,224,255,'+(.32+.2*p)+')');gr.addColorStop(1,'rgba(126,224,255,0)');g.fillStyle=gr;g.fillRect(x-28,y-32,56,56);
@@ -1376,7 +1376,7 @@ function zOpen(p){ZS={p,t:0,done:0,rw:0,msg:'',mt:0,old:0};S='puz';ptr=null;P0=n
  else if(p.t==='lights'){const n=p.sz;ZS.b=Array(n*n).fill(0);ZS.mv=0;for(let k=0;k<n*n;k++)if(r()<.5)zTog(k);if(!ZS.b.some(v=>v))zTog(Math.floor(r()*n*n))}
  else if(p.t==='code')ZS.d=[0,0,0]}
 function zTog(i){const n=ZS.p.sz,x=i%n,y=Math.floor(i/n);for(const[dx,dy]of[[0,0],[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,c=y+dy;if(a>=0&&a<n&&c>=0&&c<n)ZS.b[c*n+a]^=1}}
-function zWin(){const p=ZS.p;F.pz=F.pz||{};ZS.done=1;ZS.rw=ZR[p.lv];F.pz[p.id]=1;F.frag=(F.frag||0)+ZS.rw;F.mhp=30;beep(700)}
+function zWin(){const p=ZS.p;F.pz=F.pz||{};ZS.done=1;ZS.rw=ZR[p.lv];F.pz[p.id]=1;F.frag=(F.frag||0)+ZS.rw;beep(700)}
 function updPuz(dt){const s=ZS,p=s.p;s.t+=dt;if(s.mt>0)s.mt-=dt;if(s.ft>0)s.ft-=dt;
  if(tap&&inRect(ptr,440,0,40,30)){S='world';return}
  if(s.done||s.rd){if(tap&&inRect(ptr,190,226,100,32))S='world';return}
@@ -1390,7 +1390,7 @@ function updPuz(dt){const s=ZS,p=s.p;s.t+=dt;if(s.mt>0)s.mt-=dt;if(s.ft>0)s.ft-=
  else if(p.t==='code'){for(let i=0;i<3;i++){const bx=150+i*75;if(inRect(ptr,bx,92,60,30))s.d[i]=(s.d[i]+1)%10;if(inRect(ptr,bx,174,60,30))s.d[i]=(s.d[i]+9)%10}if(inRect(ptr,190,214,100,30)){if(s.d.join('')==='417')zWin();else{s.msg='A porta de pedra não se move.';s.mt=2}}}}
 function drawPuz(){const s=ZS,p=s.p;g.fillStyle='#0d0b16';g.fillRect(0,0,W,H);tx(p.n,10,18,'#fff',12);if(p.lv)tx(ZL[p.lv],10,32,ZC[p.lv],10);box(440,0,40,30,'#8d80b3');tx('X',460,20,'#fff',12,'center');
  if(s.rd){const gold=['#ffd84a','#c8d8ff','#c8a0ff'];tx('Runa do '+p.nm,240,100,'#c8a0ff',16,'center');tx('Gravado na pedra: '+p.d,240,135,'#fff',14,'center');tx('(guarde esse número)',240,160,'#8d80b3',10,'center');box(190,226,100,32,'#ffa94d');tx('Ok',240,247,'#ffa94d',13,'center');return}
- if(s.done){if(s.old)tx('Você já resolveu este enigma.',240,120,'#8d80b3',13,'center');else{tx('Enigma resolvido!',240,100,'#5adf7a',16,'center');tx('+'+s.rw+' fragmentos de memória',240,135,'#ffe98a',12,'center');tx('HP restaurado',240,155,'#ff9ab0',11,'center')}box(190,226,100,32,'#ffa94d');tx('Continuar',240,247,'#ffa94d',12,'center');return}
+ if(s.done){if(s.old)tx('Você já resolveu este enigma.',240,120,'#8d80b3',13,'center');else{tx('Enigma resolvido!',240,100,'#5adf7a',16,'center');tx('+'+s.rw+' fragmentos de memória',240,135,'#ffe98a',12,'center');}box(190,226,100,32,'#ffa94d');tx('Continuar',240,247,'#ffa94d',12,'center');return}
  if(p.t==='seq'){tx(s.ph==='show'?'Observe a ordem...':'Repita ('+s.i+'/'+p.len+')',240,50,'#fff',12,'center');const cl=['#e04a4a','#4a8ae0','#5adf7a','#e0c84a'];let lit=-1;if(s.ph==='show'){const k=Math.floor((s.sh-.6)/.8);if(k>=0&&k<p.len&&(s.sh-.6)%.8<.5)lit=s.seq[k]}else if(s.ft>0)lit=s.fl;for(let j=0;j<4;j++){g.globalAlpha=lit===j?1:.4;g.fillStyle=cl[j];g.fillRect(170+(j%2)*80,70+Math.floor(j/2)*80,70,70)}g.globalAlpha=1}
  else if(p.t==='riddle'){const L=ZRID[p.k],q=L[s.i];tx('Pergunta '+(s.i+1)+'/'+L.length,240,50,'#8d80b3',10,'center');wr(q.q,20,70,440,14,999);for(let k=0;k<4;k++){box(30,124+k*30,420,26,'#8d80b3');tx(q.o[k],240,142+k*30,'#fff',12,'center')}}
  else if(p.t==='slide'){tx('Ordene de 1 a 8 (vazio no fim). Jogadas: '+s.mv,240,50,'#fff',10,'center');for(let i=0;i<9;i++){const v=s.b[i];if(!v)continue;g.fillStyle='#3a2f6a';g.fillRect(156+(i%3)*56+2,60+Math.floor(i/3)*56+2,52,52);tx(String(v),156+(i%3)*56+28,60+Math.floor(i/3)*56+36,'#fff',18,'center')}}
@@ -1415,7 +1415,7 @@ function drawSpArea(cx,cy){g.strokeStyle='#c4a66a';g.lineWidth=9;g.lineCap='roun
 function spInit(s){const t=s.p.t;s.sc=0;s.ph2=0;s.m=.5;s.ph='ready';s.msg='';s.mt=0;s.nr=0;s.nrec=0;s.reps=0;s.good=0;s.an=0;
  if(t==='emb'){s.base=.9;s.inc=.1;s.cap=3.2;s.zw=.07}else if(t==='bas'){s.base=1;s.inc=.12;s.cap=3.5;s.zw=.06}else{const k=s.ex;s.base=[.8,1.1,1.5][k];s.inc=.05;s.cap=2.5;s.zw=[.1,.075,.055][k]}}
 function spOpen(p){SS={p,t:0,ex:0};S='sp';ptr=null;P0=null;spInit(SS);if(p.t==='gym')SS.ph='menu'}
-function spEnd(s){s.ph='over';const p=s.p;if(p.t==='gym'){s.pass=s.good>=4;if(s.pass){s.pts=s.ex+1;F.treino=(F.treino||0)+s.pts;F.mhp=30}}else{F.rec=F.rec||{};if(s.sc>(F.rec[p.id]||0)){F.rec[p.id]=s.sc;s.nrec=1;if(s.sc>=3){F.frag=(F.frag||0)+1;s.nr=1}}}}
+function spEnd(s){s.ph='over';const p=s.p;if(p.t==='gym'){s.pass=s.good>=4;if(s.pass){s.pts=s.ex+1;F.treino=(F.treino||0)+s.pts}}else{F.rec=F.rec||{};if(s.sc>(F.rec[p.id]||0)){F.rec[p.id]=s.sc;s.nrec=1;if(s.sc>=3){F.frag=(F.frag||0)+1;s.nr=1}}}}
 function updSp(dt){const s=SS,p=s.p,gy=p.t==='gym';s.t+=dt;if(s.mt>0)s.mt-=dt;
  if(tap&&inRect(ptr,440,0,40,30)){S=spB();return}
  if(s.ph==='menu'){if(tap)for(let k=0;k<3;k++)if(inRect(ptr,60,66+k*50,360,42)){s.ex=k;spInit(s)}return}
@@ -1425,7 +1425,7 @@ function updSp(dt){const s=SS,p=s.p,gy=p.t==='gym';s.t+=dt;if(s.mt>0)s.mt-=dt;
  const sp=Math.min(s.cap,s.base+s.inc*(gy?s.reps:s.sc));s.ph2+=sp*dt;const u=s.ph2%2;s.m=u<1?u:2-u;
  if(tap){const d=Math.abs(s.m-.5),h=d<=s.zw;s.res=h;s.an=0;s.ph='anim';s.am=s.m;if(gy){s.reps++;if(h)s.good++}else if(h)s.sc++;s.msg=h?(d<s.zw/2?'Perfeito!':'Bom!'):'Errou!';s.mt=.8;beep(h?600:200)}}
 function drawSp(){const s=SS,p=s.p,gy=p.t==='gym';
- if(s.ph==='menu'){g.fillStyle='#0d0b16';g.fillRect(0,0,W,H);tx('Academia',10,18,'#fff',12);box(440,0,40,30,'#8d80b3');tx('X',460,20,'#fff',12,'center');tx('Força: '+(F.treino||0)+' — '+gymT()+' (velocidade +'+Math.round((gymB()-1)*100)+'%)',240,48,'#ffe98a',11,'center');['Supino — fácil (+1)','Agachamento — médio (+2)','Levantamento — difícil (+3)'].forEach((n,k)=>{box(60,66+k*50,360,42,['#5adf7a','#ffe98a','#ff4a6a'][k]);tx(n,240,92+k*50,'#fff',13,'center')});tx('Acerte 4 de 6 repetições para ganhar força.',240,238,'#8d80b3',10,'center');tx('Treinar também restaura seu HP.',240,252,'#8d80b3',10,'center');return}
+ if(s.ph==='menu'){g.fillStyle='#0d0b16';g.fillRect(0,0,W,H);tx('Academia',10,18,'#fff',12);box(440,0,40,30,'#8d80b3');tx('X',460,20,'#fff',12,'center');tx('Força: '+(F.treino||0)+' — '+gymT()+' (velocidade +'+Math.round((gymB()-1)*100)+'%)',240,48,'#ffe98a',11,'center');['Supino — fácil (+1)','Agachamento — médio (+2)','Levantamento — difícil (+3)'].forEach((n,k)=>{box(60,66+k*50,360,42,['#5adf7a','#ffe98a','#ff4a6a'][k]);tx(n,240,92+k*50,'#fff',13,'center')});tx('Acerte 4 de 6 repetições para ganhar força.',240,238,'#8d80b3',10,'center');tx('Só um hospital restaura seu HP.',240,252,'#8d80b3',10,'center');return}
  g.fillStyle='#1c3a2a';g.fillRect(0,0,W,H);g.fillStyle='#2f8a3c';g.fillRect(0,170,W,100);tx(p.n,10,18,'#fff',12);box(440,0,40,30,'#8d80b3');tx('X',460,20,'#fff',12,'center');
  const t=s.ph==='anim'?s.an/.45:0,x0=90,w=300,mx=x0+s.m*w,ball=(x,y,c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,7,0,7);g.fill();g.strokeStyle='#07060c';g.lineWidth=1;g.stroke()};
  g.strokeStyle='rgba(255,255,255,.3)';g.setLineDash([4,4]);g.beginPath();g.moveTo(mx,60);g.lineTo(mx,205);g.stroke();g.setLineDash([]);pl.mv=false;
@@ -1436,7 +1436,7 @@ function drawSp(){const s=SS,p=s.p,gy=p.t==='gym';
  if(gy)tx('Repetição '+Math.min(6,s.reps+(s.ph==='play'||s.ph==='ready'?1:0))+'/6 — acertos '+s.good,240,40,'#fff',13,'center');else{tx((p.t==='emb'?'Embaixadinhas: ':'Cestas: ')+s.sc,240,40,'#fff',16,'center');tx('Recorde: '+((F.rec&&F.rec[p.id])||0),240,54,'#ffe98a',10,'center')}
  if(s.ph==='ready'){tx('Toque para começar',240,250,'#fff',13,'center');tx('Toque quando a linha cruzar o verde',240,264,'#c8d8c8',10,'center')}
  else if(s.mt>0)tx(s.msg,240,250,s.res?'#ffe98a':'#ff9ab0',14,'center');
- if(s.ph==='over'){g.fillStyle='rgba(7,6,12,.88)';g.fillRect(60,50,360,150);if(gy){if(s.pass){tx('Treino concluído!',240,95,'#5adf7a',16,'center');tx('Força +'+s.pts+' — '+gymT(),240,120,'#ffe98a',12,'center');tx('HP restaurado',240,140,'#ff9ab0',11,'center')}else{tx('Treino fraco ('+s.good+'/6)',240,100,'#ff9ab0',15,'center');tx('Acerte 4 para ganhar força.',240,125,'#c8d8c8',11,'center')}}
+ if(s.ph==='over'){g.fillStyle='rgba(7,6,12,.88)';g.fillRect(60,50,360,150);if(gy){if(s.pass){tx('Treino concluído!',240,95,'#5adf7a',16,'center');tx('Força +'+s.pts+' — '+gymT(),240,120,'#ffe98a',12,'center');}else{tx('Treino fraco ('+s.good+'/6)',240,100,'#ff9ab0',15,'center');tx('Acerte 4 para ganhar força.',240,125,'#c8d8c8',11,'center')}}
   else{tx('Fim! '+s.sc+(p.t==='emb'?' embaixadinhas':' cestas'),240,95,'#fff',16,'center');tx('Recorde: '+((F.rec&&F.rec[p.id])||0),240,120,'#ffe98a',12,'center');if(s.nrec)tx(s.nr?'Novo recorde! +1 fragmento':'Novo recorde!',240,142,'#5adf7a',12,'center')}
   box(140,212,90,32,'#ffa94d');tx(gy&&!s.back?'Menu':'De novo',185,233,'#ffa94d',12,'center');box(250,212,90,32,'#8d80b3');tx('Sair',295,233,'#fff',12,'center')}}
 {const _u2=updWorld;updWorld=function(dt){_u2(dt);if(S!=='world')return;const q=spNear();if(q&&tap&&(inRect(ptr,388,196,84,38)||K[' ']||K.enter||K[CFG.kb.ok]))locOpen(q.t)};
@@ -1448,7 +1448,7 @@ const LOB={quadra:[{id:'emb',x:130,y:135,n:'Bola de futebol'},{id:'bas',x:385,y:
 let LC=null;
 function locOpen(t){LC={t,msg:'',mt:0,t0:0};pl.x=40;pl.y=150;pl.dir=3;pl.mv=false;S='loc';ptr=null;P0=null}
 function locNear(){for(const o of LOB[LC.t])if(Math.hypot(o.x-pl.x-5,o.y-pl.y-6)<30)return o;return null}
-function locAct(o){if(o.npc){LC.msg=LC.t==='quadra'?'Cada acerto deixa a bola mais rápida. Mire no verde!':'Força: '+(F.treino||0)+' — '+gymT()+'. Treinar restaura seu HP.';LC.mt=4;return}
+function locAct(o){if(o.npc){LC.msg=LC.t==='quadra'?'Cada acerto deixa a bola mais rápida. Mire no verde!':'Força: '+(F.treino||0)+' — '+gymT()+'. Só hospitais curam o HP.';LC.mt=4;return}
  if(LC.t==='quadra'){spOpen({id:o.id,t:o.id,n:o.id==='emb'?'Embaixadinha':'Basquete'});SS.back='loc'}else{spOpen({id:'gym',t:'gym',n:o.n});SS.ex=o.ex;spInit(SS);SS.back='loc'}}
 function updLoc(dt){const L=LC;L.t0+=dt;if(L.mt>0)L.mt-=dt;if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}
  let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}
@@ -1465,5 +1465,132 @@ function drawLoc(){const L=LC,q=L.t==='quadra';
  drawPlayer(pl.x,pl.y);tx('< Saída',4,264,'#ffe98a',9);box(440,0,40,30,'#8d80b3');tx('MENU',460,20,'#fff',10,'center');
  const o=locNear();if(o){box(388,196,84,38,'#7aff9a');tx(o.npc?'Falar':q?'Jogar':'Treinar',430,220,'#7aff9a',12,'center')}
  if(L.mt>0)tx(L.msg,240,244,'#ffe98a',10,'center')}
+/* ===== v4.7: HP PERSISTENTE (so o hospital cura) + novos lugares: Cachoeira, 3 Hospitais, Bar Lamparina, Coreto da Saudade ===== */
+let BH0=30,BRT=0;
+{const _sb=startBattle;startBattle=function(q){if(!BRT)BH0=Math.max(1,F.mhp||30);BRT=0;return _sb(q)};
+ startBattleR=function(q){F.mhp=Math.max(12,BH0);BRT=1;startBattle(q)}}
+{const _dw=drawWorld;drawWorld=function(){_dw();const h=F.mhp||30;tx('HP '+h+'/30',10,44,h<10?'#ff6a80':'#ffe98a',10)}}
+/* musica e ambiente geral (todos gerados, sem arquivos novos) */
+Object.assign(GMAP,{
+ mus_hospital:{r:55,s:'maj',b:56,l:'palx',P:[[0,3,4,0],[0,4,3,1]]},
+ mus_cachoeira:{r:53,s:'lyd',b:62,l:'palx',P:[[0,2,4,1],[0,3,1,4]]},
+ mus_bar_a:{r:48,s:'dor',b:76,l:'pklx',P:[[0,3,4,3],[0,5,3,4]]},
+ mus_bar_b:{r:50,s:'mix',b:92,l:'pklx',P:[[0,4,3,4],[0,3,5,4]]},
+ mus_bar_c:{r:46,s:'mp',b:64,l:'palx',P:[[0,2,3,1],[2,0,3,4]]},
+ mus_coreto_a:{r:60,s:'mp',b:70,l:'palx',P:[[0,4,3,1],[0,2,4,3]]},
+ mus_coreto_b:{r:57,s:'maj',b:60,l:'palx',P:[[0,3,4,0],[0,5,3,4]]}});
+Object.assign(AMBG,{
+ amb_cachoeira:{L:[['highpass',1400,.5,.045,.1,.25],['bandpass',2600,.7,.03,.18,.4],['lowpass',300,.6,.02,.05,.4]],E:[['drip',4,10,.5],['chirp',7,16,.3,3600]]},
+ amb_hospital:{L:[['bandpass',260,3,.008,.04,.6]],E:[['tone',25,50,.25]]},
+ amb_bar:{L:[['lowpass',320,.6,.022,.06,.5],['bandpass',1000,.8,.01,.15,.8]],E:[['crack',1.2,4,.6],['glass',14,30,.4],['creak',30,70,.3]]},
+ amb_coreto:{L:[['lowpass',350,.6,.02,.06,.5]],E:[['chirp',2.5,7,.3,3000],['chirp',4,10,.22,2600],['gust',12,26,.3]]}});
+/* lugares: np = no do mapa ligado por estrada; m = musica (lista = trocavel); tt = nomes das faixas */
+const LXN={
+ hosp1:{n:'Hospital da Vila das Cinzas',x:290,y:300,np:[290,375],a:'amb_hospital',m:'mus_hospital',tt:['Sala de Espera'],lc:'#234'},
+ hosp2:{n:'Hospital dos Espelhos',x:390,y:495,np:[450,430],a:'amb_hospital',m:'mus_hospital',tt:['Sala de Espera'],lc:'#234'},
+ hosp3:{n:'Hospital do Olimpo',x:860,y:190,np:[770,205],a:'amb_hospital',m:'mus_hospital',tt:['Sala de Espera'],lc:'#234'},
+ cach:{n:'Cachoeira Véu de Prata',x:215,y:105,np:[205,215],a:'amb_cachoeira',m:'mus_cachoeira',tt:['Véu de Prata']},
+ bar:{n:'Bar Lamparina',x:480,y:378,np:[450,430],a:'amb_bar',m:['mus_bar_a','mus_bar_b','mus_bar_c'],tt:['Noites de Vitrola','Última Rodada','Quintal da Infância']},
+ cor:{n:'Coreto da Saudade',x:360,y:235,np:[400,150],a:'amb_coreto',m:['mus_coreto_a','mus_coreto_b'],tt:['Valsa da Caixinha','Lembrança de Domingo']}};
+for(const k in LXN)SPA.push({id:k,x:LXN[k].x,y:LXN[k].y,n:LXN[k].n,t:k});
+const LXB={cach:[[105,116,270,72]],bar:[[200,88,200,18],[10,46,56,62],[424,150,40,64]],hosp1:[[190,66,100,24]],hosp2:[[190,66,100,24]],hosp3:[[190,66,100,24]]};
+const lxc=id=>{F.lxc=F.lxc||{};return F.lxc[id]=(F.lxc[id]||0)+1};
+const lxs=(id,a)=>a[(lxc(id)-1)%a.length];
+function lxSay(l,cb){LC.dl=l;LC.di=0;LC.cb=cb||null;beep(420)}
+function lxNurse(h){const N='Enfermeira '+h.nu;if((F.mhp||30)>=30)lxSay([[N,'Você está com a saúde em dia, '+nm()+'. Volte sempre que precisar.']]);
+ else lxSay([[N,'Você está ferido, '+nm()+'. Deite ali que eu cuido de você.'],['Narração','Curativos, chá morno e um cochilo curto. Você sai como novo.']],()=>{F.mhp=30;LC.heal=2.2;beep(660)})}
+const HSP={
+ hosp1:{nu:'Aurora',dr:['Dr. Nilo','Hospital é o único lugar onde o corpo se cura de verdade. Descanso na estrada não adianta.'],pt:['Zé, paciente','As cinzas entram no peito, sabe? Aqui eles cuidam da gente de graça. Só pedem que a gente volte a sorrir.']},
+ hosp2:{nu:'Beatriz',dr:['Dra. Marta','Todo espelho trinca, todo corpo também. A diferença é que corpo a gente remenda.'],pt:['Lívia, paciente','Vi meu reflexo piscar sozinho ontem. Disseram que era cansaço. Acho que ele só estava com saudade de mim.']},
+ hosp3:{nu:'Cássio',dr:['Dr. Ícaro','Até herói precisa de enfermaria por aqui. Orgulho não fecha ferida.'],pt:['Teseu, paciente','Despenquei de uma coluna. O doutor disse que até deuses descansam. Gostei da ideia.']}};
+for(const k in HSP){const h=HSP[k];LOB[k]=[{x:240,y:100,n:'Enfermeira '+h.nu,s:'#e8a0b8',f:()=>lxNurse(h)},{x:400,y:140,n:h.dr[0],s:'#e8e8f0',f:()=>lxSay([h.dr])},{x:105,y:182,n:h.pt[0],s:'#8ab0d8',f:()=>lxSay([h.pt])}]}
+const BT=[[['Tobias','Bem-vindo à Lamparina! Aqui ninguém pergunta de onde você veio. Só o que vai querer beber.']],[['Tobias','Servimos suco de amora e chá de cinzas. O chá de cinzas é melhor do que parece. Mentira. Mas esquenta.']],[['Tobias','Já vi muita gente chegar com o peso do mundo nos ombros. Eu só encho o copo e deixo o silêncio em paz.']],[['Tobias','Aprendi uma coisa atrás deste balcão: todo mundo carrega uma música. Falta só o lugar certo pra ela tocar. Experimenta a vitrola.']],[['Tobias','Se estiver ferido, meu chá não resolve. Hospital é lá fora. Eu só curo a alma, e só um pouquinho.']]];
+const BC=[[['Dona Clementina','Eu ouvia essa vitrola quando ainda tinha cabelo preto. Cada disco guarda uma tarde que não volta.']],[['Dona Clementina','Meu marido dançava mal. Pisava no meu pé toda quarta-feira. Eu daria tudo por mais uma quarta.']],[['Dona Clementina','Sabe o que é nostalgia, criança? É saudade com trilha sonora.']]];
+const BG=[[['Gaspar','Toco o que o coração lembra, não o que a partitura manda.']],[['Gaspar','Esta melodia eu aprendi com minha avó. Ela cantarolava lavando louça. Nunca soube o nome. Chamo de “Pia da Vovó”.']],[['Gaspar','Quer ouvir em outro tom? A vitrola tem mais discos além do meu violino.']]];
+LOB.bar=[{x:300,y:82,n:'Tobias, o barman',s:'#7a4a2a',f:()=>lxSay(lxs('tob',BT))},{x:96,y:208,n:'Dona Clementina',s:'#a078c0',f:()=>lxSay(lxs('cle',BC))},{x:316,y:214,n:'Gaspar, violinista',s:'#3a6a8a',f:()=>lxSay(lxs('gas',BG))},
+ {x:40,y:112,n:'Lareira',b:'Aquecer',f:()=>lxSay([['Narração','O fogo estala devagar. Por um momento, o mundo lá fora parece pequeno.']])},
+ {x:436,y:190,n:'Vitrola',b:'Tocar',f:()=>{LC.sg=((LC.sg||0)+1)%3;AUD.toast='♪ '+LXN.bar.tt[LC.sg];AUD.toastT=4.5;lxSay([['Narração','A agulha desce no disco. Chiado, silêncio... e então a música começa.']])}}];
+LOB.cach=[{x:240,y:222,n:'Pedra plana',b:'Sentar',f:()=>lxSay(lxs('ped',[[['Narração','Você se senta na pedra lisa. A água cai sem pressa, como se o tempo aqui corresse mais devagar.'],['Narração','O som da cachoeira cobre todos os pensamentos. Por um instante, nada precisa ser decidido.']],[['Narração','Dá para ouvir tudo de uma vez: a água, os grilos, o próprio coração.'],['Narração','A paz ajuda a cabeça. Mas o corpo só se cura em um hospital.']]]))},
+ {x:60,y:206,n:'Tronco entalhado',b:'Ler',f:()=>lxSay([['Narração','No tronco, entalhado com uma faca: “M + L, verão de um ano que já passou”. Alguém foi muito feliz aqui.']])},
+ {x:330,y:196,n:'Lago',b:'Moeda',f:()=>{F.moe=(F.moe||0)+1;lxSay([['Narração','Você joga uma moeda no lago e faz um pedido em silêncio.'],['Narração',['A água brilha por um instante. Talvez o pedido tenha sido ouvido.','A moeda afunda devagar. Um dia, alguém vai achá-la e pedir o mesmo.','Os círculos se espalham pela água e somem. O pedido fica.'][Math.floor(Math.random()*3)]+' (moedas no lago: '+F.moe+')']])}}];
+LOB.cor=[{x:240,y:160,n:'Caixinha de música',b:'Girar',f:()=>{LC.sg=((LC.sg||0)+1)%2;AUD.toast='♪ '+LXN.cor.tt[LC.sg];AUD.toastT=4.5;lxSay([['Narração','Você gira a manivela da caixinha. Uma valsa antiga enche o coreto, desafinada do jeito certo.']])}},
+ {x:102,y:178,n:'Balanço',b:'Balançar',f:()=>lxSay([['Narração','Você se senta no balanço. A corrente range igual à da sua infância. Ou à de alguém que você já foi.']])},
+ {x:150,y:218,n:'Gangorra',b:'Olhar',f:()=>lxSay([['Narração','Uma gangorra feita para dois. Sem ninguém do outro lado, ela só balança com o vento.']])},
+ {x:385,y:186,n:'Seu Sebastião',s:'#8a8a6a',f:()=>lxSay(lxs('seb',[[['Seu Sebastião','Esse coreto tinha banda aos domingos. Tubas, clarinetas e um menino que sempre desafinava. Era o melhor da banda.']],[['Seu Sebastião','Venho todo fim de tarde. Não pelo coreto. Pelo som que ele guarda.']],[['Seu Sebastião','Gire a caixinha no centro. Dizem que ela toca a música de quem a escuta.']]]))}];
+/* cenarios (interior 480x270) */
+const LXD={};
+LXD.hosp1=LXD.hosp2=LXD.hosp3=(T,R)=>{R('#dfe6ea',0,40,W,230);g.fillStyle='rgba(120,150,170,.18)';for(let x=0;x<W;x+=40)for(let y=40;y<270;y+=40)if((x+y)/40%2===0)g.fillRect(x,y,40,40);
+ R('#c9d6de',0,0,W,40);R('#d62839',236,8,8,24);R('#d62839',228,16,24,8);R('#8a9aa8',190,66,100,24);R('#fff',190,66,100,5);
+ R('#cfe0ee',60,165,90,38);R('#fff',64,169,24,16);R('#7fb0d8',92,169,54,28);R('#cfe0ee',60,70,90,38);R('#fff',64,74,24,16);R('#7fb0d8',92,74,54,28);
+ R('#2f7a3a',452,60,16,22);R('#6a4a2a',455,82,10,8);R('rgba(255,240,200,.35)',300,40,60,60)};
+LXD.cach=(T,R)=>{R('#1d3a2a',0,40,W,230);R('#5b6470',0,40,W,80);R('#4a525c',0,40,W,14);R('#9fd2ee',200,40,80,90);
+ for(let i=0;i<16;i++){g.fillStyle='rgba(255,255,255,.75)';g.fillRect(203+i*4.7,40+((T*70+i*37)%90),2.5,16)}
+ g.fillStyle='rgba(255,255,255,'+(.12+.05*Math.sin(T*2))+')';g.beginPath();g.ellipse(240,128,70,18,0,0,7);g.fill();
+ g.fillStyle='#3f8fb8';g.beginPath();g.ellipse(240,152,135,38,0,0,7);g.fill();g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1;
+ for(let i=0;i<3;i++){g.beginPath();g.ellipse(240,148,30+((T*20+i*30)%90),8+((T*7+i*10)%22),0,0,7);g.stroke()}
+ R('#6b7480',110,168,26,12);R('#6b7480',350,172,30,14);for(const x of[30,440,470]){R('#5a3a22',x-3,100,6,40);g.fillStyle='#2a6a38';g.beginPath();g.arc(x,92,22,0,7);g.fill()}
+ g.fillStyle='#8a929c';g.beginPath();g.ellipse(240,230,30,10,0,0,7);g.fill();R('#6a4a2a',50,208,22,14);g.fillStyle='#8a6a3a';g.beginPath();g.ellipse(61,208,11,4,0,0,7);g.fill()};
+LXD.bar=(T,R)=>{R('#4a2e1a',0,0,W,40);R('#6b4a2e',0,40,W,230);g.fillStyle='rgba(0,0,0,.15)';for(let y=48;y<270;y+=14)g.fillRect(0,y,W,2);
+ for(let i=0;i<16;i++){g.fillStyle=(i+Math.floor(T*1.5))%3?'#ffd27a':'#c88a3a';g.beginPath();g.arc(15+i*30,8+Math.sin(i)*3,3,0,7);g.fill()}
+ R('#2a160c',150,30,280,6);for(let i=0;i<14;i++){g.fillStyle=['#3a8a5a','#c8803a','#6a4aa8','#a83a3a'][i%4];g.fillRect(156+i*19,18,6,12)}
+ R('#3a2a22',10,46,56,62);R('#1a0e0a',18,60,40,46);const f=Math.sin(T*9)*2;g.fillStyle='#ff8a2a';g.beginPath();g.moveTo(24,106);g.lineTo(38,72+f);g.lineTo(52,106);g.fill();g.fillStyle='#ffd84a';g.beginPath();g.moveTo(32,106);g.lineTo(38,86+f);g.lineTo(46,106);g.fill();
+ R('#2a160c',200,88,200,18);R('#8a5a32',200,88,200,5);for(const x of[225,275,325,375]){g.fillStyle='#3a2414';g.beginPath();g.arc(x,122,7,0,7);g.fill()}
+ for(const[x,y]of[[118,215],[340,222]]){g.fillStyle='#3a2414';g.beginPath();g.arc(x,y,20,0,7);g.fill();R('#ffd27a',x-1,y-12,2,6)}
+ R('#7a2a5a',424,150,40,64);R('#ffd27a',430,158,28,16);R('#2ad8c8',428,152,32,3);tx('♪',438+Math.sin(T*3)*6,144-((T*20)%24),'#ffd27a',12)};
+LXD.cor=(T,R)=>{const gr=g.createLinearGradient(0,0,0,110);gr.addColorStop(0,'#241c44');gr.addColorStop(1,'#8a4a5a');g.fillStyle=gr;g.fillRect(0,0,W,110);
+ for(let i=0;i<24;i++){g.fillStyle='rgba(255,255,255,'+(.3+.3*Math.sin(T*2+i))+')';g.fillRect((i*83)%W,(i*37)%60,1.5,1.5)}
+ R('#34603a',0,110,W,160);R('#8a6a4a',170,150,140,16);R('#a88a5a',215,166,50,8);for(const x of[176,214,266,304])R('#e8d8b8',x,100,6,52);
+ g.fillStyle='#a04a4a';g.beginPath();g.moveTo(160,104);g.lineTo(240,70);g.lineTo(320,104);g.fill();for(let i=0;i<9;i++){g.fillStyle=(i+Math.floor(T*2))%2?'#ffd27a':'#c88a3a';g.beginPath();g.arc(166+i*19,100,2.5,0,7);g.fill()}
+ R('#6a4a2a',232,150,16,12);R('#6a4a2a',70,120,4,52);R('#6a4a2a',130,120,4,52);R('#6a4a2a',70,120,64,4);const sw=Math.sin(T*1.5)*6;g.strokeStyle='#6a4a2a';g.lineWidth=1;g.beginPath();g.moveTo(94,124);g.lineTo(92+sw,160);g.moveTo(108,124);g.lineTo(106+sw,160);g.stroke();R('#c8a06a',90+sw,160,20,3);
+ g.save();g.translate(150,214);g.rotate(Math.sin(T*1.2)*.12);g.fillStyle='#c8a06a';g.fillRect(-35,-3,70,5);g.restore();R('#6a4a2a',146,214,8,8);
+ R('#4a3220',420,110,16,60);g.fillStyle='#2a5a34';g.beginPath();g.arc(428,100,34,0,7);g.fill();R('#6a4a2a',360,190,50,6);R('#6a4a2a',360,180,50,4);
+ R('#222',30,100,3,60);g.fillStyle='rgba(255,210,120,.3)';g.beginPath();g.arc(31,98,14,0,7);g.fill()};
+function updLX(dt){const L=LC;L.t0+=dt;if(L.heal>0)L.heal-=dt;
+ if(L.dl){if(tap){if(++L.di>=L.dl.length){const c=L.cb;L.dl=null;L.cb=null;if(c)c()}else beep(420)}return}
+ if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}
+ let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}
+ setMove(d,dt);const sp=Math.min((F.bike&&F.bikeOn?BKSPD:58)*gymB()*dt,5),bl=LXB[L.t]||[];
+ const ok=(x,y)=>{for(const r of bl)if(x+5>r[0]&&x+5<r[0]+r[2]&&y+10>r[1]&&y+10<r[1]+r[3])return false;return true};
+ const nx=Math.max(-2,Math.min(468,pl.x+d.x*sp)),ny=Math.max(50,Math.min(244,pl.y+d.y*sp));if(ok(nx,pl.y))pl.x=nx;if(ok(pl.x,ny))pl.y=ny;
+ if(pl.x<6){const e=SPA.find(q=>q.t===L.t);wp.x=e.x-5;wp.y=e.y+24;S='world';ptr=null;P0=null;return}
+ const o=locNear();if(o&&tap&&(inRect(ptr,388,196,84,38)||K[' ']||K.enter||K[CFG.kb.ok]))o.f(o)}
+function drawLX(){const L=LC,t=L.t,X=LXN[t],R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};LXD[t](L.t0,R);
+ for(const o of LOB[t]){if(o.s){R(o.s,o.x-5,o.y-6,10,12);R('#f1c9a0',o.x-4,o.y-12,8,7)}tx(o.n,o.x,o.y-(o.s?18:14),X.lc||'#fff',9,'center')}
+ drawPlayer(pl.x,pl.y);
+ if(t==='bar'){g.fillStyle='rgba(255,150,40,.08)';g.fillRect(0,0,W,H)}
+ if(t==='cach'||t==='cor'||t==='flor')for(let i=0;i<10;i++){const x=(i*97+Math.sin(L.t0*.6+i)*30+480)%480,y=70+((i*53)%170)+Math.cos(L.t0*.5+i)*14;g.fillStyle='rgba(255,236,120,'+(.4+.4*Math.sin(L.t0*3+i))+')';g.fillRect(x,y,2,2)}
+ if(L.heal>0){g.fillStyle='rgba(120,255,160,'+(L.heal/2.2*.35)+')';g.fillRect(0,40,W,230);tx('HP 30/30',240,150,'#2a8a4a',18,'center')}
+ const h=F.mhp||30;g.fillStyle='rgba(7,6,12,.7)';g.fillRect(4,6,92,22);g.fillRect(120,6,240,22);tx('HP '+h+'/30',10,21,h<10?'#ff6a80':'#ffe98a',10);g.fillStyle='#7a1a2a';g.fillRect(52,12,40,8);g.fillStyle='#ffd84a';g.fillRect(52,12,40*h/30,8);
+ tx(X.n,240,22,'#fff',11,'center');tx('< Saída',4,264,'#ffe98a',9);box(440,0,40,30,'#8d80b3');tx('MENU',460,20,'#fff',10,'center');
+ const o=locNear();if(o&&!L.dl){box(388,196,84,38,'#7aff9a');tx(o.b||'Falar',430,220,'#7aff9a',12,'center')}
+ if(L.dl){const l=L.dl[L.di];g.fillStyle='rgba(7,6,12,.93)';g.fillRect(8,176,464,88);g.strokeStyle='#8d80b3';g.lineWidth=2;g.strokeRect(8,176,464,88);tx(l[0],18,194,'#ffe98a',11);wr(l[1],18,212,444,14,3);tx('toque ▸',462,258,'#8d80b3',9,'right')}}
+{const _ul=updLoc,_dl=drawLoc,_lo=locOpen;updLoc=function(dt){if(LXN[LC.t])updLX(dt);else _ul(dt)};drawLoc=function(){if(LXN[LC.t])drawLX();else _dl()};
+ locOpen=function(t){_lo(t);if(LXN[t]){LC.sg=0;LC.dl=null;LC.heal=0;AUD.toast='♪ '+LXN[t].tt[0];AUD.toastT=4.5}};
+ const _mk=musKey;musKey=function(){if(S==='loc'&&LC&&LXN[LC.t]){const m=LXN[LC.t].m;return Array.isArray(m)?m[(LC.sg||0)%m.length]:m}return _mk()};
+ const _af=ambFor;ambFor=function(){if(S==='loc'&&LC&&LXN[LC.t])return LXN[LC.t].a;if(S==='world'&&/amb_(hospital|cachoeira|bar|coreto|floresta)/.test(AUD.ambKey||''))return 'amb_vento_floresta';return _af()};
+ const _sa=drawSpArea;drawSpArea=function(cx,cy){_sa(cx,cy);const t=WLD.t,R=(c,x,y,w,h)=>{g.fillStyle=c;g.fillRect(x-cx,y-cy,w,h)};
+  for(const p of SPA){const X=LXN[p.t];if(!X)continue;const x=p.x,y=p.y;if(x-cx<-80||x-cx>W+80||y-cy<-90||y-cy>H+90)continue;
+   g.strokeStyle='#c4a66a';g.lineWidth=7;g.lineCap='round';g.beginPath();g.moveTo(x-cx,y-cy);g.lineTo(X.np[0]-cx,X.np[1]-cy);g.stroke();
+   if(p.t[0]==='h'){R('#e8eef2',x-30,y-50,60,44);R('#c0392b',x-34,y-56,68,8);R('#d62839',x-3,y-44,6,18);R('#d62839',x-9,y-38,18,6);R('#34495e',x-6,y-16,12,10)}
+   else if(p.t==='cach'){R('#6b7480',x-34,y-72,68,66);R('#9fd2ee',x-8,y-72,16,60);for(let i=0;i<5;i++)R('rgba(255,255,255,.8)',x-7+i*3,y-72+((t*60+i*17)%50),2,10);g.fillStyle='#3f8fb8';g.beginPath();g.ellipse(x-cx,y-cy-8,32,10,0,0,7);g.fill()}
+   else if(p.t==='bar'){g.globalAlpha=.18+.08*Math.sin(t*3);g.fillStyle='#ffcf5a';g.beginPath();g.arc(x-cx,y-cy-24,40,0,7);g.fill();g.globalAlpha=1;R('#5a3a22',x-32,y-46,64,40);R('#3a2414',x-37,y-54,74,9);R('#ffcf5a',x-25,y-36,14,12);R('#ffcf5a',x+11,y-36,14,12);R('#2a160c',x-6,y-26,12,20)}
+   else if(p.t==='flor'){for(const[dx,dy,r]of[[-28,-24,16],[0,-34,20],[28,-22,16],[-12,-10,13],[16,-8,13]]){R('#4a3220',x+dx-3,y+dy,6,16);g.fillStyle=r>15?'#2a6a38':'#2f7a3e';g.beginPath();g.arc(x-cx+dx,y-cy+dy-4,r,0,7);g.fill()}}
+   else{R('#8a6a4a',x-30,y-12,60,7);for(const dx of[-26,-9,6,22])R('#e8d8b8',x+dx,y-38,4,26);g.fillStyle='#a04a4a';g.beginPath();g.moveTo(x-cx-36,y-cy-36);g.lineTo(x-cx,y-cy-62);g.lineTo(x-cx+36,y-cy-36);g.fill()}
+   tx(X.n,x-cx,y-cy-(p.t==='cach'?78:p.t==='cor'?68:62),'#fff',9,'center')}}}
+/* ===== v4.8: Florestinha do Sabia ===== */
+GMAP.mus_floresta={r:50,s:'mp',b:68,l:'palx',P:[[0,2,3,1],[0,4,3,2]]};
+AMBG.amb_floresta={L:[['lowpass',380,.6,.034,.06,.6],['bandpass',1100,.9,.012,.09,.8]],E:[['gust',9,20,.5],['chirp',2.5,7,.35,3200],['chirp',4,11,.25,2700],['creak',35,80,.5]]};
+LXN.flor={n:'Florestinha do Sabiá',x:540,y:205,np:[600,105],a:'amb_floresta',m:'mus_floresta',tt:['Sabiá ao Entardecer']};
+SPA.push({id:'flor',x:540,y:205,n:LXN.flor.n,t:'flor'});
+LXB.flor=[[226,166,28,18]];
+LOB.flor=[{x:240,y:176,n:'Fogueira',b:'Sentar',f:()=>lxSay([['Narração','Você se senta perto do fogo. As chamas dançam e a floresta inteira parece sussurrar.']])},
+ {x:90,y:210,n:'Tronco oco',b:'Espiar',f:()=>lxSay([['Narração','Dentro do tronco oco: uma lata enferrujada com figurinhas antigas e um bilhete: “Volto amanhã.” Ninguém voltou.']])},
+ {x:404,y:206,n:'Cogumelos',b:'Olhar',f:()=>lxSay([['Narração','Cogumelos pequenos em roda. Dizem que é onde as fadas dançam. Você decide não pisar.']])},
+ {x:68,y:122,n:'Placa de madeira',b:'Ler',f:()=>lxSay([['Narração','Na placa: “Florestinha do Sabiá. Fale baixo: as árvores escutam.”']])},
+ {x:340,y:128,n:'Tonho, lenhador',s:'#8a5a3a',f:()=>lxSay(lxs('ton',[[['Tonho','Cresci nesta floresta. Cada árvore tem nome, mas só eu lembro de todos.']],[['Tonho','O sabiá só canta quando alguém chega com o coração leve. Hoje ele cantou pra você.']],[['Tonho','Floresta não cura ferida, filho. Isso é com o hospital. Aqui a gente só respira.']]]))}];
+LXD.flor=(T,R)=>{R('#1b3d26',0,0,W,270);R('#24502f',0,40,W,230);R('#5a4a30',0,148,320,24);
+ [[30,70],[110,60],[190,75],[300,62],[380,72],[450,65],[60,225],[200,240],[420,235]].forEach(([x,y],i)=>{R('#4a3220',x-4,y,8,36);g.fillStyle=i%2?'#2a6a38':'#2f7a3e';g.beginPath();g.arc(x,y-4,22+(i%3)*3,0,7);g.fill()});
+ g.fillStyle='rgba(255,170,60,'+(.12+.04*Math.sin(T*8))+')';g.beginPath();g.arc(240,176,46,0,7);g.fill();R('#4a3220',228,180,24,5);const f=Math.sin(T*9)*2;g.fillStyle='#ff8a2a';g.beginPath();g.moveTo(230,180);g.lineTo(240,158+f);g.lineTo(250,180);g.fill();g.fillStyle='#ffd84a';g.beginPath();g.moveTo(235,180);g.lineTo(240,166+f);g.lineTo(245,180);g.fill();
+ R('#6a4a2a',72,206,36,14);R('#2a160c',72,208,6,10);for(const x of[392,404,414]){R('#e8e8d8',x,208,3,6);g.fillStyle='#c0392b';g.beginPath();g.arc(x+1.5,208,5,Math.PI,0);g.fill()}R('#6a4a2a',58,124,20,12)};
 requestAnimationFrame(frame);
 </script></body></html>
