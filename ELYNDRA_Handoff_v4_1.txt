@@ -1,0 +1,9 @@
+ELYNDRA — HANDOFF v4.1 (03/11/2026) | Jogo: www/index.html = elyndra_v4.1.html (ler com v4.0 e anteriores)
+MUDANCA: SISTEMA DE BICICLETA.
+1) Item achado no chao do Cap. 8 (sala 0, LIMIAR DO NUCLEO, x200 y208): NPC invisivel id 'bk' em mkNP8, desenhado por drawBikeGround, interacao "Examinar" -> getBike() (F.bike=1, F.bikeOn=1, dialogo de narracao).
+2) Uso: tecla B ou botao "BIKE" na tela (440,34,40x30, abaixo do botao de menu) liga/desliga (F.bikeOn). Velocidade 112 (normal 58) em updC2 (BKSPD; passo limitado a 5px/frame). Sprite do ciclista: drawBikeRide.
+3) F.bike/F.bikeOn entram no save normal (F). Nao ha bicicleta antes do Cap. 8.
+4) Funciona em qualquer capitulo que use updC2/drawC2 (a bike nao e usada em startExplore/Cap.0).
+5) Testado: so sintaxe (node --check). Nao testado visualmente.
+7) INIMIGOS COMUNS NO MAPA (Cap. 1-8): const MINI (3 por capitulo: nome/cor/padrao fall|side|aim|ring/frase). miniTry() ao trocar de sala (updC2): 1 por sala (C2.mn), 60%, nunca na sala 0, na do chefe nem nas de evento (5/4, 6/4, 7/6, 8/2). ambStart/ambTick/ambDraw/ambHeart: o inimigo surge no lado direito do mapa e solta projeteis por 9s ENQUANTO o jogador anda livre (sem tela separada); o corpo fica 30% transparente e o coracao aparece. Acerto = -3 HP (facil -2), 1s de invulnerabilidade; nao troca de sala durante o ataque.
+8) HP ENTRE BATALHAS: F.mhp (padrao 30). startBattle usa hp=min(hp normal, F.mhp), minimo 1. Restaura para 30 ao salvar (openSave), ao vencer batalha (endBattle) e ao tentar de novo apos derrota (startBattleR). HUD "HP x/30" no mapa durante ataque ou se ferido.
