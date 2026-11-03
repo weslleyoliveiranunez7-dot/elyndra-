@@ -22,7 +22,7 @@ const COL={Floris:'#ffd84a',Jordana:'#9fd7ff','Narração':'#a99ec4'};
 const KBD={up:'w',down:'s',left:'a',right:'d',ok:'e',menu:'escape'};const CFG={snd:1,vib:1,ts:28,easy:0,mv:.8,sv:.9,kb:{...KBD}};try{Object.assign(CFG,JSON.parse(localStorage.getItem('elyndra_cfg'))||{})}catch(e){}CFG.kb=Object.assign({},KBD,CFG.kb||{});
 function saveCfg(){try{localStorage.setItem('elyndra_cfg',JSON.stringify(CFG))}catch(e){}}
 /* ---------- v3.0 — SAVES: 3 SLOTS + PONTOS DE SAVE + PORCENTAGEM ---------- */
-const VER='5.3',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
+const VER='5.4',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
 let SL=[null,null,null],curSlot=-1,PLAY=0,NOSAVE=0,SPCD=0;
 const NOPLAY=['cust','title','slots','opt','keys','pad','diary','fones','intro','rato'];
 function preU(n){let u=PRO_U;for(let k=1;k<n&&k<=8;k++)u+=CHR[k];return u}
@@ -1612,5 +1612,50 @@ LXD.flor=(T,R)=>{R('#1b3d26',0,0,W,270);R('#24502f',0,40,W,230);R('#5a4a30',0,14
  [[30,70],[110,60],[190,75],[300,62],[380,72],[450,65],[60,225],[200,240],[420,235]].forEach(([x,y],i)=>{R('#4a3220',x-4,y,8,36);g.fillStyle=i%2?'#2a6a38':'#2f7a3e';g.beginPath();g.arc(x,y-4,22+(i%3)*3,0,7);g.fill()});
  g.fillStyle='rgba(255,170,60,'+(.12+.04*Math.sin(T*8))+')';g.beginPath();g.arc(240,176,46,0,7);g.fill();R('#4a3220',228,180,24,5);const f=Math.sin(T*9)*2;g.fillStyle='#ff8a2a';g.beginPath();g.moveTo(230,180);g.lineTo(240,158+f);g.lineTo(250,180);g.fill();g.fillStyle='#ffd84a';g.beginPath();g.moveTo(235,180);g.lineTo(240,166+f);g.lineTo(245,180);g.fill();
  R('#6a4a2a',72,206,36,14);R('#2a160c',72,208,6,10);for(const x of[392,404,414]){R('#e8e8d8',x,208,3,6);g.fillStyle='#c0392b';g.beginPath();g.arc(x+1.5,208,5,Math.PI,0);g.fill()}R('#6a4a2a',58,124,20,12)};
+/* ===== v5.4: CACA e PESCA na Florestinha (barra verde) ===== */
+const HFD={cac:[{n:'Coelho',c:'#d8d0c0',w:.10,v:1,e:1},{n:'Esquilo',c:'#b8743a',w:.085,v:1.25,k:1},{n:'Perdiz',c:'#a8886a',w:.07,v:1.5,b:1},{n:'Sapo-boi',c:'#5a9a4a',w:.11,v:.9},{n:'Raposinha',c:'#e0803a',w:.045,v:1.9,e:1,k:1,r:1}],
+ pes:[{n:'Lambari',c:'#c8d8e8',w:.11,v:1},{n:'Tilápia',c:'#8aa89a',w:.09,v:1.2},{n:'Bagre',c:'#7a7a8a',w:.08,v:1.35},{n:'Traíra',c:'#5a7a4a',w:.065,v:1.6},{n:'Dourado',c:'#ffc83a',w:.045,v:1.9,r:1}]};
+function hfPick(s){if(s.p.t==='pes'&&Math.random()<.12)return{n:'Bota velha',j:1,w:.1,c:'#6a4a2a'};const r=Math.random()<.12,L=HFD[s.p.t].filter(a=>!!a.r===r);return L[Math.floor(Math.random()*L.length)]}
+function hfRound(s){s.a=hfPick(s);s.am=undefined;s.rd++;s.ph='wait';s.tw=s.p.t==='cac'?.8:1.2+Math.random()*1.8;s.ph2=0;s.res=0}
+function hfFin(s){s.ph='res';s.an=0}
+function hfEnd(s){s.ph='over';F.cf=F.cf||{};F.rec=F.rec||{};s.nw=0;for(const n of s.got){if(!F.cf[n])s.nw++;F.cf[n]=(F.cf[n]||0)+1}F.frag=(F.frag||0)+s.nw;s.nrec=s.sc>(F.rec[s.p.id]||0);if(s.nrec)F.rec[s.p.id]=s.sc}
+const _hsi=spInit;spInit=function(s){if(HFD[s.p.t]){Object.assign(s,{ph:'ready',sc:0,rd:0,got:[],m:.5,ph2:0,msg:'',an:0,nw:0,res:0,a:null});return}_hsi(s)};
+function updHF(dt){const s=SS,pes=s.p.t==='pes';s.t+=dt;
+ if(tap&&inRect(ptr,440,0,40,30)){S=spB();return}
+ if(s.ph==='ready'){if(tap)hfRound(s);return}
+ if(s.ph==='over'){if(tap){if(inRect(ptr,140,212,90,32))spInit(s);else if(inRect(ptr,250,212,90,32))S=spB()}return}
+ if(s.ph==='res'){s.an+=dt;if(tap||s.an>=1.3){if(s.rd>=5)hfEnd(s);else hfRound(s)}return}
+ if(s.ph==='wait'){s.tw-=dt;if(tap&&pes){s.msg='Puxou cedo! O peixe fugiu.';beep(200);hfFin(s)}else if(s.tw<=0){beep(500);if(s.a.j){s.msg='Fisgou... uma bota velha!';hfFin(s)}else{s.ph='bar';s.ph2=0}}return}
+ const sp=Math.min(3.2,s.a.v*(1+.07*(s.rd-1)));s.ph2+=sp*dt;const u=s.ph2%2;s.m=u<1?u:2-u;
+ if(tap){const d=Math.abs(s.m-.5),h=d<=s.a.w;s.am=s.m;s.res=h?1:0;if(h){s.sc++;s.got.push(s.a.n)}s.msg=h?(d<s.a.w/2?'Perfeito! ':'Bom! ')+(pes?'Pescou: ':'Caçou: ')+s.a.n:s.a.n+(pes?' escapou!':' fugiu!');beep(h?600:200);hfFin(s)}}
+function hfAn(a,x,y,pes){g.fillStyle=a.c;
+ if(pes){g.beginPath();g.ellipse(x,y,15,7,0,0,7);g.fill();g.beginPath();g.moveTo(x+13,y);g.lineTo(x+24,y-7);g.lineTo(x+24,y+7);g.fill();g.fillStyle='#07060c';g.fillRect(x-10,y-3,2,2);return}
+ g.beginPath();g.ellipse(x,y,13,8,0,0,7);g.fill();g.beginPath();g.arc(x-12,y-5,6,0,7);g.fill();
+ if(a.e){g.fillRect(x-15,y-17,3,10);g.fillRect(x-10,y-17,3,10)}if(a.k){g.beginPath();g.ellipse(x+14,y-6,6,10,.5,0,7);g.fill()}if(a.b){g.fillStyle='#ffd84a';g.fillRect(x-20,y-6,5,2)}
+ g.fillStyle='#07060c';g.fillRect(x-14,y-7,2,2)}
+function drawHF(){const s=SS,pes=s.p.t==='pes',a=s.a||{n:'',w:.08,c:'#fff'},t=s.ph==='res'?Math.min(1,s.an/.6):0;
+ g.fillStyle=pes?'#173a4a':'#1c3a2a';g.fillRect(0,0,W,H);
+ if(pes){g.fillStyle='#2a6a8a';g.fillRect(140,110,340,160);g.fillStyle='rgba(255,255,255,.14)';for(let i=0;i<6;i++)g.fillRect(150+(i*83+s.t*14)%320,125+i*20,30,2);g.fillStyle='#4a3a22';g.fillRect(0,170,140,100)}
+ else{g.fillStyle='#2f8a3c';g.fillRect(0,175,W,95);for(const x of[40,150,260,400])for(const[dx,r]of[[0,18]]){g.fillStyle='#4a3220';g.fillRect(x-3,95,6,40);g.fillStyle='#2a6a38';g.beginPath();g.arc(x,90,r+6,0,7);g.fill()}}
+ tx(s.p.n,10,18,'#fff',12);box(440,0,40,30,'#8d80b3');tx('X',460,20,'#fff',12,'center');
+ tx('Rodada '+Math.max(1,s.rd)+'/5 — '+(pes?'peixes: ':'caças: ')+s.sc,240,40,'#fff',14,'center');tx('Espécies '+HFD[s.p.t].filter(x=>F.cf&&F.cf[x.n]).length+'/5',240,54,'#ffe98a',10,'center');
+ drawPlayer(pes?100:110,pes?150:160);pl.mv=false;
+ if(pes){const bd=s.ph==='bar'?10+Math.sin(s.t*30)*3:s.ph==='res'&&s.res?-30*t:0;g.strokeStyle='#c8c8d8';g.lineWidth=2;g.beginPath();g.moveTo(112,146);g.lineTo(190,112);g.stroke();g.lineWidth=1;g.beginPath();g.moveTo(190,112);g.lineTo(250,150+bd);g.stroke();g.fillStyle='#e0452a';g.beginPath();g.arc(250,150+bd,4,0,7);g.fill();
+  if(s.ph==='bar')hfAn(a,250,178,1);if(s.ph==='res'&&s.res)hfAn(a,250,150-40*Math.sin(Math.PI*t),1)}
+ else{const ax=330,ay=158;if(s.ph==='wait'||s.ph==='bar')hfAn(a,ax+Math.sin(s.t*3)*3,ay+Math.sin(s.t*7)*2);
+  if(s.ph==='res'){if(s.res){g.globalAlpha=1-t;hfAn(a,ax,ay-24*t);g.globalAlpha=1}else hfAn(a,ax+170*t,ay);const e=128+(ax-128+(s.res?0:90))*t;g.strokeStyle='#e8d8b0';g.lineWidth=2;g.beginPath();g.moveTo(Math.max(128,e-30),150);g.lineTo(e,ay);g.stroke()}}
+ const x0=90,w=300,zw=a.w;if(s.ph==='bar'||(s.ph==='res'&&!a.j&&s.am!==undefined)){const mx=x0+(s.ph==='bar'?s.m:s.am)*w;g.fillStyle='#7a2a2a';g.fillRect(x0,205,w,16);g.fillStyle='#a08a2a';g.fillRect(x0+w*(.5-zw*2.2),205,w*zw*4.4,16);g.fillStyle='#2aa04a';g.fillRect(x0+w*(.5-zw),205,w*zw*2,16);g.fillStyle='#fff';g.fillRect(mx-1.5,198,3,30)}
+ if(s.ph==='ready'){tx('Toque para começar',240,250,'#fff',13,'center');tx(pes?'Espere a fisgada, depois toque no verde':'Toque quando a linha cruzar o verde',240,264,'#c8d8c8',10,'center')}
+ else if(s.ph==='wait')tx(pes?'Aguarde a fisgada... não toque!':a.n+' à vista...',240,250,'#c8d8c8',12,'center');
+ else if(s.ph==='bar')tx(a.n+(a.r?' (raro!)':'')+' — acerte o verde!',240,250,'#fff',12,'center');
+ else if(s.ph==='res')tx(s.msg,240,250,s.res?'#ffe98a':'#ff9ab0',14,'center');
+ if(s.ph==='over'){g.fillStyle='rgba(7,6,12,.9)';g.fillRect(60,50,360,150);tx('Fim! '+s.sc+'/5',240,85,'#fff',16,'center');tx(s.got.join(', ')||'Nada desta vez',240,108,'#c8d8c8',10,'center');
+  if(s.nw)tx('Espécie nova! +'+s.nw+' fragmento'+(s.nw>1?'s':''),240,135,'#5adf7a',12,'center');if(s.nrec)tx('Novo recorde!',240,158,'#ffe98a',12,'center');else tx('Recorde: '+((F.rec&&F.rec[s.p.id])||0),240,158,'#8d80b3',10,'center');
+  box(140,212,90,32,'#ffa94d');tx('De novo',185,233,'#ffa94d',12,'center');box(250,212,90,32,'#8d80b3');tx('Sair',295,233,'#fff',12,'center')}}
+{const _us=updSp,_ds=drawSp;updSp=function(dt){HFD[SS.p.t]?updHF(dt):_us(dt)};drawSp=function(){HFD[SS.p.t]?drawHF():_ds()}}
+LOB.flor.push({x:170,y:104,n:'Arco de caça',b:'Caçar',f:()=>{spOpen({id:'cac',t:'cac',n:'Caçada'});SS.back='loc'}},{x:308,y:203,n:'Lago',b:'Pescar',f:()=>{spOpen({id:'pes',t:'pes',n:'Pescaria'});SS.back='loc'}});
+LXB.flor.push([264,210,92,26]);
+{const _lf=LXD.flor;LXD.flor=(T,R)=>{_lf(T,R);g.fillStyle='#2f7aa8';g.beginPath();g.ellipse(310,222,46,13,0,0,7);g.fill();g.strokeStyle='rgba(255,255,255,.3)';g.lineWidth=1;g.beginPath();g.ellipse(310+Math.sin(T)*12,222,10+Math.sin(T*2)*3,3,0,0,7);g.stroke();
+ R('#6a4a2a',163,96,14,18);g.strokeStyle='#d8c8a0';g.lineWidth=2;g.beginPath();g.arc(184,105,9,-1.2,1.2);g.stroke()}}
 requestAnimationFrame(frame);
 </script></body></html>
