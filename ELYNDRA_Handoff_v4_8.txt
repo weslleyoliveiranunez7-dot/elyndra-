@@ -1,0 +1,5 @@
+ELYNDRA — HANDOFF v4.8 (03/11/2026) | www/index.html (ler com v4.7 e anteriores)
+MUDANCA: nova FLORESTINHA DO SABIA (bloco "v4.8" no fim do script), no mapa-mundi em (540,205), estrada ate o no 6. Mesmo sistema da v4.7 (LXN/LXD/LOB/LXB).
+Interior: fogueira, tronco oco, cogumelos, placa, Tonho (lenhador, 3 falas em sequencia). Vaga-lumes, musica mus_floresta e ambiente amb_floresta (gerados, sem arquivos novos). Nao cura HP (so hospital).
+Edicoes em trechos da v4.7: cenario da floresta no mapa (drawSpArea), regex de ambiente do mapa e vaga-lumes incluem 'flor'.
+Falas sao placeholders de clima. Testado so sintaxe (node --check).
