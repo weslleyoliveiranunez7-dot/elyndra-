@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ELYNDRA — v4.0</title>
+<title>ELYNDRA — v4.1</title>
 <style>
 :root{box-sizing:border-box;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -250,9 +250,9 @@ const BNAME=b=>b.pa?'Autor':b.er?'Erro':b.g?'Guardião':b.q?'Rainha':b.mo?'Morph
 const BKEY=b=>b.pa?'pa':b.er?'er':b.g?'g':b.q?'q':b.mo?'mo':b.he?'he':b.z?'z':b.hd?'hd':'fl';
 const NTXT=b=>b.q?NQ:b.g?NG:b.mo?NM:b.he?NH:b.z?NZ:b.hd?NHD:b.er?(b.pa?NPA:NER):NEXT;
 /* fim de batalha: grava a consequencia (golpes, parries, conversas) em F, que vai nos 3 slots, e chama o final do chefe */
-function endBattle(b){b.eh=0;b.ed=0;F.bt=F.bt||{};F.bt[BKEY(b)]={atk:b.na,par:b.np,hit:b.nh,agr:b.agir?1:0,turn:b.turn};
+function endBattle(b){F.mhp=30;b.eh=0;b.ed=0;F.bt=F.bt||{};F.bt[BKEY(b)]={atk:b.na,par:b.np,hit:b.nh,agr:b.agir?1:0,turn:b.turn};
  (b.q?endQ():b.g?endG():b.mo?endM():b.he?endH():b.z?endZ():b.hd?endHd():b.er?(b.pa?endPa():endEr()):startJord())}
-function startBattle(q){S='battle';J=null;D=null;B={q:q===true,g:q==='g',mo:q==='m',he:q==='h',z:q==='z',hd:q==='H',er:q==='E'||q==='P',pa:q==='P',hard:q==='m'&&M3.hard,hp:q==='m'?M3.hp+10:30,mx:30,eh:EHP(q),em:EHP(q),ed:EHP(q),na:0,np:0,nh:0,turn:0,ph:'menu',txt:GEN?'MODO GENOCIDE. Ele não quer mais ser convencido.':'Floris bloqueia o caminho.',t:0,sh:false,bul:[],sx:0,sy:0,inv:0,n:0}}
+function startBattle(q){S='battle';J=null;D=null;B={q:q===true,g:q==='g',mo:q==='m',he:q==='h',z:q==='z',hd:q==='H',er:q==='E'||q==='P',pa:q==='P',hard:q==='m'&&M3.hard,hp:Math.max(1,Math.min(q==='m'?M3.hp+10:30,F.mhp||30)),mx:30,eh:EHP(q),em:EHP(q),ed:EHP(q),na:0,np:0,nh:0,turn:0,ph:'menu',txt:GEN?'MODO GENOCIDE. Ele não quer mais ser convencido.':'Floris bloqueia o caminho.',t:0,sh:false,bul:[],sx:0,sy:0,inv:0,n:0}}
 function startDodge(){const b=B;if(!b.tf&&b.eh>0&&b.eh<=b.em*.5){b.tf=1;b.tft=T;F.tfN=(F.tfN|0)+1;beep(180,.4,.08);vib(80)}b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn);b.oi=-1;b.last=-9;b.lt=0;b.pd=1.6+Math.random()*1.8;b.pf=null}
 function updBattle(dt){const b=B;b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);if(tap&&b.ph!=='over'&&inRect(ptr,440,0,40,30)){openOpt();return}
  if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,10+i*118,222,110,36)){beep(500);b.msel=i;b.txt=(b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1){b.agir=1;F.agr=(F.agr|0)+1}b.sh=i===2;if(i===0){b.ph='atk';b.at=0;b.ax=0;b.ar=null;b.ak=0}else{b.ph='msg';b.t=0}}})}
@@ -277,7 +277,7 @@ function updBattle(dt){const b=B;b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);if(tap&&b.ph
    if(h&&b.inv<=0){b.hp-=Math.max(1,(CFG.easy?(b.sh?2:3):(b.sh?3:(GEN?6:5)))+kDm());b.nh++;F.hits=(F.hits|0)+1;b.inv=1;beep(120,.15,.06);vib(40)}}
   if(b.hp<=0){b.hp=0;b.ph='over';b.t=0}
   else if(b.t>=(b.er&&!b.pa?10:7)){b.turn++;b.ph='menu';const nt=NTXT(b);b.txt=nt[(b.turn-1)%nt.length];b.sh=false;b.bul=[]}}
- else if(b.ph==='over'&&tap&&(b.ov0===undefined||T-b.ov0>1.4)&&b.t++>0)startBattle(b.q?true:b.g?'g':b.mo?'m':b.he?'h':b.z?'z':b.hd?'H':b.er?(b.pa?'P':'E'):0)}
+ else if(b.ph==='over'&&tap&&(b.ov0===undefined||T-b.ov0>1.4)&&b.t++>0)startBattleR(b.q?true:b.g?'g':b.mo?'m':b.he?'h':b.z?'z':b.hd?'H':b.er?(b.pa?'P':'E'):0)}
 /* v3.6 — ciclo de dia e noite (Raiz Velha e Caps. 1-5; Mortalha, Vazio e Nucleo ficam sem ciclo) */
 const DN_LEN=240;
 function dnPhase(){return((T+DN_LEN*.2)/DN_LEN)%1}
@@ -419,7 +419,7 @@ function ask(o,cb){S='choice';CH={o,cb}}
 function chR(i,n){return n>3?[8+(i%2)*236,104+Math.floor(i/2)*42,228,34]:[8+i*157,150,150,34]}
 function drawCh(){CH.o.forEach((t,i)=>{const[x,y,w,h]=chR(i,CH.o.length);box(x,y,w,h,'#ffa94d');tx(t,x+w/2,y+22,'#ffa94d',12,'center')})}
 function updCh(){if(tap)CH.o.forEach((t,i)=>{if(inRect(ptr,...chR(i,CH.o.length))){beep(500);S='c2';CH.cb(i)}})}
-function talk(id){if(id[0]==='o')return say([['Narração',C2.ch===7?fadeTxt(id):OB[id]]]);if(C2.ch===1)return talk1(id);if(C2.ch===3)return talk3(id);if(C2.ch===4)return talk4(id);if(C2.ch===5)return talk5(id);if(C2.ch===6)return talk6(id);if(C2.ch===7)return talk7(id);if(C2.ch===8)return talk8(id);const n=Object.keys(C2.cl).length;
+function talk(id){if(id==='bk')return getBike();if(id[0]==='o')return say([['Narração',C2.ch===7?fadeTxt(id):OB[id]]]);if(C2.ch===1)return talk1(id);if(C2.ch===3)return talk3(id);if(C2.ch===4)return talk4(id);if(C2.ch===5)return talk5(id);if(C2.ch===6)return talk6(id);if(C2.ch===7)return talk7(id);if(C2.ch===8)return talk8(id);const n=Object.keys(C2.cl).length;
  if(id==='v'||id==='d'||id==='b'){C2.cl[id]=1;const l=LN[id].slice();if(Object.keys(C2.cl).length===3&&n<3)l.push(['Jordana','Três histórias, uma só origem: alguém fabricou essas acusações. Fale com o Kael.',2]);say(l)}
  else if(id==='k'){if(C2.k<0)say([['Kael','Não preciso da sua ajuda. Humanos só aparecem quando querem algo.','bravo'],['Narração','Moradores observam de longe. Alguns se afastam quando você chega perto de Kael.']],()=>ask(['Apoiar Kael','Ficar neutro','Concordar com a vila'],i=>{C2.k=i;F.kael=i;kar(i===0?2:i===2?-2:0);say(CK[i])}));
   else if(n>=3&&!C2.told){C2.told=true;C2.open=true;say([['Kael','Tentei apagar o fogo do depósito. Quando acabou, só havia cinzas e o meu nome nas bocas.','triste'],['Kael',C2.k===0?'Você ficou ao meu lado. Isso conta. Vamos descobrir quem assinou essas ordens.':'Se quer a verdade, a trilha leste leva às marcas de condenação. Alguém lá sabe quem assina essas ordens.'],['Narração','A passagem leste foi liberada.']])}
@@ -430,18 +430,54 @@ function talk(id){if(id[0]==='o')return say([['Narração',C2.ch===7?fadeTxt(id)
 const SVP={1:[[1,160,190],[3,170,150]],2:[[1,160,130],[4,160,190]],3:[[1,160,70],[4,240,130]],4:[[1,170,150],[3,220,170]],5:[[1,150,150],[3,240,140]],6:[[1,150,140],[2,230,180]],7:[[1,240,130],[4,130,120]],8:[[1,190,160],[2,180,90]]};
 function spHit(x,y){for(const[rm,cx,cy]of SVP[C2.ch]||[])if(rm===C2.room&&x<cx+7&&x+10>cx-7&&y<cy+6&&y+10>cy-8)return true;return false}
 function nearSP(){for(const p of SVP[C2.ch]||[])if(p[0]===C2.room&&Math.hypot(p[1]-pl.x-5,p[2]-pl.y-5)<30)return p;return null}
-function openSave(){beep(500);slMode='save';slPrev='c2';slConf=-1;slDelC=-1;S='slots';ptr=null;P0=null}
+function openSave(){F.mhp=30;beep(500);slMode='save';slPrev='c2';slConf=-1;slDelC=-1;S='slots';ptr=null;P0=null}
 function drawSP(pass){for(const[rm,x,y]of SVP[C2.ch]||[]){if(rm!==C2.room||(y<=pl.y+6)!==(pass===0))continue;
  const p=.5+.5*Math.sin(T*3),by=Math.round(Math.sin(T*2)*1.5);
  const gr=g.createRadialGradient(x,y-4,2,x,y-4,28);gr.addColorStop(0,'rgba(126,224,255,'+(.32+.2*p)+')');gr.addColorStop(1,'rgba(126,224,255,0)');g.fillStyle=gr;g.fillRect(x-28,y-32,56,56);
  g.fillStyle='#2a2540';g.fillRect(x-7,y+3,14,4);g.fillStyle='#3d3560';g.fillRect(x-5,y+1,10,3);
  g.fillStyle='#7ee0ff';g.beginPath();g.moveTo(x,y-14+by);g.lineTo(x+6,y-5+by);g.lineTo(x,y+1+by);g.lineTo(x-6,y-5+by);g.closePath();g.fill();
  g.fillStyle='#e6fbff';g.beginPath();g.moveTo(x,y-14+by);g.lineTo(x+2,y-6+by);g.lineTo(x,y+1+by);g.lineTo(x-2,y-6+by);g.closePath();g.fill()}}
-function nearQ(){for(const q of NP[C2.room])if(!isJoined(q)&&Math.hypot(q.x-pl.x,q.y-pl.y)<30)return q;return null}
+/* ===== v4.1 — BICICLETA (achada no chao no Cap. 8; B ou botao na tela liga/desliga; F.bike/F.bikeOn salvos) ===== */
+/* ===== v4.1 — INIMIGOS COMUNS TEMATICOS (Cap. 1-8): encontro unico por sala, sobreviver 9s; derrota nao e game over ===== */
+const MINI={1:[['Raiz Rastejante','#6a8a3a','fall','Ela quer te prender ao chão.'],['Esporo Errante','#b8d86a','aim','Flutua em sua direção.'],['Sombra de Galho','#3a4a2a','side','Corta o ar de lado.']],
+2:[['Cinza Viva','#9a8a80','fall','A cinza se lembra de ter sido gente.'],['Corvo Queimado','#2a2220','side','Grasna sem som.'],['Brasa Rancorosa','#ff7a3a','aim','Ainda arde de ressentimento.']],
+3:[['Reflexo Solto','#9fd7ff','aim','Um reflexo sem dono te imita.'],['Pétala de Sonho','#e8a0d8','fall','Cai devagar demais para ser real.'],['Máscara de Festival','#e8d9a0','ring','O festival nunca acabou para ela.']],
+4:[['Contrato Vivo','#d8c070','side','Cláusulas em letras miúdas.'],['Mordomo Vazio','#8a8a9a','aim','Serve a ninguém, há anos.'],['Talher Possuído','#c0c0d0','fall','A mesa está posta para você.']],
+5:[['Raio Menor','#fff06a','fall','Um relâmpago órfão.'],['Cria Dracônica','#c8483a','aim','Jovem demais para obedecer.'],['Eco de Trovão','#7a8ad8','ring','O som chegou antes da tempestade.']],
+6:[['Alma Perdida','#b8c8e8','aim','Procura o próprio nome.'],['Escriba Pálido','#d8d0c0','side','Anota cada passo seu.'],['Sombra da Mortalha','#40304a','ring','Pesa mais do que parece.']],
+7:[['Registro Corrompido','#7ee0ff','side','Dados que não deviam existir.'],['Glitch de Fila','#ff2a8d','fall','Repete a mesma linha.'],['Modelo Falho','#a0a0b0','aim','Uma cópia que não deu certo.']],
+8:[['Fragmento de Linha','#ffffff','ring','Um pedaço do Núcleo se soltou.'],['Eco da Profecia','#c8a0ff','aim','Repete o que ainda não aconteceu.'],['Página Rasgada','#e8e0d0','side','Escrita por alguém que desistiu.']]};
+let AM=null;
+function miniTry(){const c=C2.ch,r=C2.room;if(!MINI[c]||r<=0||r>=LAST||(c===5&&r===4)||(c===6&&r===4)||(c===7&&r===6)||(c===8&&r===2))return;C2.mn=C2.mn||{};if(C2.mn[r])return;C2.mn[r]=1;if(Math.random()>.6)return;ambStart()}
+function ambStart(){const L=MINI[C2.ch],e=L[Math.floor(Math.random()*L.length)];AM={e,t:-1.4,bul:[],sp:0,inv:0,x:400,y:60+Math.random()*130,end:0};sfx('ui_selecionar',{v:.5})}
+function ambTick(dt){const m=AM;if(!m)return;m.t+=dt;m.inv-=dt;if(pl.x>462)pl.x=462;if(pl.x<14)pl.x=14;
+ if(m.t<0)return;if(m.end){m.end+=dt;if(m.end>1.2)AM=null;return}
+ const px=pl.x+5,py=pl.y+4,p=m.e[2],k=1-C2.ch*.035,R=Math.random;m.sp-=dt;m.y+=Math.sin(m.t*1.6)*20*dt;
+ if(m.sp<=0){
+  if(p==='fall'){m.bul.push({x:px+(R()-.5)*160,y:8,vx:0,vy:85})}
+  else if(p==='side'){m.bul.push({x:m.x,y:30+R()*190,vx:-95,vy:0})}
+  else if(p==='aim'){const dx=px-m.x,dy=py-m.y,q=Math.hypot(dx,dy)||1;m.bul.push({x:m.x,y:m.y,vx:dx/q*80,vy:dy/q*80})}
+  else{const o=R()*6.3;for(let i=0;i<8;i++){const an=o+i*.785;m.bul.push({x:m.x,y:m.y,vx:Math.cos(an)*70,vy:Math.sin(an)*70})}}
+  m.sp=(p==='ring'?1.4:p==='aim'?.8:.55)*k}
+ for(let i=m.bul.length-1;i>=0;i--){const b=m.bul[i];b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.x<-10||b.x>490||b.y<-10||b.y>270){m.bul.splice(i,1);continue}
+  if(m.inv<=0&&Math.hypot(b.x-px,b.y-py)<7){F.mhp=Math.max(1,(F.mhp||30)-(CFG.easy?2:3));m.inv=1;m.bul.splice(i,1);beep(120);vib(40)}}
+ if(m.t>=9){m.end=.01;m.bul=[]}}
+function ambDraw(){const m=AM;if(!m)return;if(m.t>=0||m.t>-1.4){const a=m.end?Math.max(0,1-m.end/1.2):1;g.globalAlpha=a;g.fillStyle=m.e[1];g.fillRect(m.x-10,m.y-12,20,24);g.fillRect(m.x-14,m.y-6,28,10);g.fillStyle='#000';g.fillRect(m.x-6,m.y-6,4,4);g.fillRect(m.x+2,m.y-6,4,4);g.globalAlpha=1;tx(m.e[0],m.x,m.y-18,'#fff',10,'center')}
+ if(m.t<0){tx(m.e[3],W/2,40,'#d9c8ff',12,'center');return}
+ for(const b of m.bul){g.fillStyle=m.e[1];g.beginPath();g.arc(b.x,b.y,4,0,6.3);g.fill();g.strokeStyle='#fff';g.lineWidth=1;g.stroke()}}
+function ambHeart(){const x=pl.x+5,y=pl.y+4;if(AM&&AM.inv>0&&Math.floor(T*16)%2)return;g.fillStyle='#ff2a4d';g.fillRect(x-4,y-3,8,6);g.fillRect(x-3,y-5,2,2);g.fillRect(x+1,y-5,2,2);g.fillRect(x-2,y+3,4,2)}
+function startBattleR(q){F.mhp=30;startBattle(q)}
+const BKSPD=112;let BKP=0;
+function getBike(){F.bike=1;F.bikeOn=1;beep(900);say([['Narração','Entre os cabos de luz caídos há uma bicicleta velha, o quadro riscado de linhas finas. Os pneus ainda giram sozinhos.'],['Narração','Você a levanta. Ela se ajusta ao seu peso como se esperasse por você.'],['Narração','Bicicleta obtida. Toque no botão BIKE (canto superior direito) ou aperte B para subir e descer.']])}
+function bikeToggle(){if(!F.bike)return;F.bikeOn=F.bikeOn?0:1;beep(F.bikeOn?900:500)}
+function bikeLoop(){const k=!!K.b;if(k&&!BKP&&!D)bikeToggle();BKP=k;if(F.bike&&tap&&!D&&inRect(ptr,440,34,40,30)){bikeToggle();tap=false}}
+function drawBikeGround(x,y){g.fillStyle='rgba(0,0,0,.35)';g.fillRect(x-2,y+14,26,3);g.strokeStyle='#9aa3b8';g.lineWidth=2;for(const cx of[x+3,x+19]){g.beginPath();g.arc(cx,y+9,5,0,6.3);g.stroke()}g.strokeStyle='#e8d9ff';g.beginPath();g.moveTo(x+3,y+9);g.lineTo(x+10,y+3);g.lineTo(x+19,y+9);g.moveTo(x+10,y+3);g.lineTo(x+8,y+9);g.lineTo(x+3,y+9);g.moveTo(x+17,y+2);g.lineTo(x+19,y+9);g.stroke();g.fillStyle='#ff2a4d';g.fillRect(x+6,y+1,5,2)}
+function drawBikeRide(x,y){const a=ex.t*18,hz=pl.dir===1||pl.dir===3;g.strokeStyle='#9aa3b8';g.lineWidth=2;const ws=hz?[x-4,x+14]:[x+5,x+5],wy=hz?[y+8,y+8]:[y+2,y+12];for(let i=0;i<2;i++){g.beginPath();g.arc(ws[i],wy[i],hz?5:3,0,6.3);g.stroke();if(hz){g.beginPath();g.moveTo(ws[i],wy[i]);g.lineTo(ws[i]+Math.cos(a)*5,wy[i]+Math.sin(a)*5);g.stroke()}}g.strokeStyle='#ff2a4d';g.beginPath();if(hz){g.moveTo(x-4,y+8);g.lineTo(x+5,y+3);g.lineTo(x+14,y+8)}else{g.moveTo(x+5,y+2);g.lineTo(x+5,y+12)}g.stroke()}
+function nearQ(){for(const q of NP[C2.room])if(!isJoined(q)&&!(q.id==='bk'&&F.bike)&&Math.hypot(q.x-pl.x,q.y-pl.y)<30)return q;return null}
 function updC2(dt){ex.t+=dt;if(C2.ch===5)F.gods=Math.max(F.gods||0,Object.keys(C2.cl).length+Object.keys(C2.dr||{}).length);if(dlg(dt))return;if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}if(C2.ch===5&&C2.room===4&&!C2.rv){C2.rv=1;revolt();return}if(C2.ch===6&&C2.room===4&&!C2.rv){C2.rv=1;rupture();return}if(C2.ch===7&&C2.room===6&&!C2.rv){C2.rv=1;recog();return}if(C2.ch===8&&C2.room===2&&!C2.rv){C2.rv=1;jfall();return}let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}
- setMove(d,dt);const sp=58*dt;if(!hit2(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit2(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
- if(pl.x>466){const lk=lockMsg();if(lk){pl.x=440;say([[F.jfall?'Narração':'Jordana',lk]])}else if(C2.room<LAST){C2.room++;pl.x=30;ex.t=0}}
- else if(pl.x<10&&C2.room>0){C2.room--;pl.x=440;ex.t=0}
+ bikeLoop();ambTick(dt);setMove(d,dt);const sp=Math.min((F.bike&&F.bikeOn?BKSPD:58)*dt,5);if(!hit2(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit2(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
+ if(pl.x>466){const lk=lockMsg();if(lk){pl.x=440;say([[F.jfall?'Narração':'Jordana',lk]])}else if(C2.room<LAST){C2.room++;pl.x=30;ex.t=0;miniTry()}}
+ else if(pl.x<10&&C2.room>0){C2.room--;pl.x=440;ex.t=0;miniTry()}
  const nq=nearQ();if(nq&&tap&&(inRect(ptr,388,196,84,38)||K[' ']||K.enter||K[CFG.kb.ok]))talk(nq.id);else if(!nq&&tap&&performance.now()>SPCD&&nearSP()&&(inRect(ptr,388,196,84,38)||K[' ']||K.enter||K[CFG.kb.ok]))openSave()}
 const FOLL=[['tobias','#8a6a3a','Tobias'],['kaelIn','#d9482f','Kael'],['iris','#7a5ac8','Íris'],['dante','#3a8a8a','Dante'],['helenaIn','#d98ca8','Helena']],JOINF={Tobias:'tobias',Kael:'kaelIn','Íris':'iris',Dante:'dante',Helena:'helenaIn'};
 const isJoined=q=>!!(q.n&&JOINF[q.n]&&F[JOINF[q.n]]),isJordF=q=>q.n==='Jordana'&&!F.jfall;
@@ -451,12 +487,14 @@ function drawFol(f){if(f.j)return drawJordF(f);if(!npcSpr(f.nm,f.x,f.y-4)){g.fil
 function drawC2(){trail();const r=C2.room;g.fillStyle=RB[r];g.fillRect(0,0,W,H);const rr=rng(r*77+3);if(tileFill(C2.ch,0,0,0,W,H)){g.globalAlpha=.35;g.fillStyle=RB[r];g.fillRect(0,0,W,H);g.globalAlpha=1}else{g.fillStyle=r===5?'#2a2238':'#33231f';for(let i=0;i<70;i++)g.fillRect((rr()*480)|0,(rr()*270)|0,6,2);
  g.fillStyle='#4a403c';for(let i=0;i<10;i++)g.fillRect((rr()*440+20)|0,(rr()*200+35)|0,5,3)}
  drawDecor(r,0);for(const[a,b,w,h]of RW[r]){if(!tileFill(C2.ch,1,a,b,w,h)){g.fillStyle=r===5?'#2b2438':'#3a2a2a';g.fillRect(a,b,w,h)}g.fillStyle=r===5?'#4a3d66':'#5a4040';g.fillRect(a,b,w,3)}
- drawDecor(r,1);drawSP(0);for(const q of NP[r]){if(isJoined(q)||isJordF(q))continue;if(isObj(q.id)){g.fillStyle='#5a4230';g.fillRect(q.x,q.y,4,16);g.fillRect(q.x-5,q.y-4,14,8)}else if(!npcSpr(q.n,q.x,q.y)){g.fillStyle=q.c;g.fillRect(q.x,q.y+4,10,10);g.fillStyle='#f1c9a0';g.fillRect(q.x+1,q.y-2,8,7);if(q.id==='k'){g.fillStyle='#ffb36b';g.fillRect(q.x,q.y-5,2,4);g.fillRect(q.x+8,q.y-5,2,4)}if(q.id==='c'){g.fillStyle='#b3001b';g.fillRect(q.x+3,q.y+7,4,4)}}}
- const FL=followers();FL.forEach(f=>{if(f.y<=pl.y)drawFol(f)});drawPlayer(pl.x,pl.y);FL.forEach(f=>{if(f.y>pl.y)drawFol(f)});drawSP(1);
+ drawDecor(r,1);drawSP(0);for(const q of NP[r]){if(isJoined(q)||isJordF(q))continue;if(q.id==='bk'){if(!F.bike)drawBikeGround(q.x,q.y)}else if(isObj(q.id)){g.fillStyle='#5a4230';g.fillRect(q.x,q.y,4,16);g.fillRect(q.x-5,q.y-4,14,8)}else if(!npcSpr(q.n,q.x,q.y)){g.fillStyle=q.c;g.fillRect(q.x,q.y+4,10,10);g.fillStyle='#f1c9a0';g.fillRect(q.x+1,q.y-2,8,7);if(q.id==='k'){g.fillStyle='#ffb36b';g.fillRect(q.x,q.y-5,2,4);g.fillRect(q.x+8,q.y-5,2,4)}if(q.id==='c'){g.fillStyle='#b3001b';g.fillRect(q.x+3,q.y+7,4,4)}}}
+ const FL=followers();FL.forEach(f=>{if(f.y<=pl.y)drawFol(f)});if(AM)g.globalAlpha=.3;if(F.bike&&F.bikeOn){drawBikeRide(pl.x,pl.y);drawPlayer(pl.x,pl.y-4)}else drawPlayer(pl.x,pl.y);g.globalAlpha=1;if(AM)ambHeart();ambDraw();FL.forEach(f=>{if(f.y>pl.y)drawFol(f)});drawSP(1);
  g.fillStyle='rgba(200,190,180,.35)';for(let i=0;i<26;i++)g.fillRect(Math.round((i*53+Math.sin(T+i)*14+480)%480),Math.round((T*14+i*41)%270),2,2);
  if(ex.t<3.5){g.globalAlpha=Math.min(1,3.5-ex.t);tx(RN[r],W/2,60,'#d9c8ff',20,'center');g.globalAlpha=1}
  if(r===2&&C2.ch>=2&&C2.ch<=3)tx('Pistas: '+Object.keys(C2.cl).length+'/3',12,262,'#ffe98a',11);
  if(ptr&&P0&&!D&&S==='c2'){g.strokeStyle='rgba(255,255,255,.3)';g.lineWidth=2;g.beginPath();g.arc(P0.x,P0.y,24,0,7);g.stroke()}
+ if((AM||(F.mhp||30)<30)&&S==='c2'){tx('HP '+(F.mhp||30)+'/30',10,24,AM?'#ff6a80':'#ffe98a',11)}
+ if(F.bike&&!D&&S==='c2'){box(440,34,40,30,F.bikeOn?'#ff2a4d':'#8d80b3');tx(F.bikeOn?'BIKE✓':'BIKE',460,54,'#fff',10,'center')}
  const nq=nearQ();if(nq&&!D&&S==='c2'){box(388,196,84,38,'#ffa94d');tx(isObj(nq.id)?'Examinar':'Falar',430,220,'#ffa94d',13,'center')}else if(!D&&S==='c2'&&nearSP()){box(388,196,84,38,'#7ee0ff');tx('Salvar',430,220,'#7ee0ff',13,'center')}
  drawGear();dbox()}
 function queen(x,y){if(bigSpr('Rainha',x,y)){g.fillStyle='#d58cff';g.fillRect(x-10,y-15,20,4);g.fillRect(x-10,y-19,4,4);g.fillRect(x+6,y-19,4,4);g.fillStyle='#f2eefc';g.fillRect(x-6,y-6,12,8);g.fillStyle='#4a2a6a';g.fillRect(x-4,y-3,3,3);g.fillRect(x+1,y-3,3,3);return}g.fillStyle='#4a2a6a';g.fillRect(x-16,y+8,32,40);g.fillStyle='#d58cff';g.fillRect(x-16,y+8,32,4);g.fillStyle='#f2eefc';g.fillRect(x-10,y-12,20,22);g.fillStyle='#4a2a6a';g.fillRect(x-6,y-6,4,4);g.fillRect(x+2,y-6,4,4);g.fillRect(x-4,y+2,8,2)}
@@ -502,7 +540,7 @@ function endG(){S='qend';B.ph='x';F.guardSpared=!!B.agir;kar(F.guardSpared?2:-1)
  ()=>say([['Narração','Na parede atrás dele, uma inscrição antiga se acende: “Quando o mundo esquecer seu próprio nome, a criança abrirá a última porta.”'],['Jordana','Frases velhas. Não significam nada.',2]],()=>startC2()))}
 
 /* ---------- CAPÍTULO 3 — Cidade dos Espelhos ---------- */
-const isObj=id=>id[0]==='o'||/^[dpr]\d$/.test(id);
+const isObj=id=>id[0]==='o'||id==='bk'||/^[dpr]\d$/.test(id);
 let M3={hp:20,hard:0};
 const MA=[['Lutar','Seus golpes atravessam fumaça de sonho.'],['Agir','Você tenta acordar. Morpheus ri baixinho.'],['Defender','Você fecha os olhos. As estrelas continuam.'],['Fugir','Todas as portas levam de volta ao salão.']];
 const NM=['Estrelas viram projéteis.','Os pesadelos sabem o seu nome.'];
@@ -702,7 +740,7 @@ const PAA=[['Lutar','Cada golpe apaga uma linha. Ele reescreve a linha.'],['Agir
 const NPA=['As regras mudam. Algo nos seus movimentos vai se inverter.','Ele olha além do quadro: \"Um jogo nascido de Undertale, e ainda quer ser lembrado.\" Volta à página.'];
 const RW8=[mkR(0,[[140,60,40,40],[320,170,50,40]],4),mkR(1,[[100,50,40,30],[340,190,40,30]],4),mkR(2,[[120,50,40,30],[340,50,40,30]],4),mkR(3,[[100,60,30,40],[360,160,40,40]],4),mkR(4,[[120,50,40,30],[340,190,40,30]],4)];
 const RN8=['LIMIAR DO NÚCLEO','SALA DAS PROFECIAS','PONTE DO NÚCLEO','CÂMARA DO PRIMEIRO AUTOR','NÚCLEO INSTÁVEL'],RB8=['#0d0c14','#10101c','#0a0a14','#07060d','#12101c'];
-function mkNP8(){return[[{n:'Floris',x:300,y:125,c:'#ffd84a',id:'F'}],[{x:150,y:130,id:'r0'},{x:240,y:130,id:'r1'},{x:330,y:130,id:'r2'}],[],[{n:'Primeiro Autor',x:300,y:120,c:'#e8d9ff',id:'A'}],[{n:'Jordana',x:300,y:120,c:'#9fd7ff',id:'J'}]]}
+function mkNP8(){return[[{n:'Floris',x:300,y:125,c:'#ffd84a',id:'F'},{x:200,y:208,id:'bk'}],[{x:150,y:130,id:'r0'},{x:240,y:130,id:'r1'},{x:330,y:130,id:'r2'}],[],[{n:'Primeiro Autor',x:300,y:120,c:'#e8d9ff',id:'A'}],[{n:'Jordana',x:300,y:120,c:'#9fd7ff',id:'J'}]]}
 function startC8(){S='c2';RW=RW8;RN=RN8;RB=RB8;NP=mkNP8();OB={};LAST=4;C2={room:0,cl:{},fl:{},k:-1,open:false,told:false,cain:false,ch:8,rc:0};F.iris=0;F.dante=0;Object.assign(F,{jfall:0,prophecy_read:0,jordana_truth_known:0,sacrifice_understood:0,route_sacrifice:0,floris8:0,pa_defeated:0});pl.x=50;pl.y=130;ex.t=0;save('cap8');
  say([['Narração','O Núcleo não tem céu nem chão. Só uma luz fina, como uma linha que não acaba.'],['Jordana','Estamos perto. Daqui em diante, eu vou na frente.',2],...(F.helenaIn?[['Helena','Eu vim até aqui. Não vou voltar agora.','bravo']]:[]),['Narração','Arraste o dedo para andar.']])}
 const PROF=['Profecia (Raiz Velha): \"A criança abrirá a última porta.\" A palavra criança está riscada e reescrita a mão.','Profecia (Núcleo): \"O Messias não governa. O Messias escolhe.\" Abaixo, o desenho de três portas.','Profecia (fim da página): preservar o mundo como arquivo, permitir que ele se apague, ou assumir o custo de estabilizá-lo. \"O Messias é uma função, não uma pessoa.\"'];
