@@ -1,0 +1,5 @@
+ELYNDRA — HANDOFF v5.7 (06/11/2026) | www/index.html (ler com v5.6 e anteriores) | Textos do prologo removidos
+MUDANCA: so www/index.html. VER='5.7'.
+1) PROLOGO REMOVIDO: startPro() agora vai direto para startExplore() (as 7 telas de texto "Ha muito tempo, humanos e monstros lutaram..." ate "O chao cede." nao aparecem mais). Fluxo: Novo jogo -> personagem -> Raiz Velha. O dialogo inicial da Raiz Velha (zumbido, Floris) continua.
+O codigo do prologo (const PRO, updPro, drawPro, S='pro') fica sem uso; para voltar, trocar startPro por S='pro';pi=0;pt=0.
+Testado: sintaxe e fluxo personagem -> exploracao num navegador headless.
