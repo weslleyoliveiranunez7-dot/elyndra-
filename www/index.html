@@ -5,10 +5,10 @@
 <style>
 :root{box-sizing:border-box;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-html,body{margin:0;height:100%;background:#0a0910;overflow:hidden}
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
 body{display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif}
 canvas{display:block;flex:none;width:100%;aspect-ratio:16/9;touch-action:none;background:#000;image-rendering:pixelated}
-#hint{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;text-align:center;color:#b9a8d8;font-size:13px;pointer-events:none}
+#hint{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:0;right:0;text-align:center;color:#bbb;font-size:13px;pointer-events:none}
 @media (orientation:portrait){#hint{display:block}}
 </style></head><body>
 <div id="hint">Gire o celular para jogar na horizontal</div>
@@ -22,7 +22,7 @@ const COL={Floris:'#ffd84a',Jordana:'#9fd7ff','Narração':'#a99ec4'};
 const KBD={up:'w',down:'s',left:'a',right:'d',ok:'e',menu:'escape'};const CFG={snd:1,vib:1,ts:28,easy:0,mv:.8,sv:.9,kb:{...KBD}};try{Object.assign(CFG,JSON.parse(localStorage.getItem('elyndra_cfg'))||{})}catch(e){}CFG.kb=Object.assign({},KBD,CFG.kb||{});
 function saveCfg(){try{localStorage.setItem('elyndra_cfg',JSON.stringify(CFG))}catch(e){}}
 /* ---------- v3.0 — SAVES: 3 SLOTS + PONTOS DE SAVE + PORCENTAGEM ---------- */
-const VER='5.4',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
+const VER='5.7',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
 let SL=[null,null,null],curSlot=-1,PLAY=0,NOSAVE=0,SPCD=0;
 const NOPLAY=['cust','title','slots','opt','keys','pad','diary','fones','intro','rato'];
 function preU(n){let u=PRO_U;for(let k=1;k<n&&k<=8;k++)u+=CHR[k];return u}
@@ -68,7 +68,7 @@ function inRect(p,x,y,w,h){return p&&p.x>=x&&p.x<=x+w&&p.y>=y&&p.y<=y+h}
 function tx(t,x,y,c='#fff',sz=13,al='left'){g.font=sz+'px ui-monospace,Menlo,Consolas,monospace';g.fillStyle=c;g.textAlign=al;g.textBaseline='alphabetic';g.fillText(t,x,y)}
 function wl(t,w){const r=[];let l='';for(const wd of t.split(' ')){const tr=l?l+' '+wd:wd;if(g.measureText(tr).width>w&&l){r.push(l);l=wd}else l=tr}r.push(l);return r}
 function wr(t,x,y,w,lh,n,c='#e8e2f5'){g.font=FONT;g.fillStyle=c;g.textAlign='left';let k=n;for(const l of wl(t,w)){if(k<=0)break;g.fillText(l.slice(0,k),x,y);k-=l.length+1;y+=lh}}
-function box(x,y,w,h,c='#fff'){g.fillStyle='#07060c';g.fillRect(x,y,w,h);g.strokeStyle=c;g.lineWidth=2;g.strokeRect(x+1,y+1,w-2,h-2)}
+function box(x,y,w,h,c='#fff'){g.fillStyle='#000';g.fillRect(x,y,w,h);g.strokeStyle=c;g.lineWidth=2;g.strokeRect(x+1,y+1,w-2,h-2)}
 /* ---------- diálogo ---------- */
 function say(l,cb){const N=nm();D={l:l.map(x=>typeof x[1]==='string'&&x[1].includes('{N}')?[x[0],x[1].replace(/\{N\}/g,N),...x.slice(2)]:x),i:0,n:0,cb}}
 function dlg(dt){if(!D)return false;const L=D.l[D.i][1];const old=D.n|0;D.n=Math.min(L.length,D.n+dt*CFG.ts);if((D.n|0)!==old&&(D.n|0)%3===0)voz(D.l[D.i][0]);
@@ -113,15 +113,15 @@ function updCust(dt){if(CU.err>0)CU.err-=dt;if(!tap||!ptr)return;
 if(inRect(ptr,180,cuRow(0),280,28)){cuName();ptr=null;return}
 [['sk',1],['hr',2],['ot',3],['li',4]].forEach(([k,i])=>{const y=cuRow(i);if(inRect(ptr,180,y,140,28))cuChg(k,-1);else if(inRect(ptr,320,y,140,28))cuChg(k,1)});
 if(inRect(ptr,180,cuRow(5)+4,280,30)){if(!F.pc.n){CU.err=1.6;beep(260)}else cuOk()}}
-function drawCust(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('SEU PERSONAGEM',W/2,26,'#d9c8ff',18,'center');const p=F.pc||defPc();
-box(24,40,140,196,'#8d80b3');const row=Math.floor(T*.7)%3,f=Math.floor(T*6)%4,col=row===1?(f&1):f;spr('prot',col*20,row*30,20,30,54,74,false,4);
+function drawCust(){g.fillStyle='#000';g.fillRect(0,0,W,H);tx('SEU PERSONAGEM',W/2,26,'#dddddd',18,'center');const p=F.pc||defPc();
+box(24,40,140,196,'#a5a5a5');const row=Math.floor(T*.7)%3,f=Math.floor(T*6)%4,col=row===1?(f&1):f;spr('prot',col*20,row*30,20,30,54,74,false,4);
 tx(p.n||'?',94,226,'#fff',12,'center');
 const sw=[[SKN[p.sk]],[HRN[p.hr]],[OTN[p.ot][1],OTN[p.ot][2]],[LIN[p.li]]],R=[['Nome',p.n||'toque para digitar'],['Pele',SKT[p.sk]],['Cabelo',HRT[p.hr]],['Roupa',OTN[p.ot][0]],['Listra',LIT[p.li]]];
-R.forEach(([l,v],i)=>{const y=cuRow(i);box(180,y,280,28,i===0&&CU.err>0?'#ff4d6d':'#8d80b3');tx(l,190,y+19,'#a89cc8',11);
-if(!i){tx(v,330,y+19,p.n?'#fff':'#7a7090',13,'center');return}
+R.forEach(([l,v],i)=>{const y=cuRow(i);box(180,y,280,28,i===0&&CU.err>0?'#fff':'#a5a5a5');tx(l,190,y+19,'#b9b9b9',11);
+if(!i){tx(v,330,y+19,p.n?'#fff':'#969696',13,'center');return}
 tx('◀',252,y+19,'#fff',13,'center');tx('▶',448,y+19,'#fff',13,'center');sw[i-1].forEach((c,j)=>{g.fillStyle=c;g.fillRect(272+j*16,y+7,14,14)});tx(v,sw[i-1].length>1?314:296,y+19,'#fff',13)});
-box(180,cuRow(5)+4,280,30,'#ffd84a');tx(CU.ret==='new'?'Começar':'Confirmar',320,cuRow(5)+24,'#ffd84a',14,'center');
-if(CU.err>0)tx('Escolha um nome primeiro',320,262,'#ff4d6d',11,'center')}
+box(180,cuRow(5)+4,280,30,'#dddddd');tx(CU.ret==='new'?'Começar':'Confirmar',320,cuRow(5)+24,'#dddddd',14,'center');
+if(CU.err>0)tx('Escolha um nome primeiro',320,262,'#fff',11,'center')}
 const TPAT={};
 function tileFill(ch,col,x,y,w,h){const im=IMG.tiles;if(!im)return false;const k=ch+'_'+col;let p=TPAT[k];if(!p){const c=document.createElement('canvas');c.width=c.height=16;c.getContext('2d').drawImage(im,col*16,ch*16,16,16,0,0,16,16);p=TPAT[k]=g.createPattern(c,'repeat')}g.save();g.beginPath();g.rect(x,y,w,h);g.clip();g.fillStyle=p;g.fillRect(x,y,w,h);g.restore();return true}
 function setMove(d,dt){const m=d.x||d.y;pl.mv=!!m;if(m){const ax=Math.abs(d.x),ay=Math.abs(d.y),hz=pl.dir===1||pl.dir===3,useH=!ay?true:!ax?false:hz?ax>=ay*.7:ax>ay*1.43;pl.dir=useH?(d.x<0?1:3):(d.y<0?2:0);pl.fr+=dt*7}else pl.fr=0}
@@ -145,10 +145,10 @@ function loadSlot(i){const s=SL[i];if(!s)return;curSlot=i;PLAY=s.t||0;if(!(s.F&&
 function resumePoint(s){NOSAVE=1;try{const f={1:startC1,2:startC2,3:startC3,4:startC4,5:startC5,6:startC6,7:startC7,8:startC8}[s.ch];f();Object.assign(F,s.F);C2=JSON.parse(JSON.stringify(s.C2));pl.x=s.px;pl.y=s.py;D=null;ex.t=0;TRL.length=0;S='c2'}finally{NOSAVE=0}}
 function cont(s){for(const k in F)delete F[k];resetF();Object.assign(F,s.F||{});PCD=1;GEN=!!F.gen;if(s.M3)M3={...s.M3};D=null;ptr=null;P0=null;const t=s.stage;if(t==='ponto')return resumePoint(s);if(t==='fim8')startE8();else if(t==='cap8')startC8();else if(t==='fim7'){S='end7';T=0}else if(t==='cap7')startC7();else if(t==='fim6'){S='end6';T=0}else if(t==='cap6')startC6();else if(t==='fim5'){S='end5';T=0}else if(t==='cap5')startC5();else if(t==='fim4'){S='end4';T=0}else if(t==='cap4')startC4();else if(t==='fim3'){S='end3';T=0}else if(t==='fim2'||t==='cap3')startC3();else if(t==='fim'||t==='cap1')startC1();else if(t==='cap2')startC2();else startExplore()}
 function updTitle(){if(tap){menuItems().forEach((n,i)=>{if(inRect(ptr,170,130+i*32,140,30)){beep(440);if(n==='Novo jogo')openSlots('new');else if(n==='Modo Genocide')openSlots('gen');else if(n==='Continuar')openSlots('load');else openOpt()}})}}
-function drawTitle(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);for(const[x,y,s]of stars){g.fillStyle=(T*2+x)%7<1?'#fff':'#6a5fa0';g.fillRect(x,y,s,s)}
+function drawTitle(){g.fillStyle='#000';g.fillRect(0,0,W,H);for(const[x,y,s]of stars){g.fillStyle=(T*2+x)%7<1?'#fff':'#8c8c8c';g.fillRect(x,y,s,s)}
  drawLogoT();
- menuItems().forEach((n,i)=>{box(170,130+i*32,140,30,n==='Modo Genocide'?'#ff2a4d':'#8d80b3');tx(n,240,150+i*32,n==='Modo Genocide'?'#ff6a80':'#fff',14,'center')});
- tx('Toque numa opção para começar',W/2,262,'#6c6290',11,'center')}
+ menuItems().forEach((n,i)=>{box(170,130+i*32,140,30,n==='Modo Genocide'?'#fff':'#a5a5a5');tx(n,240,150+i*32,n==='Modo Genocide'?'#fff':'#fff',14,'center')});
+ tx('Toque numa opção para começar',W/2,262,'#8d8d8d',11,'center')}
 /* ---------- opções ---------- */
 /* ---------- v3.0 — TELA DE SLOTS (novo / continuar / ponto de save) ---------- */
 let slMode='load',slPrev='title',slConf=-1,slDelC=-1;
@@ -166,23 +166,23 @@ function updSlots(){if(!tap)return;
  slConf=-1;slDelC=-1}
 function fmtT(t){const h=Math.floor(t/3600),m=Math.floor(t%3600/60);return h?h+'h'+String(m).padStart(2,'0'):m+' min'}
 function fmtD(ts){if(!ts)return'';const d=new Date(ts);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')}
-function drawSlots(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);
+function drawSlots(){g.fillStyle='#000';g.fillRect(0,0,W,H);
  const TT={new:'NOVO JOGO',gen:'MODO GENOCIDE',load:'CONTINUAR',save:'PONTO DE SAVE'},ST={new:'Escolha um slot para começar',gen:'Escolha um slot para começar',load:'Escolha qual jogo continuar',save:'Escolha onde salvar'};
- tx(TT[slMode],W/2,20,slMode==='gen'?'#ff6a80':'#d9c8ff',16,'center');tx(ST[slMode],W/2,32,'#6c6290',9,'center');
+ tx(TT[slMode],W/2,20,slMode==='gen'?'#fff':'#dddddd',16,'center');tx(ST[slMode],W/2,32,'#8d8d8d',9,'center');
  for(let i=0;i<3;i++){const s=SL[i],y=34+i*50,conf=slConf===i,gen=s&&s.F&&s.F.gen;
   const dim=slMode==='load'&&!s;
-  box(30,y,336,40,conf?'#ffa94d':dim?'#2e2a40':s?(gen?'#ff2a4d':'#8d80b3'):'#4a4268');
-  tx('SLOT '+(i+1),40,y+17,dim?'#4a4268':'#ffe98a',11);if(gen)tx('GENOCIDE',40,y+31,'#ff4d6d',8);
-  if(conf){tx(slMode==='save'?'Sobrescrever este slot?':'Apagar e começar de novo?',108,y+17,'#ffa94d',11);tx('toque de novo para confirmar',108,y+31,'#c9a06a',9)}
+  box(30,y,336,40,conf?'#c8c8c8':dim?'#5f5f5f':s?(gen?'#fff':'#a5a5a5'):'#737373');
+  tx('SLOT '+(i+1),40,y+17,dim?'#737373':'#eaeaea',11);if(gen)tx('GENOCIDE',40,y+31,'#fff',8);
+  if(conf){tx(slMode==='save'?'Sobrescrever este slot?':'Apagar e começar de novo?',108,y+17,'#c8c8c8',11);tx('toque de novo para confirmar',108,y+31,'#bababa',9)}
   else if(s){const chn=s.stage==='ponto'||/^(cap|fim)\d$/.test(s.stage)?CHN[s.ch]:CHN[0],tt=fmtT(s.t||0),dd=fmtD(s.ts);
-   tx(chn||'',108,y+17,'#fff',11);tx((s.loc?s.loc+' · ':'')+tt+(dd?' · '+dd:'')+(s.stage==='ponto'?' · ◆':''),108,y+31,'#a99ec4',9);
-   tx(Math.round((s.frac||0)*100)+'%',358,y+25,'#7ed87a',15,'right')}
-  else tx(dim?'— vazio —':'Slot livre',108,y+25,dim?'#4a4268':'#8d80b3',11);
-  if(s)box(372,y,78,40,slDelC===i?'#ff4d6d':'#6c5a7a'),tx(slDelC===i?'Certeza?':'Apagar',411,y+25,slDelC===i?'#ff6a80':'#c9b8d8',11,'center')}
- const tp=totalPct();tx('Jogo completo (todas as rotas)',30,193,'#d9d2ea',10);tx(tp+'%',450,193,'#7ed87a',12,'right');
- g.fillStyle='#241f36';g.fillRect(30,198,420,7);g.fillStyle='#7ed87a';g.fillRect(30,198,Math.round(420*tp/100),7);
- tx('Rotas concluídas: '+routesDone()+'/'+(ROUTES.length+1)+'  (7 finais + Genocide)',30,220,'#8d80b3',9);
- box(180,236,120,26,'#8d80b3');tx('Voltar',240,254,'#fff',12,'center')}
+   tx(chn||'',108,y+17,'#fff',11);tx((s.loc?s.loc+' · ':'')+tt+(dd?' · '+dd:'')+(s.stage==='ponto'?' · ◆':''),108,y+31,'#bababa',9);
+   tx(Math.round((s.frac||0)*100)+'%',358,y+25,'#c4c4c4',15,'right')}
+  else tx(dim?'— vazio —':'Slot livre',108,y+25,dim?'#737373':'#a5a5a5',11);
+  if(s)box(372,y,78,40,slDelC===i?'#fff':'#878787'),tx(slDelC===i?'Certeza?':'Apagar',411,y+25,slDelC===i?'#fff':'#cecece',11,'center')}
+ const tp=totalPct();tx('Jogo completo (todas as rotas)',30,193,'#dfdfdf',10);tx(tp+'%',450,193,'#c4c4c4',12,'right');
+ g.fillStyle='#575757';g.fillRect(30,198,420,7);g.fillStyle='#c4c4c4';g.fillRect(30,198,Math.round(420*tp/100),7);
+ tx('Rotas concluídas: '+routesDone()+'/'+(ROUTES.length+1)+'  (7 finais + Genocide)',30,220,'#a5a5a5',9);
+ box(180,236,120,26,'#a5a5a5');tx('Voltar',240,254,'#fff',12,'center')}
 
 let optBack='title',optDel=0;const TSN={18:'lento',28:'normal',45:'rápido'};
 function openOpt(){optBack=S;optDel=0;S='opt'}
@@ -195,11 +195,11 @@ function updOpt(){if(!tap)return;const od=optDel;optDel=0;optItems().forEach(([n
  else if(k==='pers'){openCust('opt')}else if(k==='diary'){S='diary'}else if(k==='ach'){S='ach'}else if(k==='keys'){S='keys';kbWait=null}
  else if(k==='title'){if(od){S='title';T=0;D=null;curSlot=-1;ptr=null;P0=null}else optDel=1}
  else{S=optBack;ptr=null;P0=null}})}
-function drawOpt(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('OPÇÕES',W/2,16,'#d9c8ff',18,'center');optItems().forEach(([n,k],i)=>{box(90,28+i*OST(),300,OH(),k==='title'&&optDel?'#ff4d6d':'#8d80b3');tx(n,240,28+i*OST()+OH()/2+5,'#fff',13,'center')})}
+function drawOpt(){g.fillStyle='#000';g.fillRect(0,0,W,H);tx('OPÇÕES',W/2,16,'#dddddd',18,'center');optItems().forEach(([n,k],i)=>{box(90,28+i*OST(),300,OH(),k==='title'&&optDel?'#fff':'#a5a5a5');tx(n,240,28+i*OST()+OH()/2+5,'#fff',13,'center')})}
 const KLB=[['up','Cima'],['down','Baixo'],['left','Esquerda'],['right','Direita'],['ok','Confirmar / Falar'],['menu','Menu / Opções']];
 function kname(k){return k===' '?'Espaço':k.length===1?k.toUpperCase():k.replace('arrow','Seta ').replace(/^./,c=>c.toUpperCase())}
 function updKeys(){if(!tap)return;KLB.forEach(([o],i)=>{if(inRect(ptr,60,34+i*28,360,24)){kbWait=kbWait===o?null:o;beep(500)}});if(inRect(ptr,60,34+6*28,175,24)){CFG.kb={...KBD};kbWait=null;saveCfg();beep(500)}if(inRect(ptr,245,34+6*28,175,24)){kbWait=null;S='opt'}}
-function drawKeys(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('TECLAS',W/2,16,'#d9c8ff',18,'center');KLB.forEach(([o,n],i)=>{box(60,34+i*28,360,24,kbWait===o?'#ffd84a':'#8d80b3');tx(n,76,51+i*28,'#fff',13);tx(kbWait===o?'Pressione uma tecla...':kname(CFG.kb[o]),404,51+i*28,kbWait===o?'#ffd84a':'#fff',13,'right')});box(60,34+6*28,175,24,'#8d80b3');tx('Restaurar padrão',147,51+6*28,'#fff',13,'center');box(245,34+6*28,175,24,'#8d80b3');tx('Voltar',332,51+6*28,'#fff',13,'center');tx('As setas e Espaço/Enter sempre funcionam. Esc cancela.',W/2,250,'#a89cc8',11,'center')}
+function drawKeys(){g.fillStyle='#000';g.fillRect(0,0,W,H);tx('TECLAS',W/2,16,'#dddddd',18,'center');KLB.forEach(([o,n],i)=>{box(60,34+i*28,360,24,kbWait===o?'#dddddd':'#a5a5a5');tx(n,76,51+i*28,'#fff',13);tx(kbWait===o?'Pressione uma tecla...':kname(CFG.kb[o]),404,51+i*28,kbWait===o?'#dddddd':'#fff',13,'right')});box(60,34+6*28,175,24,'#a5a5a5');tx('Restaurar padrão',147,51+6*28,'#fff',13,'center');box(245,34+6*28,175,24,'#a5a5a5');tx('Voltar',332,51+6*28,'#fff',13,'center');tx('As setas e Espaço/Enter sempre funcionam. Esc cancela.',W/2,250,'#b9b9b9',11,'center')}
 const CHN=['Prólogo','Capítulo 1 — Raiz Velha','Capítulo 2 — Vila das Cinzas','Capítulo 3 — Cidade dos Espelhos','Capítulo 4 — Casa dos Herdeiros','Capítulo 5 — Olimpo Partido','Capítulo 6 — Mortalha','Capítulo 7 — Vazio','Capítulo 8 — O Núcleo'];
 function diaryObj(){const n=Object.keys(C2.cl||{}).length;if(optBack==='explore')return'Reunir os pontos de amizade ('+F.pts+'/3).';const c=C2.ch;
  if(c===1)return !F.tobias?'Conversar com quem está no acampamento.':!C2.open?'Abrir a Passagem das Raízes.':'Seguir para a Câmara do Guardião.';
@@ -208,14 +208,14 @@ function diaryObj(){const n=Object.keys(C2.cl||{}).length;if(optBack==='explore'
  if(c===4)return !C2.hl?'Conversar com quem está no jardim.':!C2.open?'Atravessar o jantar da família ('+(C2.dn||0)+'/3).':!C2.jt?'Falar com Judas no escritório.':'Enfrentar a família no salão.';
  if(c===8)return !C2.fl0?'Falar com Floris no limiar do Núcleo.':!C2.open?'Ler os registros da profecia ('+(C2.rc||0)+'/3).':!C2.rv?'Atravessar a Ponte do Núcleo.':!C2.pd?'Enfrentar o Primeiro Autor.':'Decidir o destino do Núcleo.';if(c===7)return !C2.open?'Examinar os registros do Arquivo Sem Nome ('+(C2.rc||0)+'/3).':!C2.ir?'Examinar a estrutura de registros no corredor.':!C2.dg?'Examinar a gravação na Sala dos Modelos.':!C2.eh?'Atravessar a defesa do sistema.':'Examinar os arquivos ('+Object.keys(C2.fl||{}).length+'/3).';if(c===6)return !C2.cl.P?'Ouvir quem espera na margem das almas.':!C2.open?'Responder ao guardião dos registros.':!C2.hd?'Enfrentar Hades no trono.':'Atravessar a passagem antes que ela se feche.';const nd=Object.keys(C2.dr||{}).length;return n<2?'Ouvir Athena e Prometheus ('+n+'/2).':!C2.open?'Enfrentar Zeus no Salão do Trono.':nd<2?'Ouvir os dracônicos no terraço ('+nd+'/2).':'Descer a escadaria.'}
 function updDiary(){if(tap){S='opt';ptr=null;P0=null}}
-function drawDiary(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('DIÁRIO',W/2,34,'#d9c8ff',20,'center');
+function drawDiary(){g.fillStyle='#000';g.fillRect(0,0,W,H);tx('DIÁRIO',W/2,34,'#dddddd',20,'center');
  const ch=optBack==='explore'?CHN[0]:CHN[C2.ch],lc=optBack==='explore'?'RAIZ VELHA':RN[C2.room],gp=[!F.jfall&&'Jordana',F.tobias&&'Tobias',F.kaelIn&&'Kael',F.iris&&'Íris',F.dante&&'Dante',F.helenaIn&&'Helena'].filter(Boolean).join(', ');
- tx(ch,40,70,'#ffe98a',14);tx('Local: '+lc,40,98,'#d9d2ea',13);tx('Golpes '+(F.atk|0)+' · Parries '+(F.par|0)+' · Conversas '+(F.agr|0),440,98,'#8d80b3',10,'right');tx('Objetivo:',40,128,'#8d80b3',12);wr(diaryObj(),40,148,400,17,999);tx('Grupo: '+gp,40,200,'#d9d2ea',13);if(F.tobiasKeep)wr('Lembrança: o apito de madeira de Tobias. Ele o usava para chamar as crianças do acampamento.',40,222,400,14,999,'#c9b48a');tx('toque para voltar',W/2,255,'#6c6290',12,'center')}
+ tx(ch,40,70,'#eaeaea',14);tx('Local: '+lc,40,98,'#dfdfdf',13);tx('Golpes '+(F.atk|0)+' · Parries '+(F.par|0)+' · Conversas '+(F.agr|0),440,98,'#a5a5a5',10,'right');tx('Objetivo:',40,128,'#a5a5a5',12);wr(diaryObj(),40,148,400,17,999);tx('Grupo: '+gp,40,200,'#dfdfdf',13);if(F.tobiasKeep)wr('Lembrança: o apito de madeira de Tobias. Ele o usava para chamar as crianças do acampamento.',40,222,400,14,999,'#c6c6c6');tx('toque para voltar',W/2,255,'#8d8d8d',12,'center')}
 function drawGear(){if(D)return;g.fillStyle='rgba(0,0,0,.5)';g.fillRect(446,4,28,22);g.fillStyle='#b9a8d8';for(let i=0;i<3;i++)g.fillRect(452,10+i*5,16,2)}
 /* ---------- prólogo ---------- */
 const PRO=['Há muito tempo, humanos e monstros lutaram.','Dizem que os humanos venceram. Dizem que os monstros foram esquecidos.','Dizem que uma barreira foi criada para proteger o mundo.','Ninguém concorda sobre quem ela protegia.','Uma criança olhou para o céu e viu uma estrela desaparecer.','Hoje, perto de uma fenda...','O chão cede.'];
 let pi=0,pt=0;
-function startPro(){S='pro';pi=0;pt=0}
+function startPro(){pi=0;pt=0;startExplore()}
 function updPro(dt){pt+=dt;if(tap&&pt>1.2){pi++;pt=0;beep(260,.05);if(pi>=PRO.length)startExplore()}}
 function drawPro(){g.fillStyle='#000';g.fillRect(0,0,W,H);const a=Math.min(1,pt*.8);g.globalAlpha=a;
  if(pi===4){g.fillStyle='#fff';g.fillRect(300+(pt*6),60+pt*4,2,2)}
@@ -320,9 +320,9 @@ function achTick(dt){ACHN-=dt;if(ACHN<=0){ACHN=1;achCheck()}ACHT-=dt;
  if(ACHT>0&&ACHQ.__m){const[t,col]=ACHQ.__m;g.globalAlpha=Math.min(1,ACHT*2);g.fillStyle='#000';g.fillRect(90,4,300,20);g.strokeStyle=col;g.lineWidth=1;g.strokeRect(90.5,4.5,299,19);tx(t,240,19,col,11,'center');g.globalAlpha=1}
  if(ACHT<=0&&ACHQ[0]===null)ACHQ.shift()}
 function updAch(){if(tap){S='opt';ptr=null;P0=null}}
-function drawAch(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);const u=achGet(),k=F.karma|0;tx('CONQUISTAS  '+ACH.filter(a=>u[a[0]]).length+'/'+ACH.length,W/2,22,'#d9c8ff',16,'center');
- ACH.forEach(([id,n,d],i)=>{const x=i%2?250:20,y=44+Math.floor(i/2)*26,ok=u[id];tx((ok?'✔ ':'? ')+(ok?n:'???'),x,y,ok?'#ffe98a':'#6c6290',11);tx(d,x+14,y+11,ok?'#d9d2ea':'#51496e',8)});
- tx('Karma: '+(k>0?'+':'')+k+(k>=3?' — o grupo confia em você (menos dano, final de paz favorecido)':k<=-3?' — o mundo desconfia (mais dano, final de ruína favorecido)':' — neutro'),W/2,236,k>=3?'#8ee08a':k<=-3?'#ff7a7a':'#b9a8d8',9,'center');tx('toque para voltar',W/2,256,'#6c6290',11,'center')}
+function drawAch(){g.fillStyle='#000';g.fillRect(0,0,W,H);const u=achGet(),k=F.karma|0;tx('CONQUISTAS  '+ACH.filter(a=>u[a[0]]).length+'/'+ACH.length,W/2,22,'#dddddd',16,'center');
+ ACH.forEach(([id,n,d],i)=>{const x=i%2?250:20,y=44+Math.floor(i/2)*26,ok=u[id];tx((ok?'✔ ':'? ')+(ok?n:'???'),x,y,ok?'#eaeaea':'#8d8d8d',11);tx(d,x+14,y+11,ok?'#dfdfdf':'#797979',8)});
+ tx('Karma: '+(k>0?'+':'')+k+(k>=3?' — o grupo confia em você (menos dano, final de paz favorecido)':k<=-3?' — o mundo desconfia (mais dano, final de ruína favorecido)':' — neutro'),W/2,236,k>=3?'#cccccc':k<=-3?'#fff':'#c4c4c4',9,'center');tx('toque para voltar',W/2,256,'#8d8d8d',11,'center')}
 /* v3.4 — fundo de batalha estilo Undertale: preto + grade verde, variacao tematica por chefe */
 const BGT={fl:['#1f7a2e',24,'p'],q:['#1d6b4a',28,'d'],g:['#2a8a2a',16,'p'],mo:['#1a6f5f',32,'s'],he:['#1d5f3a',20,'f'],z:['#4f9a1f',24,'z'],hd:['#1a7a6a',28,'u'],er:['#1fb04a',12,'e'],pa:['#2ac85a',20,'i']};
 function bgBattle(b){const k=BKEY(b),[c0,n,m]=BGT[k]||BGT.fl,c=b.tf?'#b02a2a':c0;g.fillStyle='#000';g.fillRect(0,0,W,H);
@@ -991,8 +991,8 @@ function audTick(dt){if(!AUD.ok)return;AUD.t+=dt;const c2=S==='c2',now=AUD.t;
  [AUD.cur,...AUD.olds].forEach(a=>{if(!a)return;const t=a.tv*mv,st=dt/1.4;a.volume=Math.max(0,Math.min(1,a.volume+Math.max(-st,Math.min(st,t-a.volume))))});
  AUD.olds=AUD.olds.filter(a=>{if(a.volume<.01&&a.tv===0){a.pause();return false}return true});
  if(AUD.toastT>0){AUD.toastT-=dt;g.globalAlpha=Math.min(1,AUD.toastT);box(10,6,300,22,'#6c6290');tx('♪ '+AUD.toast,20,22,'#d9d2ea',11);g.globalAlpha=1}}
-function updFones(){if(tap&&T>.4){audInit();sfx('ui_confirmar');introStart()}}
-function drawFones(){g.fillStyle='#05040a';g.fillRect(0,0,W,H);tx('ELYNDRA',W/2,64,'#d9c8ff',26,'center');g.strokeStyle='#fff';g.lineWidth=4;g.beginPath();g.arc(W/2,128,24,Math.PI,0);g.stroke();g.fillStyle='#fff';g.fillRect(W/2-30,126,10,20);g.fillRect(W/2+20,126,10,20);tx('Este jogo fica melhor',W/2,178,'#fff',15,'center');tx('com fones de ouvido.',W/2,198,'#fff',15,'center');tx('Toque (ou aperte A) para continuar',W/2,242,'#6c6290',12,'center')}
+function updFones(){if(tap&&T>.4){audInit();sfx('ui_confirmar');S='title';T=0;ptr=null;P0=null}}
+function drawFones(){g.fillStyle='#000';g.fillRect(0,0,W,H);g.imageSmoothingEnabled=false;if(IMGR.logo)g.drawImage(IMGR.logo,Math.round(W/2-IMGR.logo.width/2),12);else tx('ELYNDRA LEGACY',W/2,64,'#fff',26,'center');g.strokeStyle='#fff';g.lineWidth=4;g.beginPath();g.arc(W/2,128,24,Math.PI,0);g.stroke();g.fillStyle='#fff';g.fillRect(W/2-30,126,10,20);g.fillRect(W/2+20,126,10,20);tx('Este jogo fica melhor',W/2,178,'#fff',15,'center');tx('com fones de ouvido.',W/2,198,'#fff',15,'center');tx('Toque (ou aperte A) para continuar',W/2,242,'#8d8d8d',12,'center')}
 
 /* ---------- v2.3 — ABERTURA ANIMADA (S='intro') + RATO SÓ NO TÍTULO (S='rato') ---------- */
 const IMGR={};['logo','rato'].forEach(n=>{const i=new Image();i.onload=()=>{IMGR[n]=i};i.src='img/'+n+'.png'});
@@ -1074,9 +1074,9 @@ function sceneC(t,fz){g.save();const z=fz?1:1.16-Math.min(1,t/21)*.16;g.translat
  iFlies(t,240,160,8,'#ffe58a');g.restore()}
 function sceneLogo(t){sceneC(21+t*.4,1);g.fillStyle='rgba(8,4,12,'+Math.min(.5,t*.4)+')';g.fillRect(0,0,W,H);
  const la=Math.min(1,Math.max(0,(t-.4)/1.2));g.globalAlpha=la;g.imageSmoothingEnabled=false;
- if(IMGR.logo)g.drawImage(IMGR.logo,30,92,420,45);else tx('ELYNDRA',W/2,130,'#d9c8ff',46,'center');g.globalAlpha=1;
+ if(IMGR.logo)g.drawImage(IMGR.logo,Math.round(W/2-IMGR.logo.width/2),66);else tx('ELYNDRA LEGACY',W/2,130,'#dddddd',46,'center');g.globalAlpha=1;
  const a2=Math.min(1,Math.max(0,(t-2)/1.2)),a3=Math.min(1,Math.max(0,(t-3.8)/1.2));
- g.globalAlpha=a2;tx('uma aventura de escolhas',W/2,164,'#ffd9a0',14,'center');g.globalAlpha=a3;tx('um jogo de Weslley Nunes',W/2,190,'#b9a8d8',12,'center');g.globalAlpha=1;
+ g.globalAlpha=a2;tx('uma aventura de escolhas',W/2,164,'#e5e5e5',14,'center');g.globalAlpha=a3;tx('um jogo de Weslley Nunes',W/2,190,'#c4c4c4',12,'center');g.globalAlpha=1;
  if(t<1.4){g.fillStyle='rgba(255,224,170,'+(.9*(1-t/1.4))+')';g.fillRect(0,0,W,H)}}
 function drawIntro(){const t=INT.t;g.fillStyle='#000';g.fillRect(0,0,W,H);
  if(t<15.2)sceneA(t);else if(t<69.4)sceneB(t-15.2);else if(t<90.5)sceneC(t-69.4,0);else sceneLogo(t-90.5);
@@ -1093,15 +1093,15 @@ function drawIntro(){const t=INT.t;g.fillStyle='#000';g.fillRect(0,0,W,H);
 /* título: logo + rato (só aqui) */
 const RT={sel:-1},RAT={x:16,y:222,w:70,h:33};
 const RQ=[['O que é este jogo?','ELYNDRA é um RPG de escolhas. Você conversa, explora, enfrenta chefes e decide quem vai ser. Cada escolha muda o caminho.'],['Como eu jogo?','Toque e arraste para andar; toque para falar e confirmar. No teclado, use as setas e Espaço ou Enter. As teclas mudam em Opções.'],['Como desviar nas batalhas?','Na esquiva, mova o coração com o dedo ou as setas e fuja dos projéteis. Em AGIR você pode conversar: nem toda luta precisa de golpes.'],['Existem vários finais?','Sim! O que decide é como você trata os outros e o que escolhe nos momentos importantes. O resto é segredo.'],['Voltar',null]];
-function drawLogoT(){g.imageSmoothingEnabled=false;if(IMGR.logo)g.drawImage(IMGR.logo,60,54,360,39);else tx('ELYNDRA',W/2,92,'#d9c8ff',46,'center');tx('uma aventura de escolhas',W/2,118,'#8d80b3',13,'center')}
-function drawRatT(){if(!IMGR.rato)return;const b=Math.round(Math.sin(T*3)*1.5);g.imageSmoothingEnabled=false;g.drawImage(IMGR.rato,RAT.x,RAT.y+b);g.globalAlpha=.6+.4*((Math.sin(T*4)+1)/2);box(RAT.x+28,RAT.y-24,24,20,'#ffd84a');tx('?',RAT.x+40,RAT.y-9,'#ffd84a',14,'center');g.globalAlpha=1}
+function drawLogoT(){g.imageSmoothingEnabled=false;if(IMGR.logo)g.drawImage(IMGR.logo,Math.round(W/2-IMGR.logo.width/2),20);else tx('ELYNDRA LEGACY',W/2,70,'#fff',34,'center');tx('uma aventura de escolhas',W/2,119,'#aaa',12,'center')}
+function drawRatT(){if(!IMGR.rato)return;const b=Math.round(Math.sin(T*3)*1.5);g.imageSmoothingEnabled=false;g.drawImage(IMGR.rato,RAT.x,RAT.y+b);g.globalAlpha=.6+.4*((Math.sin(T*4)+1)/2);box(RAT.x+28,RAT.y-24,24,20,'#dddddd');tx('?',RAT.x+40,RAT.y-9,'#dddddd',14,'center');g.globalAlpha=1}
 const _ut0=updTitle,_dt0=drawTitle;
 updTitle=function(){if(tap&&inRect(LPT||ptr,RAT.x,RAT.y-26,RAT.w,RAT.h+26)){beep(440);S='rato';RT.sel=-1;return}_ut0()};
 drawTitle=function(){_dt0();drawRatT()};
 function updRato(){if(!tap)return;const p=LPT||ptr;if(RT.sel>=0){RT.sel=-1;beep(260);return}RQ.forEach((q,i)=>{if(inRect(p,96,148+i*22,370,20)){beep(440);if(!q[1]){S='title';T=0}else RT.sel=i}})}
-function drawRato(){drawTitle();g.fillStyle='rgba(0,0,0,.62)';g.fillRect(0,0,W,H);box(10,140,460,122,'#8d80b3');g.imageSmoothingEnabled=false;if(IMGR.rato)g.drawImage(IMGR.rato,20,176+Math.round(Math.sin(T*3)*1.5));
- if(RT.sel<0){RQ.forEach((q,i)=>{box(96,148+i*22,370,20,'#6c6290');tx(q[0],108,163+i*22,'#fff',12)})}
- else{tx(RQ[RT.sel][0],100,162,'#ffd84a',12);wr(RQ[RT.sel][1],100,182,360,16,9999);tx('toque para voltar',460,254,'#6c6290',10,'right')}}
+function drawRato(){drawTitle();g.fillStyle='rgba(0,0,0,.62)';g.fillRect(0,0,W,H);box(10,140,460,122,'#a5a5a5');g.imageSmoothingEnabled=false;if(IMGR.rato)g.drawImage(IMGR.rato,20,176+Math.round(Math.sin(T*3)*1.5));
+ if(RT.sel<0){RQ.forEach((q,i)=>{box(96,148+i*22,370,20,'#8d8d8d');tx(q[0],108,163+i*22,'#fff',12)})}
+ else{tx(RQ[RT.sel][0],100,162,'#dddddd',12);wr(RQ[RT.sel][1],100,182,360,16,9999);tx('toque para voltar',460,254,'#8d8d8d',10,'right')}}
 
 /* ---------- v2.4 — TELA PROPORCIONAL / TELA CHEIA + SISTEMA DE VIBRAÇÃO ---------- */
 function fit(){const b=document.body,vw=b.clientWidth||innerWidth,vh=b.clientHeight||innerHeight;const w=Math.max(160,Math.min(vw,vh*16/9)),h=w*9/16;cv.style.width=Math.floor(w)+'px';cv.style.height=Math.floor(h)+'px'}
@@ -1195,13 +1195,13 @@ const PLB=[['ok','Confirmar / Falar'],['back','Voltar / Cancelar'],['menu','Menu
 function updPad(){if(!tap)return;const p=ptr;if(!p)return;PLB.forEach(([o],i)=>{if(inRect(p,40,56+i*32,400,26)){if(!PAD.on){beep(120);return}PAD.wait=PAD.wait===o?null:o;PAD.waitT=0;beep(500)}});
  if(inRect(p,40,56+3*32,196,26)){if(PAD.id)delete CFG.pm[PAD.id];PAD.wait=null;saveCfg();beep(500)}
  if(inRect(p,244,56+3*32,196,26)){PAD.wait=null;S='opt'}}
-function drawPad(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('CONTROLE',W/2,22,'#d9c8ff',18,'center');
- tx(PAD.on?('Conectado: '+PAD.name+(PAD.std?' (padrão)':' (genérico)')):'Nenhum controle. Conecte (USB/OTG ou Bluetooth) e aperte um botão.',W/2,42,PAD.on?'#9fe6a0':'#ffb0b0',11,'center');
+function drawPad(){g.fillStyle='#000';g.fillRect(0,0,W,H);tx('CONTROLE',W/2,22,'#dddddd',18,'center');
+ tx(PAD.on?('Conectado: '+PAD.name+(PAD.std?' (padrão)':' (genérico)')):'Nenhum controle. Conecte (USB/OTG ou Bluetooth) e aperte um botão.',W/2,42,PAD.on?'#d5d5d5':'#d4d4d4',11,'center');
  const m=PAD.on&&CFG.pm[PAD.id]||{},mp=PAD.on?padMap(padList().find(q=>q.id===PAD.id)||{buttons:[],mapping:'',id:''}):{};
- PLB.forEach(([o,n],i)=>{const w=PAD.wait===o;box(40,56+i*32,400,26,w?'#ffd84a':'#8d80b3');tx(n,54,73+i*32,'#fff',13);tx(w?'Aperte um botão...':(PAD.on?'Botão '+(mp[o]??'?')+(m[o]!==undefined?'':' (auto)'):'-'),426,73+i*32,w?'#ffd84a':'#fff',13,'right')});
- box(40,56+3*32,196,26,'#8d80b3');tx('Restaurar padrão',138,73+3*32,'#fff',13,'center');box(244,56+3*32,196,26,'#8d80b3');tx('Voltar',342,73+3*32,'#fff',13,'center');
- tx('Teste: botões '+(PAD.pressed.length?PAD.pressed.join(', '):'—')+'   direção '+({u:'↑',d:'↓',l:'←',r:'→'}[PAD.dirs]||'—'),W/2,206,'#d9d2ea',12,'center');
- tx('Direcional ou analógico: andar e navegar. Se um botão estiver errado, toque na linha e aperte o certo.',W/2,232,'#a89cc8',10,'center');tx('Esc ou B volta.',W/2,250,'#a89cc8',10,'center')}
+ PLB.forEach(([o,n],i)=>{const w=PAD.wait===o;box(40,56+i*32,400,26,w?'#dddddd':'#a5a5a5');tx(n,54,73+i*32,'#fff',13);tx(w?'Aperte um botão...':(PAD.on?'Botão '+(mp[o]??'?')+(m[o]!==undefined?'':' (auto)'):'-'),426,73+i*32,w?'#dddddd':'#fff',13,'right')});
+ box(40,56+3*32,196,26,'#a5a5a5');tx('Restaurar padrão',138,73+3*32,'#fff',13,'center');box(244,56+3*32,196,26,'#a5a5a5');tx('Voltar',342,73+3*32,'#fff',13,'center');
+ tx('Teste: botões '+(PAD.pressed.length?PAD.pressed.join(', '):'—')+'   direção '+({u:'↑',d:'↓',l:'←',r:'→'}[PAD.dirs]||'—'),W/2,206,'#dfdfdf',12,'center');
+ tx('Direcional ou analógico: andar e navegar. Se um botão estiver errado, toque na linha e aperte o certo.',W/2,232,'#b9b9b9',10,'center');tx('Esc ou B volta.',W/2,250,'#b9b9b9',10,'center')}
 
 /* ---------- v2.7 — CHEFÕES ANIMADOS (camada por cima das funções de desenho dos chefes; não mexe em lógica de batalha) ---------- */
 const BFX={inB:0,b:null,t0:0,ph:'',turn:-1,hp:0,n:0,pulse:-9,hit:-9,burst:-9,def:0,last:0,parts:[],nb:0};
