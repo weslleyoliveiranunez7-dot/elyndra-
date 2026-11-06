@@ -1,0 +1,10 @@
+ELYNDRA — HANDOFF v5.9 (06/11/2026) | index.html + www/index.html (ler com v5.8 e anteriores) | Cena do ritual
+MUDANCA: VER='5.9'. Nova cena animada ANTES da Floris (estado S='rit'): startPro() agora inicia a cena do ritual em vez de ir direto para startExplore().
+1) CENA (updRit/drawRit/cult): sala escura de piso xadrez, pentagrama vermelho pulsando, velas, particulas; 4 encapuzados (silhueta preta com contorno vermelho, desenhados por codigo) de bracos erguidos cantando.
+2) FLUXO: fade-in -> protagonista (sprite prot.png, de costas) entra pela escada e para perto do pilar -> dialogo ouvido (sem spoiler: so "selo", "uma alma que ninguem va procurar") -> tabua range, "!" -> encapuzados o notam e o cercam -> flash branco e tela preta "...tudo escurece." -> startExplore() (cena da Floris, sem mudanca).
+3) Falas do 'Encapuzado' (cor #ff4a4a) editaveis em updRit. Musica: mesma do prologue (mus_abertura_prologo).
+Nada de nomes do roteiro V2.0 (Jordan, demonio, etc.) aparece na cena.
+AJUSTES POSSIVEIS: sprite proprio dos encapuzados (usar a folha enviada), som de canto, tecla para pular a cena.
+Testado: fluxo completo ate explore sem erros de JS.
+4) v5.9b: encapuzados agora usam os sprites da folha enviada (ritual 4 quadros e idle 5 quadros), embutidos em base64 no index.html (IMG.cult). Sem a imagem, cai no desenho por codigo.
+5) v5.9c: fundo da cena agora e a imagem da sala do ritual enviada (480x270, embutida em base64, IMG.ritual); cai no fundo desenhado se nao carregar.
