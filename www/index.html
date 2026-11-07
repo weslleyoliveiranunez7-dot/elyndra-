@@ -801,16 +801,18 @@ function mkAud(key){const a=new Audio();a.loop=!/final|creditos|pos_cred/.test(k
  a.onplaying=()=>{if(key.startsWith('acervo_')&&!a.shown){a.shown=1;const m=ACV.find(x=>x[0]===key);AUD.toast=m?m[1]:'';AUD.toastT=4.5}};
  if(AUD.pos[key]&&!/chefe|genocide/.test(key))a.addEventListener('loadedmetadata',()=>{try{a.currentTime=AUD.pos[key]%a.duration}catch(e){}},{once:true});set();return a}
 function playMus(key){if(!AUD.ok||key===AUD.curKey)return;const old=AUD.cur;if(old){if(AUD.curKey)AUD.pos[AUD.curKey]=old.currentTime;old.tv=0;AUD.olds.push(old)}AUD.curKey=key;AUD.cur=null;gmStop();if(!key)return;if(GMAP[key]){gmPlay(key);return}const a=mkAud(key);AUD.cur=a;const p=a.play();if(p&&p.catch)p.catch(()=>{})}
-function musKey(){return null;
- if(S==='cust')return 'mus_titulo';if(S==='fones')return null;if(S==='intro')return 'mus_intro';if(S==='bintro')return BI&&BI.retry?AUD.curKey:null;if(S==='title'||S==='rato')return 'mus_titulo';if(S==='pro'||S==='rit'||S==='explore'||S==='world')return 'mus_abertura_prologo';if(S==='jord')return 'mus_tema_jordana';if(S==='gob')return GB&&(GB.ph==='bat'||GB.ph==='sim')?'mus_tema_floris':GB&&(GB.ph==='guard'||GB.ph==='exit')?'mus_cena_triste':'mus_abertura_prologo';
- if(S==='battle'){if(GEN)return 'mus_chefe_genocide';return B.pa?'mus_chefe_primeiro_autor':B.er?'mus_chefe_erro_original':B.g?'mus_chefe_guardiao':B.q?'mus_chefe_rainha':B.mo?'mus_chefe_morpheus':B.he?'mus_chefe_herdeiros':B.z?'mus_chefe_zeus':B.hd?'mus_chefe_hades':'mus_tema_floris'}
+const FMUS={mus_floris_feelgood:'mus_tema_floris',mus_goblins_conflito:'mus_abertura_prologo',mus_furias_survive:'mus_chefe_guardiao',mus_ambiente_calmo:'mus_abertura_prologo',mus_ambiente_tensao:'mus_cena_triste',mus_ambiente_abismo:'mus_cena_triste'},BADM={};
+function fmus(k){return k&&FMUS[k]&&BADM[k]?FMUS[k]:k}
+function musKey(){
+ if(S==='cust')return 'mus_titulo';if(S==='fones')return null;if(S==='intro')return 'mus_intro';if(S==='bintro')return BI&&BI.retry?AUD.curKey:null;if(S==='title'||S==='rato')return 'mus_titulo';if(S==='pro'||S==='rit'||S==='explore'||S==='world')return 'mus_abertura_prologo';if(S==='jord')return 'mus_tema_jordana';if(S==='gob')return GB&&GB.ph==='fur'?'mus_furias_survive':GB&&(GB.ph==='bin'||GB.ph==='bat'||GB.ph==='sim')?'mus_goblins_conflito':GB&&(GB.ph==='guard'||GB.ph==='exit')?'mus_ambiente_tensao':'mus_ambiente_calmo';
+ if(S==='battle'){if(GEN)return 'mus_chefe_genocide';return B.pa?'mus_chefe_primeiro_autor':B.er?'mus_chefe_erro_original':B.g?'mus_chefe_guardiao':B.q?'mus_chefe_rainha':B.mo?'mus_chefe_morpheus':B.he?'mus_chefe_herdeiros':B.z?'mus_chefe_zeus':B.hd?'mus_chefe_hades':B.fu?'mus_furias_survive':(B.fq&&!B.ev)?'mus_floris_feelgood':'mus_tema_floris'}
  if(S==='end8'){const n=e8pages().length;if(e8>=n)return e8r==='sacrificio'?'mus_pos_creditos':null;return e8===n-1?'mus_creditos':e8r==='sacrificio'?'mus_final_sacrificio':'mus_final_'+(e8r==='verdadeiro'?'paz':e8r)}
  if(S==='choice'&&C2.ch===8)return 'mus_tema_protagonista';
  if(S==='c2'){const ch=C2.ch,rm=C2.room;
   if(AUD.ov&&AUD.ov.ch===ch&&AUD.ov.room===rm)return AUD.ov.k;
   if(D&&D.l[D.i]){const sp=D.l[D.i][0];if(SPK[sp]){AUD.ov={k:SPK[sp],ch,room:rm};return AUD.ov.k}if(ch===8&&sp==='Floris'){AUD.ov={k:'mus_tema_floris',ch,room:rm};return AUD.ov.k}}
   if(AUD.acv&&AUD.acv.ch===ch&&AUD.acv.room===rm)return AUD.acv.k;
-  if(ch===8)return rm===4?'mus_tema_jordana':rm===2?'mus_cena_triste':rm===3?'mus_nucleo_instavel':'mus_nucleo';
+  if(ch===8)return rm===4?'mus_tema_jordana':rm===2?'mus_ambiente_abismo':rm===3?'mus_nucleo_instavel':'mus_nucleo';
   return CHM[ch]||AUD.curKey}
  return AUD.curKey}
 function ambFor(){if(S==='explore')return 'amb_vento_floresta';if(S!=='c2')return AUD.ambKey;const ch=C2.ch,r=C2.room;
@@ -896,8 +898,8 @@ function audTick(dt){if(!AUD.ok)return;AUD.t+=dt;const c2=S==='c2',now=AUD.t;
   const cl=Object.keys(C2.cl||{}).length;if(cl>AUD.cl)sfx('stg_descoberta',{v:.6});AUD.cl=cl}
  if(F.jfall!==AUD.jf){sfx(F.jfall?'cena_jordana_cai':'cena_jordana_volta');AUD.jf=F.jfall}
  if(S==='end8'&&e8>=e8pages().length&&e8r==='sacrificio'&&!AUD.pc){AUD.pc=1;sfx('cena_arquivo_save')}
- if(AUD.cur&&AUD.cur.dead){if(AUD.curKey.startsWith('acervo_')){AUD.acv=null}AUD.cur=null;AUD.curKey='?'}
- const mk=musKey();if(mk!==undefined&&mk!==AUD.curKey)playMus(mk);playAmb(ambFor());ambVol();
+ if(AUD.cur&&AUD.cur.dead){if(AUD.curKey.startsWith('acervo_')){AUD.acv=null}if(FMUS[AUD.curKey])BADM[AUD.curKey]=1;AUD.cur=null;AUD.curKey='?'}
+ const mk=fmus(musKey());if(mk!==undefined&&mk!==AUD.curKey)playMus(mk);playAmb(ambFor());ambVol();
  AUD.duck+=((D?.55:1)-AUD.duck)*Math.min(1,dt*4);audMq(dt);const mv=CFG.snd?CFG.mv*AUD.duck*AUD.mq:0;gmVol(mv);
  [AUD.cur,...AUD.olds].forEach(a=>{if(!a)return;const t=a.tv*mv,st=dt/1.4;a.volume=Math.max(0,Math.min(1,a.volume+Math.max(-st,Math.min(st,t-a.volume))))});
  AUD.olds=AUD.olds.filter(a=>{if(a.volume<.01&&a.tv===0){a.pause();return false}return true});
