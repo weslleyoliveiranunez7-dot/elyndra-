@@ -22,7 +22,7 @@ const COL={Floris:'#ffd84a',Jordana:'#9fd7ff','Narração':'#a99ec4'};
 const KBD={up:'w',down:'s',left:'a',right:'d',ok:'e',menu:'escape'};const CFG={snd:1,vib:1,ts:28,easy:0,mv:.8,sv:.9,kb:{...KBD}};try{Object.assign(CFG,JSON.parse(localStorage.getItem('elyndra_cfg'))||{})}catch(e){}CFG.kb=Object.assign({},KBD,CFG.kb||{});
 function saveCfg(){try{localStorage.setItem('elyndra_cfg',JSON.stringify(CFG))}catch(e){}}
 /* ---------- v3.0 — SAVES: 3 SLOTS + PONTOS DE SAVE + PORCENTAGEM ---------- */
-const VER='5.9',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
+const VER='6.0',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2,ROUTES=['sacrificio','paz','neutra','ruina','deuses','criador','vazio'],W_STORY=60,W_ROUTES=40;
 let SL=[null,null,null],curSlot=-1,PLAY=0,NOSAVE=0,SPCD=0;
 const NOPLAY=['cust','title','slots','opt','keys','pad','diary','fones','intro','rato'];
 function preU(n){let u=PRO_U;for(let k=1;k<n&&k<=8;k++)u+=CHR[k];return u}
@@ -224,8 +224,8 @@ function startPro(){rt={ph:0,t:0,px:240,py:285,pd:2,pf:0,fl:0};D=null;S='rit'}
 function updRit(dt){rt.t+=dt;if(dlg(dt))return;const p=rt.ph;
  if(p===0&&rt.t>2.2){rt.ph=1;rt.t=0}
  else if(p===1){const k=Math.min(1,rt.t/3.6);rt.px=240+(100-240)*k;rt.py=285+(170-285)*k;rt.pf+=dt*8;if(k>=1){rt.ph=2;rt.t=0;rt.pf=0;
-  say([['Encapuzado','A lua está no ponto. Comecem o canto.'],['Encapuzado','O selo precisa de uma alma. Uma que ninguém vá procurar.'],['Encapuzado','Quando ela entrar, o resto não importa mais.'],['Você','(O que... eu só segui a luz da escada.)']],()=>{rt.ph=3;rt.t=0;say([['Narração','Uma tábua range sob o seu pé.']],()=>{rt.ph=4;rt.t=0;rt.pd=0;
-   say([['Encapuzado','...Quem está aí?'],['Encapuzado','Ele ouviu. Peguem-no.'],['Você','Espera! Eu não vi nada! Eu só...']],()=>{rt.ph=5;rt.t=0})})})}}
+  say([['Encapuzado','A lua está no ponto. Comecem o canto.'],['Encapuzado','O selo precisa de uma alma. Uma que ninguém vá procurar.'],['Encapuzado','Quando ela entrar, o resto não importa mais.'],['Narração','Você só seguiu a luz da escada. Agora não consegue se mexer.']],()=>{rt.ph=3;rt.t=0;say([['Narração','Uma tábua range sob o seu pé.']],()=>{rt.ph=4;rt.t=0;rt.pd=0;
+   say([['Encapuzado','...Quem está aí?'],['Encapuzado','Ele ouviu. Peguem-no.'],['Narração','Você tenta recuar, mas não há para onde ir.']],()=>{rt.ph=5;rt.t=0})})})}}
  else if(p===5&&rt.t>1.3){rt.ph=6;rt.t=0;beep(120,.3)}
  else if(p===6&&rt.t>1.8){rt.ph=7;rt.t=0}
  else if(p===7&&rt.t>1.6){startExplore()}}
@@ -258,18 +258,18 @@ const WALLS=[[0,0,480,28],[0,242,480,28],[0,0,24,270],[456,0,24,270],[120,90,40,
 const pl={x:50,y:200,dir:0,mv:false,fr:0};let pts=[],fl={x:330,y:110},ex={t:0};
 function hit(x,y){for(const[a,b,w,h]of WALLS)if(x<a+w&&x+10>a&&y<b+h&&y+10>b)return true;return false}
 function startExplore(){S='explore';pl.x=50;pl.y=200;pts=[[100,60],[220,200],[400,200]].filter((_,i)=>i>=F.pts);F.pts=Math.min(F.pts,3);ex.t=0;save('raiz');
- say([['Narração','Um zumbido baixo, como um computador velho respirando.'],['Narração','Tem grama sob suas costas. Ela não cheira a nada.'],['Você','...Eu dormi na biblioteca?'],['Floris','Olá, olá! Que susto! Eu sou Floris, a flor mais amigável de Elyndra.','feliz'],['Você','Elyndra... é o nome do jogo do computador velho.'],['Floris','Jogo? Que palavra feia. Aqui a gente chama de lar.','feliz'],['Narração','Por um instante, o céu ficou parado. Nuvens, folhas, o seu coração. Todos esperando alguém apertar um botão.'],['Narração','Depois tudo voltou a se mover. Você decide que foi impressão.'],['Floris','Eu ensino a sobreviver aqui. Toque nas partículas de luz: são pontos de amizade!','feliz'],['Narração','Arraste o dedo na tela (ou use WASD / setas) para andar.']])}
+ say([['Narração','Um zumbido baixo, como um computador velho respirando.'],['Narração','Tem grama sob suas costas. Ela não cheira a nada.'],['Floris','Olá, olá! Que susto! Eu sou Floris, a flor mais amigável de Elyndra.','feliz'],['Floris','Você caiu de longe, não é? Não precisa falar nada. Eu cuido de tudo.','feliz'],['Floris','Primeiro o básico: andar! Veja só como é fácil.','feliz'],['Narração','Arraste o dedo na tela (ou use WASD / setas) para andar até as luzes.']])}
 function updExplore(dt){ex.t+=dt;if(dlg(dt))return;if(tap&&inRect(ptr,440,0,40,30)){openOpt();return}let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8){d={x:dx/m,y:dy/m}}}
  setMove(d,dt);const sp=58*dt;if(!hit(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
  for(let i=pts.length-1;i>=0;i--){if(Math.hypot(pts[i][0]-pl.x-5,pts[i][1]-pl.y-5)<12){pts.splice(i,1);F.pts++;beep(880,.1);
   if(F.pts<3)say([['Floris',F.pts===1?'Isso! Continue assim!':'Quase lá! Mais um!']]);
-  else say([['Floris','Muito bem... pontos de amizade. Todos para mim.','bravo'],['Floris','Sabe o que é engraçado? Almas não precisam de dono. Mas eu preciso da sua.','bravo']],()=>{F.evil=true;startBattle()})}}}
+  else say([['Floris','Muito bem! Agora a parte divertida: eu vou te ensinar a lutar!','feliz']],()=>{startFlBattle()})}}}
 function drawExplore(){if(!tileFill(0,0,0,0,W,H)){g.fillStyle='#10201a';g.fillRect(0,0,W,H);g.fillStyle='#16291f';for(let i=0;i<60;i++)g.fillRect((i*83)%480,(i*47)%270,6,2)}
  for(const[a,b,w,h]of WALLS){if(!tileFill(0,1,a,b,w,h)){g.fillStyle='#3a2a1d';g.fillRect(a,b,w,h)}g.fillStyle='#5a4230';g.fillRect(a,b,w,3)}
  for(const[x,y]of pts){g.fillStyle='rgba(255,240,150,'+(.6+.4*Math.sin(T*5))+')';g.beginPath();g.arc(x,y,4,0,7);g.fill()}
  floris(fl.x,fl.y,1);drawPlayer(pl.x,pl.y);
  if(ex.t<3){g.globalAlpha=Math.min(1,3-ex.t);tx('RAIZ VELHA',W/2,60,'#d9c8ff',22,'center');g.globalAlpha=1}
- tx('Pontos de amizade: '+F.pts+'/3',12,262,'#ffe98a',11);
+ tx('Pontos de amizade: '+F.pts+'/3',12,262,'#ffe98a',11);if(F.pts===0&&!D)tx('Andar: WASD / setas / arraste o dedo',W/2,20,'#ffe98a',11,'center');
  if(ptr&&P0&&!D){g.strokeStyle='rgba(255,255,255,.3)';g.lineWidth=2;g.beginPath();g.arc(P0.x,P0.y,24,0,7);g.stroke();g.fillStyle='rgba(255,255,255,.4)';g.beginPath();g.arc(P0.x+Math.max(-24,Math.min(24,ptr.x-P0.x)),P0.y+Math.max(-24,Math.min(24,ptr.y-P0.y)),9,0,7);g.fill()}
  drawGear();dbox()}
 /* ---------- combate ---------- */
@@ -285,30 +285,39 @@ const NTXT=b=>b.q?NQ:b.g?NG:b.mo?NM:b.he?NH:b.z?NZ:b.hd?NHD:b.er?(b.pa?NPA:NER):
 function endBattle(b){F.mhp=Math.max(1,Math.min(30,Math.ceil(b.hp||1)));b.eh=0;b.ed=0;F.bt=F.bt||{};F.bt[BKEY(b)]={atk:b.na,par:b.np,hit:b.nh,agr:b.agir?1:0,turn:b.turn};
  (b.q?endQ():b.g?endG():b.mo?endM():b.he?endH():b.z?endZ():b.hd?endHd():b.er?(b.pa?endPa():endEr()):startJord())}
 function startBattle(q){S='battle';J=null;D=null;B={q:q===true,g:q==='g',mo:q==='m',he:q==='h',z:q==='z',hd:q==='H',er:q==='E'||q==='P',pa:q==='P',hard:q==='m'&&M3.hard,hp:Math.max(1,Math.min(q==='m'?M3.hp+10:30,F.mhp||30)),mx:30,eh:EHP(q),em:EHP(q),ed:EHP(q),na:0,np:0,nh:0,turn:0,ph:'menu',txt:GEN?'MODO GENOCIDE. Ele não quer mais ser convencido.':'Floris bloqueia o caminho.',t:0,sh:false,bul:[],sx:0,sy:0,inv:0,n:0}}
-function startDodge(){const b=B;if(!b.tf&&b.eh>0&&b.eh<=b.em*.5){b.tf=1;b.tft=T;F.tfN=(F.tfN|0)+1;beep(180,.4,.08);vib(80)}b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn);b.oi=-1;b.last=-9;b.lt=0;b.pd=1.6+Math.random()*1.8;b.pf=null}
-function updBattle(dt){const b=B;b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);if(tap&&b.ph!=='over'&&inRect(ptr,440,0,40,30)){openOpt();return}
+function startDodge(){const b=B;if(!b.tf&&!b.fq&&b.eh>0&&b.eh<=b.em*.5){b.tf=1;b.tft=T;F.tfN=(F.tfN|0)+1;beep(180,.4,.08);vib(80)}b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn);b.oi=-1;b.last=-9;b.lt=0;b.pd=1.6+Math.random()*1.8;b.pf=null}
+function startFlBattle(){startBattle();const b=B;b.fq=1;b.ev=0;b.ph='x';b.txt='Floris sorri. Escolha um comando.';
+ say([['Floris','Lutar é fácil! Essa pequena alma é você. Mova-a dentro da caixa para desviar dos ataques.','feliz'],['Floris','Lá embaixo ficam os comandos: Atacar, Agir, Defender... Experimente!','feliz']],()=>{b.ph='menu'})}
+function flStep(b){if(b.ev)return;
+ if(b.turn===1){b.ph='x';say([['Floris','Viu? Nada de mais! As bolinhas lilás curam você: encoste nelas.','feliz'],['Floris','E para atacar, aperte quando a barra estiver no meio. Tente de novo!','feliz']],()=>{b.ph='menu'})}
+ else if(b.turn>=2){b.ph='x';say([['Floris','Muito bem... você aprende rápido.','feliz'],['Floris','Sabe o que é engraçado? Almas não precisam de dono. Mas eu preciso da sua.','bravo'],['Floris','Agora a aula de verdade: como MORRER.','bravo']],()=>{F.evil=true;b.ev=1;b.eh=b.em;b.hp=Math.max(b.hp,b.mx);b.evT=0;b.ph='menu';b.txt='Floris não sorri mais.';beep(110,.4,.08);vib(80)})}}
+function flFinal(b){b.fin=1;b.ph='x';b.t=-99;b.bul=[];b.hp=1;F.mhp=1;F.evil=true;vib(250);beep(90,.5,.1);
+ say([['Narração','Um último golpe. Não há como desviar dele.'],['Floris','Boa noite, {N}.','bravo']],()=>{startJord()})}
+function updBattle(dt){const b=B;if(b.fq&&D){dlg(dt);return}b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);if(tap&&b.ph!=='over'&&inRect(ptr,440,0,40,30)){openOpt();return}
  if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,10+i*118,222,110,36)){beep(500);b.msel=i;b.txt=(b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1){b.agir=1;F.agr=(F.agr|0)+1}b.sh=i===2;if(i===0){b.ph='atk';b.at=0;b.ax=0;b.ar=null;b.ak=0}else{b.ph='msg';b.t=0}}})}
  else if(b.ph==='msg'){b.t+=dt;if(b.t>3.2||(tap&&b.t>.8))startDodge()}
  else if(b.ph==='atk'){if(b.ar){b.ak+=dt;if(b.ak>1){b.ar=null;if(b.eh<=0)endBattle(b);else startDodge()}}
   else{b.at+=dt;const u=(b.at/.95)%2;b.ax=u<1?u:2-u;const go=tap&&b.at>.15;
    if(go||b.at>2.9){const miss=!go,acc=miss?0:1-Math.abs(b.ax-.5)*2,crit=acc>.88,dm=miss?0:Math.round(3+acc*9)+(crit?2:0)+(GEN?2:0);
-    b.eh=Math.max(0,b.eh-dm);b.ar={dm,crit,miss};b.ak=0;b.ef=T;if(dm>0){b.na++;F.atk=(F.atk|0)+1;vib(30);if(crit&&typeof VIB!=='undefined')VIB.sh=Math.max(VIB.sh||0,3)}beep(miss?260:crit?900:440);
+    b.eh=Math.max(0,b.eh-dm);if(b.fq)b.eh=b.ev?b.em:Math.max(1,b.eh);b.ar={dm,crit,miss};b.ak=0;b.ef=T;if(dm>0){b.na++;F.atk=(F.atk|0)+1;vib(30);if(crit&&typeof VIB!=='undefined')VIB.sh=Math.max(VIB.sh||0,3)}beep(miss?260:crit?900:440);
     if(b.er&&!b.pa&&dm>0&&typeof AUD!=='undefined')AUD.bt=Math.max(0,(AUD.bt||0)-14)}}}
  else if(b.ph==='dodge'){b.t+=dt;b.sp-=dt*(GEN?1.6:1)*rushMul()*(b.tf?1.35:1);b.inv-=dt;if(b.tf&&T-b.tft<1.6)b.inv=Math.max(b.inv,.2);const k=dirKeys();const iv=(b.mo||b.er)&&b.turn%3===1?-1:1;b.sx+=iv*(k.x*90*dt+drag.x);b.sy+=iv*(k.y*90*dt+drag.y);
   b.sx=Math.max(A.x+4,Math.min(A.x+A.w-4,b.sx));b.sy=Math.max(A.y+4,Math.min(A.y+A.h-4,b.sy));const p=b.turn%3,r=b.r;if(b.g)gs(b,p,r);if(b.mo)ms(b,p,r);if(b.he)hs(b,p,r);if(b.z)zs(b,p,r);if(b.hd)hds(b,p,r);if(b.er)(b.pa?pas:hers)(b,p,r);if(b.q&&p<2)qs(b,p,r);
   if(!b.q&&!b.g&&!b.mo&&!b.he&&!b.z&&!b.hd&&!b.er&&p===0&&b.sp<=0){b.sp=.42;b.bul.push({k:'b',x:A.x+r()*A.w,y:A.y-4,vx:(r()-.5)*30,vy:42+r()*18})}
   if(!b.g&&!b.mo&&!b.he&&!b.z&&!b.hd&&!b.er&&(b.q?p===2:p===1)&&b.sp<=0){b.sp=1;const v=b.n++%2===0;b.bul.push(v?{k:'v',x:A.x+r()*(A.w-16),y:A.y,w:16,h:A.h,t:0}:{k:'v',x:A.x,y:A.y+r()*(A.h-14),w:A.w,h:14,t:0})}
   if(!b.q&&!b.g&&!b.mo&&!b.he&&!b.z&&!b.hd&&!b.er&&p===2&&b.sp<=0){b.sp=1.3;const cx=A.x+r()*A.w,cy=A.y+10;for(let i=0;i<8;i++){const an=i*Math.PI/4+r()*.3;b.bul.push({k:'s',x:cx,y:cy,vx:Math.cos(an)*42,vy:Math.sin(an)*42})}}
-  b.pd-=dt;if(b.pd<=0&&b.t<(b.er&&!b.pa?10:7)-1.8){b.pd=3+Math.random()*3.2;let px=A.x+14+Math.random()*(A.w-28),py=A.y+14+Math.random()*(A.h-28);if(Math.hypot(px-b.sx,py-b.sy)<26){px=A.x+A.w-(px-A.x);py=A.y+A.h-(py-A.y)}b.bul.push({k:'p',x:px,y:py,vx:(Math.random()-.5)*14,vy:(Math.random()-.5)*14,l:4})}
+  if(b.fq&&b.ev){b.sq=(b.sq||0)-dt;if(b.sq<=0){b.sq=.3;const bx=A.x+r()*A.w;b.bul.push({k:'b',x:bx,y:A.y-4,vx:(b.sx-bx)*.4,vy:70})}}
+  b.pd-=dt;if(b.pd<=0&&!(b.fq&&b.ev)&&b.t<(b.er&&!b.pa?10:7)-1.8){b.pd=3+Math.random()*3.2;let px=A.x+14+Math.random()*(A.w-28),py=A.y+14+Math.random()*(A.h-28);if(Math.hypot(px-b.sx,py-b.sy)<26){px=A.x+A.w-(px-A.x);py=A.y+A.h-(py-A.y)}b.bul.push({k:'p',x:px,y:py,vx:(Math.random()-.5)*14,vy:(Math.random()-.5)*14,l:4})}
   for(let i=b.bul.length-1;i>=0;i--){const o=b.bul[i];let h=false;
    if(o.k==='p'){o.l-=dt;o.x+=o.vx*dt;o.y+=o.vy*dt;if(o.x<A.x+6||o.x>A.x+A.w-6)o.vx*=-1;if(o.y<A.y+6||o.y>A.y+A.h-6)o.vy*=-1;
     if(o.l<=0){b.bul.splice(i,1);continue}
     if(Math.hypot(o.x-b.sx,o.y-b.sy)<9){b.hp=Math.min(b.mx,b.hp+2);b.np++;F.par=(F.par|0)+1;b.pf={t:T,x:o.x,y:o.y};beep(900);vib(15);b.bul.splice(i,1)}continue}
    if(o.k==='v'){o.t+=dt;if(o.t>1.3){b.bul.splice(i,1);continue}if(o.t>.8&&b.sx+3>o.x&&b.sx-3<o.x+o.w&&b.sy+3>o.y&&b.sy-3<o.y+o.h)h=true}
-   else{if(o.gr>0)o.gr-=dt;if(o.k==='d'){o.l-=dt;if(o.l<=0){for(const sg of[-1,1])b.bul.push({k:'b',x:o.x,y:o.y,vx:sg*34,vy:o.vy+14});b.bul.splice(i,1);continue}}if(o.k==='w'){o.l-=dt;if(o.l<=0){o.x=o.tx;o.y=o.ty;o.k='b';o.gr=.4;const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx=dx/m*40;o.vy=dy/m*40}}if(o.k==='x'){o.l-=dt;if(o.l<=0){for(let q=0;q<6;q++){const an=q*Math.PI/3;b.bul.push({k:'b',x:o.x,y:o.y,vx:Math.cos(an)*40,vy:Math.sin(an)*40})}b.bul.splice(i,1);continue}}if(o.k==='m'){o.l-=dt;if(o.l<=0){b.bul.splice(i,1);continue}const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx+=dx/m*70*dt;o.vy+=dy/m*70*dt;const v=Math.hypot(o.vx,o.vy);if(v>36){o.vx*=36/v;o.vy*=36/v}}const rm_=(GEN?1.3:1)*Math.min(isRush()?1.9:1.5,Math.sqrt(rushMul()));o.x+=o.vx*dt*rm_;o.y+=o.vy*dt*rm_;if(o.x<A.x-10||o.x>A.x+A.w+10||o.y<A.y-10||o.y>A.y+A.h+10){b.bul.splice(i,1);continue}if(o.k!=='f'&&o.k!=='w'&&!(o.gr>0)&&Math.hypot(o.x-b.sx,o.y-b.sy)<6.5)h=true}
-   if(h&&b.inv<=0){b.hp-=Math.max(1,(CFG.easy?(b.sh?2:3):(b.sh?3:(GEN?6:5)))+kDm());b.nh++;F.hits=(F.hits|0)+1;b.inv=1;beep(120,.15,.06);vib(40)}}
+   else{if(o.gr>0)o.gr-=dt;if(o.k==='d'){o.l-=dt;if(o.l<=0){for(const sg of[-1,1])b.bul.push({k:'b',x:o.x,y:o.y,vx:sg*34,vy:o.vy+14});b.bul.splice(i,1);continue}}if(o.k==='w'){o.l-=dt;if(o.l<=0){o.x=o.tx;o.y=o.ty;o.k='b';o.gr=.4;const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx=dx/m*40;o.vy=dy/m*40}}if(o.k==='x'){o.l-=dt;if(o.l<=0){for(let q=0;q<6;q++){const an=q*Math.PI/3;b.bul.push({k:'b',x:o.x,y:o.y,vx:Math.cos(an)*40,vy:Math.sin(an)*40})}b.bul.splice(i,1);continue}}if(o.k==='m'){o.l-=dt;if(o.l<=0){b.bul.splice(i,1);continue}const dx=b.sx-o.x,dy=b.sy-o.y,m=Math.hypot(dx,dy)||1;o.vx+=dx/m*70*dt;o.vy+=dy/m*70*dt;const v=Math.hypot(o.vx,o.vy);if(v>36){o.vx*=36/v;o.vy*=36/v}}const rm_=(b.ev?1.35:1)*(GEN?1.3:1)*Math.min(isRush()?1.9:1.5,Math.sqrt(rushMul()));o.x+=o.vx*dt*rm_;o.y+=o.vy*dt*rm_;if(o.x<A.x-10||o.x>A.x+A.w+10||o.y<A.y-10||o.y>A.y+A.h+10){b.bul.splice(i,1);continue}if(o.k!=='f'&&o.k!=='w'&&!(o.gr>0)&&Math.hypot(o.x-b.sx,o.y-b.sy)<6.5)h=true}
+   if(h&&b.inv<=0&&!(b.fq&&!b.ev)){b.hp-=Math.max(1,(CFG.easy?(b.sh?2:3):(b.sh?3:(GEN?6:5)))+kDm());b.nh++;F.hits=(F.hits|0)+1;b.inv=1;beep(120,.15,.06);vib(40)}}
+  if(b.fq&&b.ev){b.evT=(b.evT||0)+dt;if(b.hp<1)b.hp=1;if(!b.fin&&(b.evT>60||b.hp<=1))flFinal(b)}
   if(b.hp<=0){b.hp=0;b.ph='over';b.t=0}
-  else if(b.t>=(b.er&&!b.pa?10:7)){b.turn++;b.ph='menu';const nt=NTXT(b);b.txt=nt[(b.turn-1)%nt.length];b.sh=false;b.bul=[]}}
+  else if(b.t>=(b.er&&!b.pa?10:7)){b.turn++;b.ph='menu';const nt=NTXT(b);b.txt=nt[(b.turn-1)%nt.length];b.sh=false;b.bul=[];if(b.fq)flStep(b)}}
  else if(b.ph==='over'&&tap&&(b.ov0===undefined||T-b.ov0>1.4)&&b.t++>0)startBattleR(b.q?true:b.g?'g':b.mo?'m':b.he?'h':b.z?'z':b.hd?'H':b.er?(b.pa?'P':'E'):0)}
 /* v3.6 — ciclo de dia e noite (Raiz Velha e Caps. 1-5; Mortalha, Vazio e Nucleo ficam sem ciclo) */
 const DN_LEN=240;
