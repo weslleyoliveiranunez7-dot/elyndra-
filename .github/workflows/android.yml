@@ -34,6 +34,17 @@ jobs:
           fi
           grep -o '<title>[^<]*' www/index.html || true
           ls -la www
+      - name: Verificar se www/index.html não está corrompido
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import sys
+          d = open('www/index.html','rb').read()
+          if b'\x00' in d or b'<!doctype' not in d[:3000].lower():
+              print('::error::www/index.html está corrompido (bytes nulos ou sem <!DOCTYPE>). Restaure uma versão boa do histórico.')
+              sys.exit(1)
+          print('index.html OK,', len(d), 'bytes')
+          PY
       - run: npm install
       - run: npx cap add android
       - run: npx cap sync android

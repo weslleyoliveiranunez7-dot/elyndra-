@@ -3,11 +3,19 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-permissions: { contents: read, pages: write, id-token: write }
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: { name: github-pages, url: "${{ steps.d.outputs.page_url }}" }
+    environment:
+      name: github-pages
+      url: ${{ steps.d.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Garantir www/index.html (minúsculo)
@@ -17,7 +25,20 @@ jobs:
           elif [ -f index.html ]; then mkdir -p www && cp index.html www/index.html
           elif [ -f www/Index.html ]; then mv www/Index.html www/index.html
           else echo "::error::Nenhum index.html encontrado"; exit 1; fi
+      - name: Verificar se www/index.html não está corrompido
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import sys
+          d = open('www/index.html','rb').read()
+          if b'\x00' in d or b'<!doctype' not in d[:3000].lower():
+              print('::error::www/index.html está corrompido (bytes nulos ou sem <!DOCTYPE>). Restaure uma versão boa do histórico.')
+              sys.exit(1)
+          print('index.html OK,', len(d), 'bytes')
+          PY
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
-        with: { path: www }
+        with:
+          path: www
       - id: d
         uses: actions/deploy-pages@v4
