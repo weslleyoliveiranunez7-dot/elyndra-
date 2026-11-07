@@ -1,7 +1,0 @@
-ELYNDRA — HANDOFF v5.4 (03/11/2026) | www/index.html (ler com v5.3 e anteriores) | Caça e Pesca na Florestinha do Sabiá
-MUDANÇA: só www/index.html (bloco novo no fim do script, antes de requestAnimationFrame). VER='5.4'.
-1) FLORESTINHA (LXN.flor): 2 objetos novos em LOB.flor: "Arco de caça" (Caçar) e "Lago" (Pescar), com cenário (lago, suporte do arco) via wrap de LXD.flor e colisão do lago em LXB.flor.
-2) MINIGAME (reusa S='sp' com p.t 'cac'/'pes'; wraps de spInit/updSp/drawSp; HFD = tabela de espécies): 5 rodadas; barra com marcador, toque no verde. Caça: coelho, esquilo, perdiz, sapo-boi, raposinha (rara). Pesca: espera a fisgada (tocar antes = peixe foge), depois barra; lambari, tilápia, bagre, traíra, dourado (raro) e 12% de bota velha. Cada espécie tem largura do verde (w) e velocidade (v); a velocidade sobe 7% por rodada.
-3) SAVE: F.cf (contagem por espécie), F.rec.cac / F.rec.pes (recorde). Primeira captura de cada espécie = +1 fragmento (máx. 10).
-AJUSTES POSSÍVEIS: valores w/v em HFD; recompensas além de fragmentos (itens, venda); mais animais; sons próprios de tiro/água.
-Testado: só sintaxe.
