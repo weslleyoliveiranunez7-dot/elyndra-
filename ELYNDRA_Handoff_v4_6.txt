@@ -1,7 +1,0 @@
-ELYNDRA — HANDOFF v4.6 (03/11/2026) | www/index.html (ler com v4.5 e anteriores)
-MUDANCA: QUADRA E ACADEMIA AGORA SAO LUGARES CAMINHAVEIS (bloco "v4.6" no fim do script). Antes (v4.5) os minigames eram pontos soltos no mapa.
-1) SPA agora tem 2 ENTRADAS no mapa-mundi: quadra (792,445) e gymloc (683,482), sempre liberadas (independem de capitulo), ligadas por estrada ao no 4 (Casa dos Herdeiros). Botao "Entrar" -> locOpen(t) abre S='loc' (updLoc/drawLoc): sala 480x270 onde o personagem anda de verdade (toque/WASD, bike e bonus de gymB valem). Sair pela borda esquerda (x<6) volta ao mapa na entrada. Menu/Esc funciona (optBack='loc').
-2) Quadra de Esportes (LOB.quadra): metade campo (bola de futebol -> Embaixadinha), metade quadra de basquete com cesta (bola de basquete -> Basquete) e Treinador Beto (dica). Botao "Jogar".
-3) Academia (LOB.gymloc): 3 aparelhos (Supino, Agachamento, Levantamento) que iniciam direto o exercicio correspondente (SS.ex=k) e Instrutora Lia (mostra Forca/titulo). Botao "Treinar".
-4) Minigames (S='sp', v4.5) inalterados nas regras; SS.back='loc' faz X/Esc/Sair voltarem para o lugar (spB()). Dentro da academia o botao esquerdo do fim de treino vira "De novo" (repete o mesmo exercicio).
-5) Testado: so sintaxe (node --check). Nao testado visualmente.
