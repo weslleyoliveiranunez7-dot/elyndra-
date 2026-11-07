@@ -1,8 +1,0 @@
-ELYNDRA — HANDOFF v3.7 (02/11/2026) | Jogo: www/index.html (ler com v3.6 e anteriores)
-MUDANCA: CONQUISTAS + KARMA (escolhas positivas/negativas com consequencia).
-1) CONQUISTAS: tabela ACH (14), checadas 1x/s em achTick; globais, salvas em localStorage 'elyndra_ach' (valem para todos os saves). Toast no topo ao desbloquear.
-   Tela: Opcoes -> Conquistas (estado S='ach', updAch/drawAch). Nao ha conquista de final por slot: usa routesDone().
-2) KARMA: F.karma (por jogo, em resetF), funcao kar(n) com toast verde/vermelho. Pontos: Kael apoiar +2 / vila -2; Morpheus aceitar +1 / enganar -1;
-   Helena respeitar +1 / ir mesmo assim -1; Guardiao poupado +2 / nao -1; Iris aceitar +1 / recusar -1; Tobias desculpa +1 / seguir sem ele -1.
-3) CONSEQUENCIAS: karma >= 3: -1 de dano por acerto em batalha (min. 1) e +1 em 'paz'; karma <= -3: +1 de dano e +1 em 'ruina' (kDm()).
-4) Novas flags em resetF: karma, tfN (transformacoes vistas). Testado em Chromium headless (conquista, toast, tela) sem erro de JS; nao testado em celular.
