@@ -1,7 +1,0 @@
-ELYNDRA — HANDOFF v5.5 (06/11/2026) | www/index.html + www/img/logo.png (ler com v5.4 e anteriores) | Menus em preto e branco + logo ELYNDRA LEGACY
-MUDANCA: www/index.html e www/img/logo.png. VER='5.5'.
-1) LOGO: img/logo.png trocada pela nova (ELYNDRA / LEGACY), branca com fundo transparente, 320x81, desenhada 1:1 (sem escala) e centralizada. Usada em: titulo (drawLogoT, y=20), tela de fones (drawFones, y=12) e cena final da abertura (sceneLogo, y=66). Sem a imagem, cai no texto 'ELYNDRA LEGACY'.
-2) PRETO E BRANCO: todas as cores das telas de menu foram convertidas para tons de cinza (fundo #000; textos e bordas em branco/cinza): drawTitle, drawRatT, drawRato (perguntas do rato), drawSlots (novo jogo/continuar/ponto de save), drawOpt, drawKeys, drawPad, drawDiary, drawAch, drawCust, drawFones e os textos da sceneLogo. Alertas vermelhos/laranja/amarelos viraram branco ou cinza (ex.: Modo Genocide, 'Apagar', 'Certeza?'). Barra de progresso do slot agora branca. box() usa fundo #000. Fundo da pagina e dica de girar o celular tambem em P&B.
-3) EXCECAO: em SEU PERSONAGEM o boneco de previa e os quadradinhos de cor (pele, cabelo, roupa, listra) continuam coloridos, porque sao a propria escolha do jogador.
-AJUSTES POSSIVEIS: deixar o boneco/quadradinhos da tela de personagem em cinza; P&B tambem no HUD, dialogos e batalhas.
-Testado: sintaxe (node --check) e capturas das telas num navegador headless, sem erros no console.
