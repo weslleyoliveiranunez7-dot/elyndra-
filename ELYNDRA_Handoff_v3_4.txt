@@ -1,5 +1,0 @@
-ELYNDRA — HANDOFF v3.4 (02/11/2026) | Jogo: www/index.html (ler junto com v3.3 e anteriores)
-MUDANCA: fundo de batalha estilo Undertale (so visual). Funcao bgBattle(b) + tabela BGT, antes de drawBattle. Base preta + grade verde pulsante.
-Por chefe (chave BKEY): fl/g grade verde que desliza | q losangos (diagonal) | mo grade lenta e larga | he grade que apaga e acende
-z grade verde-limao com clarao de raio | hd grade azul-esverdeada descendo | er grade densa com faixas glitch rosa/ciano | pa igual ao Erro + particulas.
-Ajuste: cor, espaco e modo em BGT. Verificado so sintaxe JS; nao testado jogando.
