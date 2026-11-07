@@ -94,7 +94,7 @@ OTN=[['Clássico','#56a1fa','#29272f'],['Chama','#d9482f','#3a3a55'],['Floresta'
 LIN=['#9e13e9','#ffffff','#ffd84a','#ff5a5a','#5af0c8','#1a1a22'],LIT=['Roxa','Branca','Dourada','Vermelha','Menta','Escura'];
 function defPc(){return{n:'',sk:0,hr:0,ot:0,li:0}}
 function pc(){return F.pc||defPc()}
-function nm(){return(F.pc&&F.pc.n)||'Viajante'}
+function nm(){return(F.pc&&F.pc.n)||'Guts'}
 const PCO={};let PCD=1,CU={};
 function hx(h){return[1,3,5].map(i=>parseInt(h.slice(i,i+2),16))}
 function pcPaint(){const p=pc(),sk=hx(SKN[p.sk]),hr=hx(HRN[p.hr]),sh=hx(OTN[p.ot][1]),pa=hx(OTN[p.ot][2]),li=hx(LIN[p.li]);
@@ -437,15 +437,16 @@ function strikeFx(b,u){const k=BKEY(b),cx=240,cy=68,R=rng(Math.floor(b.ef*10)),b
 let J=null;
 function startJord(){S='jord';J={t:0,fa:1,ja:0,flee:false,done:false};B.ph='x';F.jordana=true;
  say([['Jordana','Já chega, Floris.',3],['Floris','Você?! {N}? Não é possível...','surpreso'],['Floris','Isso não termina aqui, {N}. Eu volto.']],()=>{J.flee=true});}
-function updJord(dt){J.t+=dt;if(!J.flee)J.ja=Math.min(1,J.ja+dt);
+function updJord(dt){J.t+=dt;if(J.heal)B.hp=Math.min(B.mx,B.hp+dt*6);if(!J.flee)J.ja=Math.min(1,J.ja+dt);
  if(J.flee&&!J.done){J.fa=Math.max(0,J.fa-dt*.5);if(J.fa<=0){J.done=true;
-  say([['Jordana','Você não deveria estar aqui, {N}. Precisa encontrar uma saída.',2],['Jordana','Alguém precisa impedir que você morra antes de entender onde caiu, {N}.',2]],()=>{startFim()})}}
+  F.furias=1;J.heal=true;
+  say([('Narração', 'Jordana se ajoelha ao seu lado. Uma luz azul pálida escorre das mãos dela e fecha cada ferida.', 0), ('Jordana', 'Respira, {N}. Isso. Devagar. Você estava com 1 de vida... eu vi a barra piscando.', 0), ('Narração', 'O HP volta ao máximo.', 0), ('Jordana', 'Pronto. Novinho em folha. Bom, tão novo quanto um humano consegue ficar.', 1), ('Jordana', 'Ah, sim, eu sei o que você é. Dá pra sentir de longe: cheiro de chuva, de pressa e de preocupação com coisas pequenas.', 1), ('Jordana', 'Aqui a gente não vê humano faz séculos. Contam histórias sobre vocês. Dizem que são frágeis, barulhentos e teimosos.', 0), ('Jordana', 'Frágeis eu comprovei agora há pouco. Teimosos, também: você quase tomou o último golpe da Floris de propósito.', 2), ('Jordana', 'Barulhentos...', 1), ('Narração', 'Ela inclina a cabeça e te encara por alguns segundos.', 0), ('Jordana', 'Você não fala nada, né? Nem um "obrigado", nem um "quem é você?". Vocês, humanos, falavam até dormindo, diziam as lendas.', 1), ('Jordana', 'Será que a lenda estava errada, ou você é o único modelo com defeito de fábrica?', 1), ('Jordana', 'Brincadeira, brincadeira. Não precisa fazer essa cara.', 1), ('Jordana', 'Sabe... eu vou dizer uma coisa e você finge que não ouviu.', 0), ('Jordana', 'Um humano fica até mais bonito calado.', 1), ('Narração', 'Ela desvia o olhar rápido demais. As orelhas dela ficam vermelhas.', 0), ('Jordana', 'Esquece! Foi o cansaço. Eu curei tanta gente hoje que perdi o filtro.', 2), ('Jordana', 'Enfim. Vamos ao que importa, {N}.', 0), ('Jordana', 'Você caiu num lugar que não é o seu. Elyndra não foi feita para humanos e ela não solta o que pega fácil.', 0), ('Jordana', 'Mas existe uma forma de você voltar para a Terra.', 0), ('Jordana', 'Três irmãs guardam a passagem: as Três Fúrias. Alecto, Tisifone e Megera.', 0), ('Jordana', 'Elas não abrem a porta por força, e nem por medo. Elas só abrem para quem for ouvido.', 0), ('Jordana', 'Então não vai ser uma luta, pelo menos não de começo. Vai ser uma conversa. Das longas.', 0), ('Jordana', 'Uma por uma. Alecto escuta a mente, Tisifone escuta o corpo, Megera escuta o que você escondeu de si mesmo.', 0), ('Jordana', 'Prepare-se: elas vão perguntar coisas que você não quer responder. E vão perceber se você mentir.', 2), ('Jordana', 'Eu vou com você até a porta delas. Só até a porta, porque o resto é com você.', 0), ('Jordana', 'E, {N}... quando chegar a hora de falar com elas, você vai ter que usar palavras. Mesmo que seja só uma.', 1), ('Jordana', 'Eu gostaria de ouvir a sua voz, pelo menos uma vez.', 1), ('Narração', 'Jordana estende a mão e te ajuda a levantar.', 0), ('Jordana', 'Vamos? O caminho até as Fúrias começa por aqui.', 0)],()=>{J.heal=false;B.hp=B.mx;F.jordana_cura=true;F.furias_conversa=1;startFim()})}}
  dlg(dt)}
 function drawJord(){drawBattle();const o=B;g.fillStyle='#0b0a12';g.fillRect(A.x-2,A.y-2,A.w+4,A.h+4);jordBat(390,60,J.ja);dbox()}
 /* ---------- fim ---------- */
 function startFim(){S='end';T=0;D=null;B=null;ptr=null;P0=null}
 function updEnd(){if(tap&&T>.6){S='title';T=0}}
-function drawEnd(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim da demonstração',W/2,90,'#d9c8ff',24,'center');wr('Você sobreviveu ao primeiro encontro e Jordana apareceu. O resto da história ainda está em construção.',60,125,360,20,999,'#d9d2ea');tx('toque para voltar ao título',W/2,245,'#6c6290',12,'center')}
+function drawEnd(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('Fim da demonstração',W/2,90,'#d9c8ff',24,'center');wr('Jordana curou você e mostrou o caminho de volta à Terra: uma longa conversa com as Três Fúrias. O resto da história ainda está em construção.',60,125,360,20,999,'#d9d2ea');tx('toque para voltar ao título',W/2,245,'#6c6290',12,'center')}
 
 const BCFG={Floris:{nm:'FLORIS',c:'#ffd84a',fy:2,fq:1.1,sw:.04,pt:'petal'}};const hex2=(h,a)=>{const n=parseInt(h.slice(1),16);return'rgba('+(n>>16)+','+(n>>8&255)+','+(n&255)+','+a+')'};
 let GEN=false,C2={ch:1,cl:{},room:0},CH=null,M3={hp:30,hard:false};
