@@ -1,6 +1,0 @@
-ELYNDRA — HANDOFF v3.6 (02/11/2026) | Jogo: www/index.html (ler com v3.5 e anteriores)
-MUDANCA: CICLO DE DIA E NOITE (so visual). dnOverlay() chamada no loop (frame) depois de drawExplore/drawC2 (inclui tela de escolha).
-- Ciclo de 240 s (DN_LEN) baseado no relogio T: dia -> entardecer (laranja) -> noite (azul escuro + estrelas piscando) -> amanhecer. Icone sol/lua + rotulo no canto superior direito.
-- Vale para Raiz Velha e Caps. 1-5. Caps. 6-8 (Mortalha, Vazio, Nucleo) sem ciclo. Batalhas e menus nao sofrem tint.
-- O tint cobre tambem a HUD/dialogo do mapa (alpha max 0,5). Nao salvo no save (reinicia a cada sessao). Sem efeito em gameplay/musica.
-- Verificado so sintaxe JS; nao testado jogando.
