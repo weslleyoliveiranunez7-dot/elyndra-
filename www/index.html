@@ -488,7 +488,7 @@ function gWalk(dt){GB.title=Math.max(0,GB.title-dt);if(dlg(dt))return;
  let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}
  setMove(d,dt);const sp=60*dt,r=GB.room,y0=r===1?158:148,y1=r===1?204:226;
  pl.x=Math.max(4,Math.min(r<GB.max?500:468,pl.x+d.x*sp));pl.y=Math.max(y0,Math.min(y1,pl.y+d.y*sp));if(d.x||d.y){GB.tr.push([pl.x,pl.y,pl.dir]);if(GB.tr.length>40)GB.tr.shift()}
- const j=GB.jp,t=GB.tr.length>=26?GB.tr[GB.tr.length-26]:[pl.x-(GB.tr.length?0:18),pl.y,pl.dir],k=Math.min(1,dt*6);const gx=t[0]-j.x,gy=t[1]-j.y,gd=Math.hypot(gx,gy);j.mv=gd>1.5;j.mvT=T;if(gd>1.5){const hz=j.dir===1||j.dir===3;j.dir=(hz?Math.abs(gx)>=Math.abs(gy)*.7:Math.abs(gx)>Math.abs(gy)*1.43)?(gx<0?1:3):(gy<0?2:0)}j.x+=gx*k;j.y+=gy*k;
+ const j=GB.jp,t=GB.tr.length>=26?GB.tr[GB.tr.length-26]:[pl.x-(GB.tr.length?0:18),pl.y,pl.dir],k=Math.min(1,dt*6);const gx=t[0]-j.x,gy=t[1]-j.y,gd=Math.hypot(gx,gy);j.mv=gd>1.5;j.mvT=T;if(d.x||d.y)j.dir=pl.dir;j.x+=gx*k;j.y+=gy*k;
  if(pl.x>486&&r<GB.max){GB.room++;GB.title=2.5;pl.x=18;GB.tr=[];GB.jp.x=6;GB.jp.y=pl.y}else if(r===3&&GB.max<4&&pl.x>420)pl.x=420;
  const E=GB.ev,tg=(i,x,l,cb)=>{if(!E[i]&&GB.room===r&&pl.x>480-x){E[i]=1;pl.mv=false;say(l,cb)}};
  tg(0,330,[['Narração','A clareira brilha como vidro molhado. Cada folha guarda um reflexo que não é o seu.'],['Jordana','Não pise nas poças claras. Elas mostram o que você tem medo de ver.',1],['Jordana','...Brincadeira. São só poças. Mas as de lá de trás eu não garanto.',1]]);
