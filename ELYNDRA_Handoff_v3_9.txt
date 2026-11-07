@@ -1,8 +1,0 @@
-ELYNDRA — HANDOFF v3.9 (02/11/2026) | Jogo: www/index.html = elyndra_v3.9.html (ler com v3.8 e anteriores)
-MUDANCA: CRIADOR DE PERSONAGEM + NOME NOS DIALOGOS.
-1) Tela S='cust' (openCust/updCust/drawCust): Nome (prompt, ate 12 letras), Pele, Cabelo, Roupa (8 conjuntos camisa+calca) e Listra. Abre apos "Novo jogo"/Modo Genocide, antes do Prologo. Nome obrigatorio.
-2) Dados em F.pc={n,sk,hr,ot,li} (salvo no slot). Saves antigos sem F.pc abrem o criador ao carregar. Opcoes (em jogo) tem item "Personagem" para editar depois.
-3) Visual: pcPaint() recolore por paleta prot.png (sprite) e a coluna 0 de faces/faces_expr (rosto "Voce"). Imagens prot/faces/faces_expr embutidas em base64 (const DU) para o canvas nao ser bloqueado em file://.
-4) Nome nos textos: token {N} em say() vira o nome (fallback 'Viajante'); o orador 'Voce' mostra o nome do jogador na caixa. Aplicado em ~20 falas (Floris, Jordana, Iris, Helena, Tobias, Kael, Cain, Morpheus, Anubis, Hades, Primeiro Autor, final) e nos creditos ("Obrigado por jogar, <nome>").
-5) Para citar o nome em outra fala: escreva {N} no texto de qualquer say([...]).
-6) Testado em Chromium headless (tela do criador e fala com nome, sem erros de JS). Nao testado em celular; o prompt() do nome depende do WebView (Capacitor suporta).
