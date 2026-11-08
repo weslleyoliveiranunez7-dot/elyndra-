@@ -922,8 +922,14 @@ addEventListener('keydown',e=>{if(S!=='adm'||!AD||AD.st!==0||AD.clr>0)return;con
  if(/^[0-9]$/.test(k)){if(AD.v.length<4){AD.v+=k;AD.msg='';try{beep(700)}catch(x){}if(AD.v.length===4)admCheck()}}
  else if(k==='Backspace'){AD.v=AD.v.slice(0,-1);AD.msg=''}else if(k==='Enter'&&AD.v.length===4)admCheck()});
 function updAdm(dt){const a=AD;a.t+=dt;if(a.sh>0)a.sh-=dt;if(a.clr>0){a.clr-=dt;if(a.clr<=0)a.v=''}
- if(a.st===1){a.w+=dt;if(a.w>3&&tap)startCut()}}
-function drawAdm(){const a=AD;g.fillStyle='#0b0b12';g.fillRect(0,0,W,H);g.save();if(a.sh>0)g.translate(Math.round((Math.random()-.5)*8),0);
+ if(a.st===1){a.w+=dt;if(a.w>3&&tap)startCut()}
+ if(a.st===0&&a.clr<=0&&tap&&ptr){const k=admKey(ptr);if(k!==null){if(k==='<'){a.v=a.v.slice(0,-1);a.msg=''}else if(k==='K'){if(a.v.length===4)admCheck()}else if(a.v.length<4){a.v+=k;a.msg='';try{beep(700)}catch(x){}if(a.v.length===4)admCheck()}}}}
+const ADK=['1','2','3','4','5','6','7','8','9','<','0','K'];
+function admKey(p){for(let i=0;i<12;i++){const x=378+(i%3)*31,y=56+Math.floor(i/3)*28;if(inRect(p,x,y,28,25))return ADK[i]}return null}
+function drawAdm(){drawAdm0();if(AD.st!==0)return;g.font='bold 14px monospace';g.textAlign='center';g.textBaseline='middle';
+ for(let i=0;i<12;i++){const x=378+(i%3)*31,y=56+Math.floor(i/3)*28,k=ADK[i];g.fillStyle=k==='K'?'#2d6a3a':k==='<'?'#6a2d2d':'#2a2e3a';g.fillRect(x,y,28,25);g.strokeStyle='#8a90a8';g.strokeRect(x+.5,y+.5,27,24);g.fillStyle='#fff';g.fillText(k==='<'?'⌫':k==='K'?'OK':k,x+14,y+13)}
+ g.textAlign='left';g.textBaseline='alphabetic'}
+function drawAdm0(){const a=AD;g.fillStyle='#0b0b12';g.fillRect(0,0,W,H);g.save();if(a.sh>0)g.translate(Math.round((Math.random()-.5)*8),0);
  const op=a.st===1?Math.min(1,a.w/1.6):0,dw=Math.round(116*(1-op));
  g.fillStyle='rgba(255,210,90,'+op*.55+')';g.fillRect(124,48,232,150);
  for(const s of[0,1]){const x=s?240+116-dw:124;g.fillStyle='#3a3f4f';g.fillRect(x,48,dw,150);g.fillStyle='#4b5164';g.fillRect(x,48,dw,6);g.fillStyle='#2a2e3a';for(let y=64;y<198;y+=22)g.fillRect(x,y,dw,2)}
