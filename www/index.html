@@ -29,7 +29,7 @@ function preU(n){let u=PRO_U;for(let k=1;k<n&&k<=8;k++)u+=CHR[k];return u}
 const TOT_U=preU(9);
 function stageCh(st,c2){const m=/^(?:cap|fim)(\d)$/.exec(st);if(m)return+m[1];if(st==='ponto')return c2||0;return 0}
 function fracOf(st,c2,room){let u=0;const m=/^cap(\d)$/.exec(st),n=/^fim(\d)$/.exec(st);
- if(st==='raiz')u=1;else if(st==='fim')u=PRO_U;else if(m)u=preU(+m[1]);else if(n)u=preU(+n[1]+1);else if(st==='ponto')u=preU(c2)+room;
+ if(st==='raiz')u=1;else if(st==='boss_floris')u=1;else if(st==='boss_furias')u=PRO_U;else if(st==='boss_pirata')u=PRO_U+.5;else if(st==='fim')u=PRO_U;else if(m)u=preU(+m[1]);else if(n)u=preU(+n[1]+1);else if(st==='ponto')u=preU(c2)+room;
  return Math.max(0,Math.min(1,u/TOT_U))}
 function metaGet(){let m={};try{m=JSON.parse(localStorage.getItem('elyndra_meta'))||{}}catch(e){}return{best:+m.best||0,ends:Array.isArray(m.ends)?m.ends:[]}}
 function metaSet(m){try{localStorage.setItem('elyndra_meta',JSON.stringify(m))}catch(e){}}
@@ -40,7 +40,7 @@ function slotsLoad(){let raw=null;try{raw=localStorage.getItem('elyndra_slots')}
 function save(stage){if(NOSAVE||curSlot<0)return;try{sfx('ui_salvar',{v:.6})}catch(e){}
  const pt=stage==='ponto',ch=stageCh(stage,pt?C2.ch:0),rm=pt?C2.room:0,
  s={v:3,ver:VER,stage,F:{...F},M3:{...M3},ch,t:Math.round(PLAY),ts:Date.now(),frac:fracOf(stage,ch,rm)};
- s.loc=pt||/^cap\d$/.test(stage)?((RN&&RN[rm])||''):(stage==='raiz'||stage==='fim'?'Raiz Velha':'Fim do capítulo');
+ s.loc=/^boss_/.test(stage)?({boss_floris:'Chefe: Floris',boss_furias:'Chefe: As Três Fúrias',boss_pirata:'Chefe: Pirata'}[stage]||'Chefe'):pt||/^cap\d$/.test(stage)?((RN&&RN[rm])||''):(stage==='raiz'||stage==='fim'?'Raiz Velha':'Fim do capítulo');
  if(pt){s.px=Math.round(pl.x);s.py=Math.round(pl.y);s.C2=JSON.parse(JSON.stringify(C2))}
  SL[curSlot]=s;slotsStore();const m=metaGet();if(s.frac>m.best){m.best=s.frac;metaSet(m)}}
 slotsLoad();
@@ -141,7 +141,7 @@ function startNew(i,gen){curSlot=i;SL[i]=null;slotsStore();PLAY=0;sfx(gen?'ui_ge
 function loadSlot(i){const s=SL[i];if(!s)return;curSlot=i;PLAY=s.t||0;if(!(s.F&&s.F.pc)){for(const k in F)delete F[k];resetF();F.pc=defPc();openCust('load',()=>cont(s));return}cont(s)}
 function resumePoint(s){NOSAVE=1;try{const f={1:startC1,2:startC2,3:startC3,4:startC4,5:startC5,6:startC6,7:startC7,8:startC8}[s.ch];f();if(S==='end')return;Object.assign(F,s.F);C2=JSON.parse(JSON.stringify(s.C2));pl.x=s.px;pl.y=s.py;D=null;ex.t=0;TRL.length=0;S='c2'}finally{NOSAVE=0}}
 const startC1=()=>startFim(),startC2=startC1,startC3=startC1,startC4=startC1,startC5=startC1,startC6=startC1,startC7=startC1,startC8=startC1,startE8=startC1;
-function cont(s){for(const k in F)delete F[k];resetF();Object.assign(F,s.F||{});PCD=1;GEN=!!F.gen;if(s.M3)M3={...s.M3};D=null;ptr=null;P0=null;const t=s.stage;if(t==='ponto')return resumePoint(s);if(t==='fim8')startE8();else if(t==='cap8')startC8();else if(t==='fim7'){S='end7';T=0}else if(t==='cap7')startC7();else if(t==='fim6'){S='end6';T=0}else if(t==='cap6')startC6();else if(t==='fim5'){S='end5';T=0}else if(t==='cap5')startC5();else if(t==='fim4'){S='end4';T=0}else if(t==='cap4')startC4();else if(t==='fim3'){S='end3';T=0}else if(t==='fim2'||t==='cap3')startC3();else if(t==='fim'||t==='cap1')startC1();else if(t==='cap2')startC2();else startExplore()}
+function cont(s){for(const k in F)delete F[k];resetF();Object.assign(F,s.F||{});PCD=1;GEN=!!F.gen;if(s.M3)M3={...s.M3};D=null;ptr=null;P0=null;const t=s.stage;if(/^boss_/.test(t)){NOSAVE=1;try{if(t==='boss_floris')startFlBattle();else if(t==='boss_furias'){startGob();startFur()}else{startOuro();startDance()}}finally{NOSAVE=0}return}if(t==='ponto')return resumePoint(s);if(t==='fim8')startE8();else if(t==='cap8')startC8();else if(t==='fim7'){S='end7';T=0}else if(t==='cap7')startC7();else if(t==='fim6'){S='end6';T=0}else if(t==='cap6')startC6();else if(t==='fim5'){S='end5';T=0}else if(t==='cap5')startC5();else if(t==='fim4'){S='end4';T=0}else if(t==='cap4')startC4();else if(t==='fim3'){S='end3';T=0}else if(t==='fim2'||t==='cap3')startC3();else if(t==='fim'||t==='cap1')startC1();else if(t==='cap2')startC2();else startExplore()}
 function updTitle(){if(tap){menuItems().forEach((n,i)=>{if(inRect(ptr,170,130+i*32,140,30)){beep(440);if(n==='Novo jogo')openSlots('new');else if(n==='Modo Genocide')openSlots('gen');else if(n==='Continuar')openSlots('load');else openOpt()}})}}
 function drawTitle(){g.fillStyle='#000';g.fillRect(0,0,W,H);for(const[x,y,s]of stars){g.fillStyle=(T*2+x)%7<1?'#fff':'#8c8c8c';g.fillRect(x,y,s,s)}
  drawLogoT();
@@ -262,7 +262,7 @@ function updExplore(dt){ex.t+=dt;if(dlg(dt))return;if(tap&&inRect(ptr,440,0,40,3
  setMove(d,dt);const sp=58*dt;if(!hit(pl.x+d.x*sp,pl.y))pl.x+=d.x*sp;if(!hit(pl.x,pl.y+d.y*sp))pl.y+=d.y*sp;
  for(let i=pts.length-1;i>=0;i--){if(Math.hypot(pts[i][0]-pl.x-5,pts[i][1]-pl.y-5)<12){pts.splice(i,1);F.pts++;beep(880,.1);
   if(F.pts<3)say([['Floris',F.pts===1?'Isso! Continue assim!':'Quase lá! Mais um!']]);
-  else say([['Floris','Muito bem! Agora a parte divertida: eu vou te ensinar a lutar!','feliz']],()=>{startFlBattle()})}}}
+  else say([['Floris','Muito bem! Agora a parte divertida: eu vou te ensinar a lutar!','feliz']],()=>{save('boss_floris');startFlBattle()})}}}
 /* v6.2 — tocha em pixel art (suporte de ferro, cabo, pano, chama em camadas, faiscas e luz) + vinheta */
 function torch(x,y,i){const f=Math.sin(T*13+i*2.1)*.5+Math.sin(T*7.3+i)*.5,h=(12+f*3)|0,by=y-24;
  g.fillStyle='rgba(255,150,50,.06)';g.beginPath();g.arc(x,y-14,48+f*3,0,6.3);g.fill();g.fillStyle='rgba(255,170,60,.08)';g.beginPath();g.arc(x,y-14,28+f*2,0,6.3);g.fill();
@@ -642,7 +642,7 @@ FTRY=[[['Narração','Você corre na direção de Alecto, o punho erguido.'],['N
 FW1=[['Narração','As três Fúrias caem de joelhos. As asas, as serpentes, as lâminas: tudo vira cinza.'],['Alecto','Você... pagou o preço.'],['Megera','O caminho está aberto, humano.'],['Tisífone','Cuide dela. Ela é mais frágil do que finge.']],
 FW2=[['Narração','As correntes se partem. Jordana cai de joelhos, respira fundo, e se levanta.']],
 FJL=[['Jordana','{N}...',2],['Jordana','Você lutou. Você, que não conseguia nem encostar num goblin.',2],['Jordana','Você abriu mão dos seus ideais... para me salvar.',0],['Jordana','Ninguém nunca fez isso por mim.',0],['Jordana','Fica parado. Não fala nada. Você fica mais bonito calado, lembra?',1]];
-function startFur(){GB.ph='fur';GB.fu=1;GB.trust=0;GB.q=null;GB.chain=0;GB.fade=1;GB.sh=0;GB.fl=0;F.mhp=30;D=null;
+function startFur(){save('boss_furias');GB.ph='fur';GB.fu=1;GB.trust=0;GB.q=null;GB.chain=0;GB.fade=1;GB.sh=0;GB.fl=0;F.mhp=30;D=null;
  FU={st:0,t:0,n:0,jx:14,jy:168,jd:3,jmv:0,kt:0};pl.x=36;pl.y=168;pl.dir=3;pl.mv=false;
  say([['Narração','A porta de pedra se abre sozinha. Do outro lado, um salão vermelho e silencioso. Três tronos. Três pares de olhos.'],['Jordana','Pronto, {N}. É aqui. Elas vão ouvir você.',0],['Jordana','Fale com educação, tá? Vai!',1],['Narração','Jordana sorri, apoia as duas mãos nas suas costas... e te empurra para dentro.']],()=>{FU.st=1;FU.t=0})}
 function fNode(id){const n=FRN[id];if(n.chk)return fNode(GB.trust>=n.chk?n.ok:n.no);say(n.l,()=>{if(n.o)GB.q={o:n.o,i:0,r:[],age:0};else if(n.n)fNode(n.n);else{FU.st=5;FU.t=0;GB.chain=1;beep(140,.3,.08)}})}
@@ -859,7 +859,7 @@ function dnChart(){const r=dnRng(1337),ns=[];let last=1,l2=-1;
  for(let b=8;b<128;b++){let po=b<24?0:b<48?.3:b<80?.4:.5;if(b%8===7&&b>=24&&b<120&&r()<.4)continue;
   ns.push({t:+(DNP+b*DNB).toFixed(3),l:pick(),done:0});if(b>=24&&b<120&&r()<po)ns.push({t:+(DNP+(b+.5)*DNB).toFixed(3),l:pick(),done:0})}
  return ns}
-function startDance(){S='dance';D=null;ptr=null;P0=null;DN={ph:'ready',w:0,vt:0,h:[0,0,0,0],rc:[0,0,0,0]};dnReset()}
+function startDance(){save('boss_pirata');S='dance';D=null;ptr=null;P0=null;DN={ph:'ready',w:0,vt:0,h:[0,0,0,0],rc:[0,0,0,0]};dnReset()}
 function dnReset(){const d=DN;d.ns=dnChart();d.hp=60;d.sc=0;d.cb=0;d.mx=0;d.hit=0;d.miss=0;d.pf=0;d.rt='';d.rtT=0;d.rc=[0,0,0,0];d.pose=-1;d.poseT=0;d.missT=0;d.fx=[];d.t=0;d.w=0;d.live=0;d.end=d.ns[d.ns.length-1].t+1.6}
 function dnLane(k){const b=CFG.kb||{};if(k==='arrowleft'||k==='a'||k===b.left)return 0;if(k==='arrowdown'||k==='s'||k===b.down)return 1;if(k==='arrowup'||k==='w'||k===b.up)return 2;if(k==='arrowright'||k==='d'||k===b.right)return 3;return -1}
 function dnPress(l){const d=DN;if(!d||d.ph!=='play')return;d.h[l]=1;d.rc[l]=.12;const tp=d.t+DNOFF;let n=null,bd=9;
