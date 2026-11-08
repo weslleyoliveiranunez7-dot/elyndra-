@@ -661,7 +661,7 @@ function fUpd(dt){const f=FU;f.t+=dt;GB.sh=Math.max(0,GB.sh-dt);GB.fl=Math.max(0
   if(k>=1.1){pl.y=168;pl.mv=false;f.st=9;say(FTRY[f.n-1],f.n<3?()=>{f.st=7}:()=>{startBattle('f')})}}
  else if(st===11){f.jmv=1;f.jd=1;pl.fr+=dt*7;const tx_=pl.x+24;f.jx=Math.max(tx_,f.jx-80*dt);f.jy+=(pl.y-f.jy)*Math.min(1,dt*4);if(f.jx<=tx_){f.jmv=0;f.st=12;pl.dir=3;say(FJL,()=>{f.st=13;f.kt=0;beep(700,.2,.06)})}}
  else if(st===13){f.kt+=dt;if(f.kt>4){f.st=14;f.t=0}}
- else if(st===14){GB.fade=Math.min(1,f.t/5);if(f.t>6.2)startFim()}}
+ else if(st===14){GB.fade=Math.min(1,f.t/5);if(f.t>6.2)startAdm()}}
 function endFu(){S='gob';GB.ph='fur';D=null;B=null;ptr=null;P0=null;const f=FU;f.st=10;f.t=0;GB.fade=1;GB.chain=1;GB.q=null;F.furiasDone=1;f.jx=408;f.jy=142;f.jd=1;pl.x=230;pl.y=168;pl.dir=3;pl.mv=false;
  say(FW1,()=>{GB.chain=0;say(FW2,()=>{f.st=11;f.t=0})})}
 function fHall(){g.fillStyle='#0b0610';g.fillRect(0,0,W,H);g.fillStyle='#150b1b';g.fillRect(0,0,W,120);g.fillStyle='#0d0713';for(let y=0;y<120;y+=14){g.fillRect(0,y,W,1);for(let x=(y/14%2)*20;x<W;x+=40)g.fillRect(x,y,1,14)}
@@ -719,7 +719,7 @@ function updCut(dt){const c=CT;c.t+=dt;const t=c.t;
   let ax=0,ay=0,n=0;for(let i=c.p.length-1;i>=0;i--){const q=c.p[i];q.age+=dt;if(q.age>=q.life){c.p.splice(i,1);continue}q.vx+=(30+Math.sin(t*2+q.s)*18-q.vx)*dt*.5;q.vy+=(-14-q.vy)*dt*.4;q.x+=q.vx*dt;q.y+=q.vy*dt;ax+=q.x;ay+=q.y;n++}
   if(n&&t>3.2){const k=Math.min(1,dt*1.6);c.cy+=(Math.max(-520,ay/n-120)-c.cy)*k;c.cx+=(Math.min(260,ax/n-250)-c.cx)*k*.8}}
  else if(t<CSG.w4){const shot=(t>=CSG.w1&&t<CSG.s1)||(t>=CSG.w2&&t<CSG.s2)||(t>=CSG.w3&&t<CSG.s3);if(!shot){c.wx+=38*dt;pl.fr+=dt*5.5}}
- else if(t>=CSG.w4+4&&t>CSG.tt-4&&tap&&T>.1){startAdm()}else if(t>CSG.tt+2)startAdm()}
+ else if(t>=CSG.w4+4&&t>CSG.tt-4&&tap&&T>.1){startBeach()}else if(t>CSG.tt+2)startBeach()}
 function cRain(a){if(a<=0)return;g.strokeStyle='rgba(165,185,215,'+(.45*a)+')';g.lineWidth=1;g.beginPath();for(let i=0;i<90;i++){const sp=.75+gbr(i+900)*.5,x=(gbr(i)*(W+40)-CT.t*50*sp+20000)%(W+40),y=((gbr(i+500)*H+CT.t*300*sp)%(H+20))-10;g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x)-3,Math.round(y)+9)}g.stroke()}
 function cMount(){const t=CT.t,cx=Math.round(CT.cx),cy=Math.round(CT.cy);
  for(let y=0;y<H;y+=6){const wy=y+cy,k=Math.max(0,Math.min(1,(150-wy)/650)),a=[96,52,82],b=[4,3,12];g.fillStyle='rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*k)).join(',')+')';g.fillRect(0,y,W,6)}
@@ -922,7 +922,7 @@ addEventListener('keydown',e=>{if(S!=='adm'||!AD||AD.st!==0||AD.clr>0)return;con
  if(/^[0-9]$/.test(k)){if(AD.v.length<4){AD.v+=k;AD.msg='';try{beep(700)}catch(x){}if(AD.v.length===4)admCheck()}}
  else if(k==='Backspace'){AD.v=AD.v.slice(0,-1);AD.msg=''}else if(k==='Enter'&&AD.v.length===4)admCheck()});
 function updAdm(dt){const a=AD;a.t+=dt;if(a.sh>0)a.sh-=dt;if(a.clr>0){a.clr-=dt;if(a.clr<=0)a.v=''}
- if(a.st===1){a.w+=dt;if(a.w>3&&tap)startBeach()}}
+ if(a.st===1){a.w+=dt;if(a.w>3&&tap)startCut()}}
 function drawAdm(){const a=AD;g.fillStyle='#0b0b12';g.fillRect(0,0,W,H);g.save();if(a.sh>0)g.translate(Math.round((Math.random()-.5)*8),0);
  const op=a.st===1?Math.min(1,a.w/1.6):0,dw=Math.round(116*(1-op));
  g.fillStyle='rgba(255,210,90,'+op*.55+')';g.fillRect(124,48,232,150);
