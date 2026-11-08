@@ -313,8 +313,9 @@ function flStep(b){if(b.ev)return;
 function flFinal(b){b.fin=1;b.ph='x';b.t=-99;b.bul=[];b.hp=1;F.mhp=1;F.evil=true;vib(250);beep(90,.5,.1);
  say([['Narração','Um último golpe. Não há como desviar dele.'],['Floris','Boa noite, {N}.','bravo']],()=>{startJord()})}
 function updBattle(dt){const b=B;if(b.fq&&D){dlg(dt);return}b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);if(tap&&b.ph!=='over'&&inRect(ptr,440,0,40,30)){openOpt();return}
- if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,15+i*155,222,145,36)){beep(500);b.msel=i;b.txt=(b.fu?FUA:b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1){b.agir=1;F.agr=(F.agr|0)+1;b.calm=1;b.txt+=' Calma: balas 25% mais lentas.';if(!b.fq)b.eh=Math.max(1,b.eh-2)}if(i===2&&!b.fq){b.hp=Math.min(b.mx,b.hp+4);b.txt+=' +4 de vida.'}b.sh=i===2;if(i===0){b.ph='atk';b.at=0;b.ax=0;b.ar=null;b.ak=0}else{b.ph='msg';b.t=0}}})}
+ if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,15+i*155,222,145,36)){beep(500);b.msel=i;b.txt=(b.fu?FUA:b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1){b.agir=1;F.agr=(F.agr|0)+1;b.calm=1;b.txt+=' Calma: balas 25% mais lentas.';if(!b.fq)b.eh=Math.max(1,b.eh-2)}if(i===2&&!b.fq){b.hp=Math.min(b.mx,b.hp+4);b.txt+=' +4 de vida.'}b.sh=i===2;if(i===0){b.at=0;b.ax=0;b.ar=null;b.ak=0;if(F.alf){b.ph='qte';qteStart()}else b.ph='atk'}else{b.ph='msg';b.t=0}}})}
  else if(b.ph==='msg'){b.t+=dt;if(b.t>3.2||(tap&&b.t>.8))startDodge()}
+ else if(b.ph==='qte'){qteUpd(dt);if(QT.res&&QT.w>.55){b.ph='atk';b.at=0;if(!QT.ok){b.ar={dm:0,crit:false,miss:true};b.ak=0;b.ef=T}QT=null}}
  else if(b.ph==='atk'){if(b.ar){b.ak+=dt;if(b.ak>1){b.ar=null;if(b.eh<=0)endBattle(b);else startDodge()}}
   else{b.at+=dt;const u=(b.at/.95)%2;b.ax=u<1?u:2-u;const go=tap&&b.at>.15;
    if(go||b.at>2.9){const miss=!go,acc=miss?0:1-Math.abs(b.ax-.5)*2,crit=acc>.88,dm=miss?0:Math.round(3+acc*9)+(crit?2:0)+(GEN?2:0);
@@ -409,6 +410,7 @@ function drawBattle(){const b=B;bgBattle(b);
  {const en=BNAME(b),cc=(typeof BCFG!=='undefined'&&BCFG[en]&&BCFG[en].c)||'#b48cff';tx(en,340,40,'#d9d2ea',11);g.fillStyle='#2a2438';g.fillRect(340,44,120,7);g.fillStyle=cc;g.fillRect(340,44,Math.max(0,b.ed)/b.em*120,7);g.strokeStyle='#d9d2ea';g.lineWidth=1;g.strokeRect(340.5,44.5,119,6);tx(Math.ceil(b.eh)+' / '+b.em,460,62,'#8d80b3',10,'right')}
  if(b.ef&&T-b.ef<.25){const u=1-(T-b.ef)/.25,gr=g.createRadialGradient(240,66,4,240,66,48);gr.addColorStop(0,'rgba(255,255,255,'+(.55*u)+')');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(190,16,100,100)}
  if(b.ar&&!b.ar.miss&&b.ef&&T-b.ef<.6)strikeFx(b,(T-b.ef)/.6);
+ if(b.ph==='qte'&&QT)qteDraw(240,110);
  if(b.ph==='atk'){const bx0=A.x+8,bw=A.w-16,by0=A.y+A.h/2-8;g.fillStyle='#7a1a2a';g.fillRect(bx0,by0,bw,16);g.fillStyle='#c98b4a';g.fillRect(bx0+bw*.2,by0,bw*.6,16);g.fillStyle='#ffd84a';g.fillRect(bx0+bw*.4,by0,bw*.2,16);g.strokeStyle='#fff';g.lineWidth=2;g.strokeRect(bx0,by0,bw,16);const cx=bx0+bw*(b.ax||0);g.fillStyle=b.ar?'#ff4d6d':'#fff';g.fillRect(Math.round(cx)-2,by0-5,4,26);
   if(!b.ar)tx('TOQUE NO MOMENTO CERTO',A.x+A.w/2,A.y+22,'#ffa94d',10,'center');else{const r=b.ar;tx(r.miss?'ERROU':(r.crit?'PERFEITO! ':'')+'-'+r.dm,A.x+A.w/2,A.y+A.h-8,r.miss?'#8d80b3':r.crit?'#ffd84a':'#ff9ccb',14,'center');tx(r.miss?'ERROU':'-'+r.dm,240,32-b.ak*12,r.miss?'#8d80b3':'#ff4d6d',18,'center')}}
  if(b.ph==='menu'&&b.turn>0)tx('SUA VEZ',A.x+A.w/2,A.y+A.h-6,'#ffa94d',10,'center');
@@ -815,6 +817,24 @@ const DIMG={};[['pd','dance_pirata'],['pp','dance_prot'],['pv','pirata_derrota']
 const DSZ={pd:[81,103],pp:[63,91],pv:[83,118]};
 function dsp(k,c,r,x,y,sc,sm){const im=DIMG[k];if(!im)return false;const[cw,ch]=DSZ[k];g.save();g.imageSmoothingEnabled=!!sm;g.drawImage(im,c*cw,r*ch,cw,ch,Math.round(x-cw*sc/2),Math.round(y-ch*sc),Math.round(cw*sc),Math.round(ch*sc));g.restore();return true}
 let OU=null,DN=null;
+/* ---- Alfred + Quick Event ---- */
+let INP=('ontouchstart' in window)?'t':'k',QT=null;
+const AIMG=new Image();AIMG.src='img/alfred.png';const AWK=new Image();AWK.src='img/alfred_walk.png';
+cv.addEventListener('pointerdown',e=>{INP=e.pointerType==='mouse'?'k':'t'});
+addEventListener('keydown',()=>{INP='k'});
+const QKEYS=[['F','f'],['G','g'],['←','arrowleft'],['↑','arrowup'],['↓','arrowdown'],['→','arrowright']];
+function qteStart(tr){const k=QKEYS[(Math.random()*QKEYS.length)|0];QT={t:0,dur:tr?1.5:1.1,m:INP,k,res:0,w:0,tr:!!tr,win:INP==='t'?.07:.14}}
+function qteHit(){const q=QT;if(!q||q.res)return;if(q.t<q.dur-q.win){q.res=2;q.ok=false}else{q.res=1;q.ok=true}q.w=0;try{beep(q.ok?900:200)}catch(e){}}
+addEventListener('keydown',e=>{if(!QT||QT.res||QT.m!=='k'||e.repeat)return;const k=e.key.toLowerCase();if(k===QT.k[1])qteHit();else if(QKEYS.some(x=>x[1]===k)){QT.res=2;QT.ok=false;QT.w=0;try{beep(200)}catch(x){}}});
+function qteUpd(dt){const q=QT;q.t+=dt;if(!q.res){if(q.m==='t'&&tap&&q.t>.12)qteHit();if(q.t>q.dur+q.win){q.res=2;q.ok=false;q.w=0;try{beep(200)}catch(e){}}}else q.w+=dt}
+function qteDraw(cx,cy){const q=QT;if(!q)return;const k=Math.max(0,1-q.t/q.dur),R=22+k*60;g.save();
+ g.fillStyle='rgba(0,0,0,.55)';g.fillRect(cx-90,cy-80,180,160);
+ g.beginPath();g.arc(cx,cy,22,0,6.3);g.fillStyle=q.res?(q.ok?'#2dff3a':'#ff4a50'):'#3a2a6a';g.fill();g.lineWidth=3;g.strokeStyle='#ffd86a';g.stroke();
+ if(!q.res){g.beginPath();g.arc(cx,cy,R,0,6.3);g.lineWidth=3;g.strokeStyle='#fff';g.stroke()}
+ tx(q.res?(q.ok?'ÓTIMO!':'ERROU'):(q.m==='t'?'TOQUE':q.k[0]),cx,cy+5,'#fff',q.m==='t'||q.res?11:16,'center');
+ if(!q.res)tx(q.m==='t'?'quando o anel encostar':'aperte no tempo certo',cx,cy+72,'#e8dcff',10,'center');g.restore()}
+const ALF=[['Alfred','Boa tarde. Alfred, sommelier do Reino do Ouro. Vocês parecem... exaustos.'],['Alfred','Uma taça do meu melhor tinto. Por conta da casa.'],['Narração','O vinho restaura toda a sua vida.'],['Alfred','Agora um conselho de graça: antes de atacar, é preciso mostrar que se tem coragem de verdade.'],['Alfred','Quando escolherem ATACAR, aparece um Quick Event. Acertem o momento exato, e só então o golpe sai.'],['Alfred','No celular, toquem quando o anel encostar no botão. No computador, apertem a tecla que aparecer: F, G ou uma seta.'],['Alfred','Vamos praticar. Três vezes.']];
+const ALF2=[['Alfred','Excelente. Com essa mão firme, o Reino do Ouro será gentil com vocês.'],['Alfred','Boa sorte. E não esqueçam de pagar o pedágio.']];
 const OL1=[['Narração','O barco encosta num cais de madeira... pintada de dourado. Até as tábuas brilham.'],['Jordana','Então é isso. O Reino do Ouro.',2],['Jordana','Se eu raspar esse chão, dá pra pagar o barco e ainda sobra troco.',1],['Narração','Antes do primeiro passo, um barulho de botas vem de trás dos barris.']];
 const OL2=[['Pirata','PAAAREM! Ninguém pisa no Reino do Ouro sem passar por mim!'],['Pirata','Sou o terror dos sete mares! O saqueador de... de... bem, de bastante coisa!'],['Pirata','Antes de qualquer passo, vocês dois vão ter que me ENFRENTAR!'],['Jordana','...Já sei. Até a morte.',0],['Pirata','Não! Claro que não! Você acha que eu estou em um jogo?'],['Narração','Silêncio. Ninguém sabe responder isso.'],['Pirata','Vai ser uma batalha de DANÇA! Estilo Friday Night Funk!'],['Pirata','Esquerda, direita, baixo, cima... apertou na hora certa, pontuou. Errou, eu zombo. Simples!'],['Jordana','Eu derrubei três Fúrias hoje. E agora vou ter que dançar.',1],['Pirata','Ritmo é ritmo, mocinha! Preparem os pés... e MÚSICA!']];
 const OL3=[['Pirata','Eu... perdi? Logo eu? Danço assim desde antes de aprender a andar!'],['Jordana','Dava pra notar. Principalmente o "antes de aprender a andar".',1],['Pirata','Palavra de pirata: podem passar. O Reino do Ouro é de vocês.'],['Pirata','Mas lembrem: aqui dentro tudo tem preço. Até o sorriso.'],['Narração','O pirata se arrasta até um barril e some lá dentro. O portão dourado se abre devagar.']];
@@ -824,7 +844,9 @@ function updOuro(dt){const h=OU;h.t+=dt;if(dlg(dt))return;
  else if(h.st===2){h.px-=dt*100;h.fr+=dt*9;if(h.px<=312){h.px=312;h.st=3;h.t=0}}
  else if(h.st===3){if(h.t>.9){h.st=4;say(OL2,()=>{startDance()})}}
  else if(h.st===5){if(!h.said&&h.t>1.6){h.said=1;say(OL3,()=>{h.st=6;h.t=0})}}
- else if(h.st===6){h.px+=dt*30;h.gate=Math.min(1,h.t/3);if(h.t>8)startFim()}}
+ else if(h.st===6){h.px+=dt*30;h.gate=Math.min(1,h.t/3);if(h.t>8){h.st=7;h.t=0;h.said=0;h.n=0;pl.x=200;pl.y=198;pl.dir=3}}
+ else if(h.st===7){h.ax=Math.max(330,540-h.t*110);if(h.said===0&&h.ax<=330){h.said=1;say(ALF,()=>{F.mhp=30;h.said=2;h.n=0;qteStart(1)})}
+  else if(h.said===2){if(!QT)qteStart(1);qteUpd(dt);if(QT.res&&QT.w>.7){h.n++;if(h.n>=3){QT=null;h.said=3;say(ALF2,()=>{F.alf=1;try{save()}catch(e){}QT=null;startFim()})}else qteStart(1)}}}}
 function oBg(t){const hy=104,gr=g.createLinearGradient(0,0,0,hy);gr.addColorStop(0,'#3a2a5c');gr.addColorStop(.55,'#d98a6a');gr.addColorStop(1,'#ffd98a');g.fillStyle=gr;g.fillRect(0,0,W,hy);
  g.fillStyle='rgba(255,236,170,.9)';g.beginPath();g.arc(120,hy,22,Math.PI,0);g.fill();
  for(let i=0;i<13;i++){const x=i*38+(i%2?6:0),hh=34+gbr(i+500)*42;g.fillStyle=i%3?'#c99a3c':'#e3b94f';g.fillRect(x,hy-hh,26,hh);g.fillStyle='#fff0a8';g.fillRect(x,hy-hh,3,hh);g.fillStyle='#e8c85a';g.beginPath();g.moveTo(x-2,hy-hh);g.lineTo(x+13,hy-hh-16);g.lineTo(x+28,hy-hh);g.fill();
@@ -849,6 +871,7 @@ function drawOuro(){const h=OU,t=h.t;g.fillStyle='#000';g.fillRect(0,0,W,H);oBg(
  ds.sort((a,b)=>a[0]-b[0]).forEach(e=>e[1]());vignette();
  if(h.st===0){const a=Math.max(0,Math.min(1,t/1.2,(3.4-t)/.8));g.save();g.globalAlpha=a;tx('REINO DO OURO',W/2+2,112,'#3a2300',26,'center');tx('REINO DO OURO',W/2,110,'#ffd86a',26,'center');g.restore();g.fillStyle='rgba(0,0,0,'+Math.max(0,1-t/1.4)+')';g.fillRect(0,0,W,H)}
  if(h.st===6&&h.t>5){g.fillStyle='rgba(0,0,0,'+Math.min(1,(h.t-5)/2.6)+')';g.fillRect(0,0,W,H)}
+ if(h.st===7){const a=1;g.save();g.globalAlpha=a;if(h.ax>330&&AWK.complete&&AWK.naturalWidth){const sc=.58,cw=192,ch=264,f=Math.floor(h.t*9)%12,w=cw*sc,hh=ch*sc,x=Math.round(h.ax);g.imageSmoothingEnabled=false;g.translate(x,0);g.scale(-1,1);g.drawImage(AWK,f*cw,0,cw,ch,Math.round(-w/2),Math.round(206-hh),Math.round(w),Math.round(hh))}else if(AIMG.complete&&AIMG.naturalWidth){const sc=.46,w=AIMG.naturalWidth*sc,hh=AIMG.naturalHeight*sc;g.imageSmoothingEnabled=false;g.drawImage(AIMG,Math.round(330-w/2),Math.round(206-hh),Math.round(w),Math.round(hh))}else tx('Alfred',330,150,'#fff',12,'center');g.restore();if(h.said===2&&QT){qteDraw(240,100);tx('Treino '+(h.n+1)+'/3',240,196,'#ffd86a',11,'center')}}
  dbox()}
 /* --- batalha de dança --- */
 const DNB=.49,DNP=.10,DNOFF=0,DNAP=1.4,DNW=.26,DNY=46,DNX=[189,223,257,291];
