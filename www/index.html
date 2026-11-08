@@ -719,7 +719,7 @@ function updCut(dt){const c=CT;c.t+=dt;const t=c.t;
   let ax=0,ay=0,n=0;for(let i=c.p.length-1;i>=0;i--){const q=c.p[i];q.age+=dt;if(q.age>=q.life){c.p.splice(i,1);continue}q.vx+=(30+Math.sin(t*2+q.s)*18-q.vx)*dt*.5;q.vy+=(-14-q.vy)*dt*.4;q.x+=q.vx*dt;q.y+=q.vy*dt;ax+=q.x;ay+=q.y;n++}
   if(n&&t>3.2){const k=Math.min(1,dt*1.6);c.cy+=(Math.max(-520,ay/n-120)-c.cy)*k;c.cx+=(Math.min(260,ax/n-250)-c.cx)*k*.8}}
  else if(t<CSG.w4){const shot=(t>=CSG.w1&&t<CSG.s1)||(t>=CSG.w2&&t<CSG.s2)||(t>=CSG.w3&&t<CSG.s3);if(!shot){c.wx+=38*dt;pl.fr+=dt*5.5}}
- else if(t>=CSG.w4+4&&t>CSG.tt-4&&tap&&T>.1){S='title';T=0}}
+ else if(t>=CSG.w4+4&&t>CSG.tt-4&&tap&&T>.1){startBeach()}else if(t>CSG.tt+2)startBeach()}
 function cRain(a){if(a<=0)return;g.strokeStyle='rgba(165,185,215,'+(.45*a)+')';g.lineWidth=1;g.beginPath();for(let i=0;i<90;i++){const sp=.75+gbr(i+900)*.5,x=(gbr(i)*(W+40)-CT.t*50*sp+20000)%(W+40),y=((gbr(i+500)*H+CT.t*300*sp)%(H+20))-10;g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(x)-3,Math.round(y)+9)}g.stroke()}
 function cMount(){const t=CT.t,cx=Math.round(CT.cx),cy=Math.round(CT.cy);
  for(let y=0;y<H;y+=6){const wy=y+cy,k=Math.max(0,Math.min(1,(150-wy)/650)),a=[96,52,82],b=[4,3,12];g.fillStyle='rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*k)).join(',')+')';g.fillRect(0,y,W,6)}
@@ -764,6 +764,49 @@ function drawCut(){const c=CT,t=c.t;g.fillStyle='#000';g.fillRect(0,0,W,H);let o
   g.globalAlpha=Math.max(0,Math.min(1,(u-10)/2));tx('O PRIMEIRO PECADO',W/2,202,'#e8dcff',22,'center');g.globalAlpha=1}
  if(ov>0){g.fillStyle='rgba(0,0,0,'+Math.min(1,ov)+')';g.fillRect(0,0,W,H)}}
 
+/* ---------- CENA v1: praia, Joca, barco e viagem (sem mapa novo ainda) ---------- */
+let BH=null;
+const BL1=[['Narração','A chuva passou. Sobrou cheiro de terra molhada e uma praia vazia, bem na beira do mundo.'],['Jordana','Sabe... eu achei que ia sentir alívio. Mas só sinto cansaço.',2],['Jordana','As Fúrias disseram que o caminho de volta passa pelo Reino do Ouro.',0],['Jordana','Dizem que lá até o chão brilha. Aposto que tudo tem dono.',1],['Jordana','Se a gente chegar de mãos vazias, vão achar que somos mendigos... e somos.',1],['Jordana','Mas somos dois mendigos que derrubaram três Fúrias. Isso deve valer alguma coisa, né?',1],['Narração','Você não responde. Só olha o mar, e deixa o ombro dela encostar no seu.'],['Jordana','Obrigada por ficar calado. Hoje eu não queria ouvir ninguém.',2],['Jordana','...Só que pra atravessar esse mar a gente precisaria de um barco.',0],['Narração','Passos leves na areia. Alguém se aproxima, devagar.']];
+const BL2=[['Joca','Oi... desculpa atrapalhar. Eu quase passei direto.'],['Joca','É que eu tô criando um jogo, sabe? Um projeto grande chamado ELYNDRA.'],['Joca','Dá muito, muito trabalho. Tem noite que eu quase desisto.'],['Joca','Então, se você tá gostando da história, me incentiva! Manda um Pix para weslleyoliveiranunez@gmail.com'],['Joca','Ou segue o Instagram badrat_dev. Já ajuda demais!'],['Jordana','Um garoto que cria um mundo inteiro sozinho... Que coisa bonita. E triste.',2],['Joca','Ah! Tem um barco ali na beira. Eu usava, mas não uso mais. Podem levar.'],['Joca','Boa viagem. Cuidem um do outro.']];
+const BL3=[['Narração','O barco range, velho e fiel. Vocês se sentam lado a lado, e a maré faz o resto.']];
+function startBeach(){S='beach';D=null;B=null;ptr=null;P0=null;BH={t:0,st:0,jx:226,jy:152,jd:2,jm:0,vx:-24,vy:176};pl.x=200;pl.y=152;pl.dir=2;pl.mv=false;pl.fr=0}
+function updBeach(dt){const h=BH;h.t+=dt;
+ if(h.st===7){if(h.t>33)startFim();return}
+ if(dlg(dt))return;
+ if(h.st===0){if(h.t>2.4){h.st=1;say(BL1,()=>{h.st=2;h.t=0})}}
+ else if(h.st===2){h.vx+=46*dt;if(h.vx>=130){h.st=3;say(BL2,()=>{h.st=4;h.t=0})}}
+ else if(h.st===4){h.vx-=50*dt;if(h.vx<-30){h.st=5;h.t=0}}
+ else if(h.st===5){let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}
+  setMove(d,dt);const sp=58*dt;pl.x=Math.max(10,Math.min(445,pl.x+d.x*sp));pl.y=Math.max(142,Math.min(236,pl.y+d.y*sp));
+  const tx_=pl.x-26,ty_=pl.y,dd=Math.hypot(tx_-h.jx,ty_-h.jy);h.jm=dd>3?1:0;if(dd>3){const k=Math.min(1,dt*3.2);h.jx+=(tx_-h.jx)*k;h.jy+=(ty_-h.jy)*k;h.jd=Math.abs(tx_-h.jx)>Math.abs(ty_-h.jy)?(tx_<h.jx?1:3):(ty_<h.jy?2:0)}
+  if(pl.x>385&&Math.abs(pl.y-150)<28){h.st=6;pl.mv=false;pl.dir=3;say(BL3,()=>{h.st=7;h.t=0})}}}
+function bSky(hy,t){const gr=g.createLinearGradient(0,0,0,hy);gr.addColorStop(0,'#1d1a30');gr.addColorStop(.6,'#5a4766');gr.addColorStop(1,'#d3a39b');g.fillStyle=gr;g.fillRect(0,0,W,hy);
+ for(let i=0;i<40;i++){g.fillStyle='rgba(235,230,255,'+(.25+.3*Math.sin(t*1.5+i))*(1-gbr(i+7)*.4)+')';g.fillRect(Math.round(gbr(i)*W),Math.round(gbr(i+90)*hy*.6),1,1)}
+ g.fillStyle='rgba(255,226,190,.9)';g.beginPath();g.arc(330,hy-4,16,Math.PI,0);g.fill();g.fillStyle='rgba(255,226,190,.2)';g.beginPath();g.arc(330,hy-4,30,Math.PI,0);g.fill();
+ g.fillStyle='rgba(70,56,86,.55)';for(let i=0;i<4;i++){const x=((i*170-t*4)%(W+200)+W+200)%(W+200)-100;g.fillRect(Math.round(x),26+i*14,90,5);g.fillRect(Math.round(x)+14,22+i*14,50,4)}}
+function bSea(hy,y1,t,sp){const gr=g.createLinearGradient(0,hy,0,y1);gr.addColorStop(0,'#8a7f95');gr.addColorStop(.15,'#3c4a6c');gr.addColorStop(1,'#1a2338');g.fillStyle=gr;g.fillRect(0,hy,W,y1-hy);
+ g.fillStyle='rgba(255,214,170,.35)';for(let i=0;i<9;i++){const y=hy+3+i*i*1.2,w=10+i*7;g.fillRect(Math.round(330-w/2+Math.sin(t*1.3+i)*4),Math.round(y),w,1)}
+ g.fillStyle='rgba(180,195,225,.22)';for(let i=0;i<26;i++){const y=hy+8+((i*37)%(y1-hy-10)),x=((gbr(i+300)*W-t*sp*(.4+y/200))%(W+30)+W+30)%(W+30)-15;g.fillRect(Math.round(x),Math.round(y),8+i%3*6,1)}}
+function bBoat(x,y,sc){g.save();g.translate(Math.round(x),Math.round(y));g.scale(sc,sc);g.fillStyle='#3a2616';g.fillRect(-1,-48,2,38);g.fillStyle='#d9cfb8';g.beginPath();g.moveTo(2,-46);g.lineTo(2,-16);g.lineTo(26,-16);g.fill();g.fillStyle='#bfb49a';g.beginPath();g.moveTo(-2,-40);g.lineTo(-2,-16);g.lineTo(-18,-16);g.fill();
+ g.fillStyle='#5a3a24';g.beginPath();g.moveTo(-32,-12);g.lineTo(32,-12);g.lineTo(23,3);g.lineTo(-23,3);g.fill();g.fillStyle='#7a5232';g.fillRect(-32,-13,64,3);g.fillStyle='#3a2616';g.fillRect(-20,-4,40,1);g.restore()}
+function drawBeach(){const h=BH,t=h.t,HY=100;g.fillStyle='#000';g.fillRect(0,0,W,H);
+ if(h.st===7){const u=t,hy=118;bSky(hy,u);const gl=Math.max(0,Math.min(1,(u-6)/20));
+  g.fillStyle='rgba(255,200,90,'+.35*gl+')';g.beginPath();g.arc(70,hy,70*gl+10,Math.PI,0);g.fill();g.fillStyle='rgba(30,22,40,'+gl+')';g.fillRect(40,hy-7*gl,60,7*gl);g.fillRect(52,hy-18*gl,8,11*gl);g.fillRect(72,hy-24*gl,10,17*gl);g.fillStyle='rgba(255,210,100,'+gl+')';g.fillRect(55,hy-19*gl,2,2);g.fillRect(76,hy-26*gl,2,3);
+  bSea(hy,H,u,14);const by=176+Math.sin(u*1.4)*2.5,bx=W/2+Math.sin(u*.7)*3;const rl=Math.sin(u*1.4)*.02;
+  g.save();g.translate(bx,by);g.rotate(rl);g.translate(-bx,-by);pl.dir=3;pl.mv=false;drawPlayer(bx-20,by-27);drawJordF({x:bx+12,y:by-27,dir:3});bBoat(bx,by,1.5);g.restore();
+  g.fillStyle='rgba(200,215,240,.3)';g.fillRect(Math.round(bx-52+Math.sin(u*2)*3),Math.round(by+6),104,1);
+  const a=Math.max(0,Math.min(1,(u-24)/8));if(a>0){g.fillStyle='rgba(0,0,0,'+a+')';g.fillRect(0,0,W,H)}return}
+ bSky(HY,T);bSea(HY,138,T,6);
+ g.fillStyle='#b79f7e';g.fillRect(0,136,W,H-136);const gs=g.createLinearGradient(0,136,0,H);gs.addColorStop(0,'rgba(255,230,190,.12)');gs.addColorStop(1,'rgba(30,20,20,.45)');g.fillStyle=gs;g.fillRect(0,136,W,H-136);
+ g.fillStyle='#c9b894';g.beginPath();g.moveTo(0,134);for(let x=0;x<=W;x+=8)g.lineTo(x,Math.round(134+Math.sin(x*.05+T*.9)*2+Math.sin(T*.5)*1.5));g.lineTo(W,142);g.lineTo(0,142);g.fill();g.fillStyle='rgba(255,255,255,.5)';for(let x=0;x<W;x+=8){g.fillRect(x,Math.round(133+Math.sin(x*.05+T*.9)*2+Math.sin(T*.5)*1.5),5,1)}
+ g.fillStyle='rgba(90,70,50,.5)';for(let i=0;i<40;i++)g.fillRect(Math.round(gbr(i+40)*W),Math.round(150+gbr(i+80)*110),2,1);
+ const ds=[[pl.y,()=>{if(h.st<5){drawPlayer(pl.x,pl.y+3);g.fillStyle='#b79f7e';g.beginPath();g.ellipse(pl.x+5,pl.y+10,11,5,0,0,6.3);g.fill()}else drawPlayer(pl.x,pl.y)}],[h.st<5?h.jy:h.jy,()=>{if(h.st<5){drawJordF({x:h.jx,y:h.jy+3,dir:2});g.fillStyle='#b79f7e';g.beginPath();g.ellipse(h.jx+5,h.jy+10,11,5,0,0,6.3);g.fill()}else{const m=pl.mv;pl.mv=!!h.jm;drawJordF({x:h.jx,y:h.jy,dir:h.jd});pl.mv=m}}],[150,()=>{g.fillStyle='rgba(0,0,0,.25)';g.fillRect(388,148,64,4);bBoat(420,150,1)}]];
+ if(h.st>=2&&h.st<=4&&h.vx>-30)ds.push([h.vy,()=>npcSpr('Joca',h.vx,h.vy)]);
+ ds.sort((a,b)=>a[0]-b[0]).forEach(e=>e[1]());
+ vignette();
+ if(h.st===5&&Math.sin(T*3)>-.3){tx('Vá até o barco →',W-12,24,'#f0e4ff',12,'right')}
+ if(h.st===0){g.fillStyle='rgba(0,0,0,'+Math.max(0,1-h.t/2.4)+')';g.fillRect(0,0,W,H)}
+ dbox()}
 function updEnd(){if(tap&&T>.6){S='title';T=0}}
 function drawEnd(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('FIM DO CAPÍTULO 1',W/2,90,'#d9c8ff',24,'center');wr('As Três Fúrias caíram, Jordana está livre, e o caminho de volta à Terra finalmente se abriu. Mas você pagou um preço: abriu mão dos seus ideais. O resto da história ainda está em construção.',50,125,380,20,999,'#d9d2ea');tx('toque para voltar ao título',W/2,245,'#6c6290',12,'center')}
 
@@ -846,7 +889,7 @@ function voz(who){const k=String(who).normalize('NFD').replace(/[\u0300-\u036f]/
 function playAmb(name){if(!AUD.ok||name===AUD.ambKey)return;AUD.ambKey=name;const old=AUD.amb,t=AC.currentTime;if(old){old.g.gain.cancelScheduledValues(t);old.g.gain.setValueAtTime(old.g.gain.value,t);old.g.gain.linearRampToValueAtTime(0,t+1.5);setTimeout(()=>{try{old.s&&old.s.stop();old.kill&&old.kill()}catch(e){}},1700)}AUD.amb=null;if(!name)return;
  const R=AMBG[name];if(R){const A=ambBuild(name,R);A.g=A.m;A.kill=()=>A.stop.forEach(x=>{try{x.stop()}catch(e){}});AUD.amb=A;return}
  getBuf(name).then(b=>{if(!b||AUD.ambKey!==name)return;const s=AC.createBufferSource();s.buffer=b;s.loop=true;const g=AC.createGain();g.gain.value=0;s.connect(g);g.connect(AUD.ab);s.start();g.gain.linearRampToValueAtTime(.5*CFG.sv*(CFG.snd?1:0),AC.currentTime+1.8);AUD.amb={s,g}})}
-function mkAud(key){const a=new Audio();a.loop=!/final|creditos|pos_cred/.test(key);a.preload='auto';a.volume=0;a.tv=1;const u=key.startsWith('acervo_')?['audio/musica/'+key+'.ogg']:key==='mus_rosas_final'?['audio/musica/'+key+'.mp3']:['audio/musica/'+key+'.ogg','audio/sint/'+key+'.ogg'];let i=0;
+function mkAud(key){const a=new Audio();a.loop=!/final|creditos|pos_cred/.test(key);a.preload='auto';a.volume=0;a.tv=1;const u=key.startsWith('acervo_')?['audio/musica/'+key+'.ogg']:/^mus_(rosas_final|beira_do_mar)$/.test(key)?['audio/musica/'+key+'.mp3']:['audio/musica/'+key+'.ogg','audio/sint/'+key+'.ogg'];let i=0;
  const set=()=>{const p=u[i];a.src=embed(p)?'data:audio/ogg;base64,'+embed(p):p};
  a.onerror=()=>{if(++i<u.length){set();a.play().catch(()=>{})}else a.dead=1};
  a.onplaying=()=>{if(key.startsWith('acervo_')&&!a.shown){a.shown=1;const m=ACV.find(x=>x[0]===key);AUD.toast=m?m[1]:'';AUD.toastT=4.5}};
@@ -854,7 +897,7 @@ function mkAud(key){const a=new Audio();a.loop=!/final|creditos|pos_cred/.test(k
 function playMus(key){if(!AUD.ok||key===AUD.curKey)return;const old=AUD.cur;if(old){if(AUD.curKey)AUD.pos[AUD.curKey]=old.currentTime;old.tv=0;AUD.olds.push(old)}AUD.curKey=key;AUD.cur=null;gmStop();if(!key)return;if(GMAP[key]){gmPlay(key);return}const a=mkAud(key);AUD.cur=a;const p=a.play();if(p&&p.catch)p.catch(()=>{})}
 const FMUS={mus_floris_feelgood:'mus_tema_floris',mus_goblins_conflito:'mus_abertura_prologo',mus_furias_survive:'mus_chefe_guardiao',mus_ambiente_calmo:'mus_abertura_prologo',mus_ambiente_tensao:'mus_cena_triste',mus_ambiente_abismo:'mus_cena_triste'},BADM={};
 function fmus(k){return k&&FMUS[k]&&BADM[k]?FMUS[k]:k}
-function musKey(){if(S==='cut')return 'mus_rosas_final';
+function musKey(){if(S==='cut')return 'mus_rosas_final';if(S==='beach')return BH&&BH.st>=6?'mus_beira_do_mar':'mus_ambiente_calmo';
  if(S==='cust')return 'mus_titulo';if(S==='fones')return null;if(S==='intro')return 'mus_intro';if(S==='bintro')return BI&&BI.retry?AUD.curKey:null;if(S==='title'||S==='rato')return 'mus_titulo';if(S==='pro'||S==='rit'||S==='explore'||S==='world')return 'mus_abertura_prologo';if(S==='jord')return 'mus_tema_jordana';if(S==='gob')return GB&&GB.ph==='fur'?(FU&&FU.n>=3?'mus_furias_survive':'mus_ambiente_tensao'):GB&&(GB.ph==='bin'||GB.ph==='bat'||GB.ph==='sim')?'mus_goblins_conflito':GB&&(GB.ph==='guard'||GB.ph==='exit')?'mus_ambiente_tensao':'mus_ambiente_calmo';
  if(S==='battle'){if(GEN)return 'mus_chefe_genocide';return B.pa?'mus_chefe_primeiro_autor':B.er?'mus_chefe_erro_original':B.g?'mus_chefe_guardiao':B.q?'mus_chefe_rainha':B.mo?'mus_chefe_morpheus':B.he?'mus_chefe_herdeiros':B.z?'mus_chefe_zeus':B.hd?'mus_chefe_hades':B.fu?'mus_furias_survive':B.ev?'mus_floris_feelgood':'mus_tema_floris'}
  if(S==='choice'&&C2.ch===8)return 'mus_tema_protagonista';
@@ -1239,9 +1282,9 @@ let ERR=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;if(PCD&&IMG.prot&&IMG.faces&&IMG.faces_expr){PCD=0;try{pcPaint()}catch(e){}}if(curSlot>=0&&!NOPLAY.includes(S))PLAY+=dt;
  try{
   padTick(dt);
-  if(S==='cust')updCust(dt);else if(S==='fones')updFones();else if(S==='intro')updIntro(dt);else if(S==='rato')updRato();else if(S==='pad')updPad();else if(S==='title')updTitle();else if(S==='pro')updPro(dt);else if(S==='rit')updRit(dt);else if(S==='explore')updExplore(dt);else if(S==='battle')updBattle(dt);else if(S==='bintro')updBI(dt);else if(S==='jord')updJord(dt);else if(S==='gob')updGob(dt);else if(S==='cut')updCut(dt);else if(S==='end')updEnd();else if(S==='c2')updC2(dt);else if(S==='choice')updCh();else if(S==='qend')dlg(dt);else if(S==='end2')updE2();else if(S==='end3')updE3();else if(S==='opt')updOpt();else if(S==='slots')updSlots();else if(S==='keys')updKeys();else if(S==='end4')updE4();else if(S==='diary')updDiary();else if(S==='ach')updAch();else if(S==='end5')updE5();else if(S==='end6')updE6();else if(S==='end7')updE7();else if(S==='world')updWorld(dt);else if(S==='puz')updPuz(dt);else if(S==='sp')updSp(dt);else if(S==='loc')updLoc(dt);
+  if(S==='cust')updCust(dt);else if(S==='fones')updFones();else if(S==='intro')updIntro(dt);else if(S==='rato')updRato();else if(S==='pad')updPad();else if(S==='title')updTitle();else if(S==='pro')updPro(dt);else if(S==='rit')updRit(dt);else if(S==='explore')updExplore(dt);else if(S==='battle')updBattle(dt);else if(S==='bintro')updBI(dt);else if(S==='jord')updJord(dt);else if(S==='gob')updGob(dt);else if(S==='cut')updCut(dt);else if(S==='beach')updBeach(dt);else if(S==='end')updEnd();else if(S==='c2')updC2(dt);else if(S==='choice')updCh();else if(S==='qend')dlg(dt);else if(S==='end2')updE2();else if(S==='end3')updE3();else if(S==='opt')updOpt();else if(S==='slots')updSlots();else if(S==='keys')updKeys();else if(S==='end4')updE4();else if(S==='diary')updDiary();else if(S==='ach')updAch();else if(S==='end5')updE5();else if(S==='end6')updE6();else if(S==='end7')updE7();else if(S==='world')updWorld(dt);else if(S==='puz')updPuz(dt);else if(S==='sp')updSp(dt);else if(S==='loc')updLoc(dt);
   vibTick(dt);if(VIB.sh>0){g.setTransform(1,0,0,1,0,0);g.fillStyle='#000';g.fillRect(0,0,W,H);g.setTransform(1,0,0,1,Math.round((Math.random()-.5)*2*VIB.sh),Math.round((Math.random()-.5)*2*VIB.sh))}
-  if(S==='cust')drawCust();else if(S==='fones')drawFones();else if(S==='intro')drawIntro();else if(S==='rato')drawRato();else if(S==='pad')drawPad();else if(S==='title')drawTitle();else if(S==='pro')drawPro();else if(S==='rit')drawRit();else if(S==='explore'){drawExplore();dnOverlay()}else if(S==='battle')drawBattle();else if(S==='bintro')drawBI();else if(S==='jord')drawJord();else if(S==='gob')drawGob();else if(S==='cut')drawCut();else if(S==='c2'){drawC2();dnOverlay()}else if(S==='choice'){drawC2();dnOverlay();drawCh()}else if(S==='qend')drawBattle();else if(S==='end2')drawE2();else if(S==='end3')drawE3();else if(S==='opt')drawOpt();else if(S==='slots')drawSlots();else if(S==='keys')drawKeys();else if(S==='end4')drawE4();else if(S==='diary')drawDiary();else if(S==='ach')drawAch();else if(S==='end5')drawE5();else if(S==='end6')drawE6();else if(S==='end7')drawE7();else if(S==='world')drawWorld();else if(S==='puz')drawPuz();else if(S==='sp')drawSp();else if(S==='loc')drawLoc();else drawEnd();g.setTransform(1,0,0,1,0,0);padDraw();ERR=0;
+  if(S==='cust')drawCust();else if(S==='fones')drawFones();else if(S==='intro')drawIntro();else if(S==='rato')drawRato();else if(S==='pad')drawPad();else if(S==='title')drawTitle();else if(S==='pro')drawPro();else if(S==='rit')drawRit();else if(S==='explore'){drawExplore();dnOverlay()}else if(S==='battle')drawBattle();else if(S==='bintro')drawBI();else if(S==='jord')drawJord();else if(S==='gob')drawGob();else if(S==='cut')drawCut();else if(S==='beach')drawBeach();else if(S==='c2'){drawC2();dnOverlay()}else if(S==='choice'){drawC2();dnOverlay();drawCh()}else if(S==='qend')drawBattle();else if(S==='end2')drawE2();else if(S==='end3')drawE3();else if(S==='opt')drawOpt();else if(S==='slots')drawSlots();else if(S==='keys')drawKeys();else if(S==='end4')drawE4();else if(S==='diary')drawDiary();else if(S==='ach')drawAch();else if(S==='end5')drawE5();else if(S==='end6')drawE6();else if(S==='end7')drawE7();else if(S==='world')drawWorld();else if(S==='puz')drawPuz();else if(S==='sp')drawSp();else if(S==='loc')drawLoc();else drawEnd();g.setTransform(1,0,0,1,0,0);padDraw();ERR=0;
  }catch(e){g.setTransform(1,0,0,1,0,0);console.error(e);if(++ERR>2){ERR=0;D=null;B=null;J=null;ptr=null;P0=null;S='title';T=0}}
  try{audTick(dt)}catch(e){}try{achTick(dt)}catch(e){}padEnd();tap=false;drag.x=0;drag.y=0;requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
