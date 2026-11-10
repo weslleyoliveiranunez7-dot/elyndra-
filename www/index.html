@@ -346,6 +346,7 @@ function updRit(dt){rt.t+=dt;if(dlg(dt))return;const p=rt.ph;
 {const i=new Image();i.onload=()=>{IMG.cult=i};i.src='img/cult.png'}
 function cult(x,y,raise,k){const im=IMG.cult;if(im){g.save();g.globalAlpha=k;const c=raise?Math.floor(T*4)%4:Math.floor(T*3)%5;g.drawImage(im,c*48,raise?0:56,48,56,Math.round(x-24),Math.round(y+30-56),48,56);g.restore();return}g.save();g.globalAlpha=k;const r=3;for(let i=0;i<28;i++){const w=i<10?3+i*.55:8.5+(i-10)*.18;g.fillStyle='#ff2a2a';g.fillRect(Math.round(x-w-1),y+i,Math.round(2*w+2),1);if(i>0&&i<27){g.fillStyle=i<9&&i>2?'#000':'#0b0508';g.fillRect(Math.round(x-w+1),y+i,Math.round(2*w-2),1)}}
  g.fillStyle='#ff2a2a';g.fillRect(x-1,y+14,3,3);const l=raise?-5+Math.sin(T*4)*2:0;g.fillRect(x-13,y+10+l,3,9);g.fillRect(x+11,y+10+l,3,9);g.restore()}
+const RC={x:240,y:150},RF=[[150,118],[330,118],[170,188],[310,188],[240,98]];
 function drawRit(){const p=rt.ph,t=rt.t;if(IMG.ritual)g.drawImage(IMG.ritual,0,0,W,H);else{g.fillStyle='#050308';g.fillRect(0,0,W,H);
  for(let i=0;i<9;i++)for(let j=0;j<6;j++){g.fillStyle=(i+j)&1?'#15101c':'#0d0913';g.fillRect(i*54-3,40+j*38,54,38)}
  g.fillStyle='#0a0710';g.fillRect(0,0,W,40);g.fillStyle='#2a1a3a';g.fillRect(0,38,W,2);
