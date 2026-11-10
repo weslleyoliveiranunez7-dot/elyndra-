@@ -29,7 +29,7 @@ const LS=(()=>{let ok=false;try{localStorage.setItem('_t','1');localStorage.remo
 const KBD={up:'w',down:'s',left:'a',right:'d',ok:'e',menu:'escape'};const CFG={snd:1,vib:1,ts:28,easy:0,mv:.8,sv:.9,kb:{...KBD}};try{Object.assign(CFG,JSON.parse(LS.getItem('elyndra_cfg'))||{})}catch(e){}CFG.kb=Object.assign({},KBD,CFG.kb||{});
 function saveCfg(){try{LS.setItem('elyndra_cfg',JSON.stringify(CFG))}catch(e){}}
 /* ---------- v3.0 — SAVES: 3 SLOTS + PONTOS DE SAVE + PORCENTAGEM ---------- */
-const VER='6.1',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2;
+const VER='6.2',CHR={1:5,2:6,3:6,4:5,5:5,6:5,7:7,8:5},PRO_U=2;
 let SL=[null,null,null],curSlot=-1,PLAY=0,NOSAVE=0,SPCD=0;
 const NOPLAY=['gover','cust','title','slots','opt','keys','pad','diary','fones','intro','rato'];
 function preU(n){let u=PRO_U;for(let k=1;k<n&&k<=8;k++)u+=CHR[k];return u}
@@ -42,9 +42,8 @@ function fracOf(st,c2,room){let u=0;const m=/^cap(\d)$/.exec(st),n=/^fim(\d)$/.e
  return Math.max(0,Math.min(1,u/TOT_U))}
 function metaGet(){let m={};try{m=JSON.parse(LS.getItem('elyndra_meta'))||{}}catch(e){}return{best:+m.best||0,ends:Array.isArray(m.ends)?m.ends:[]}}
 function metaSet(m){try{LS.setItem('elyndra_meta',JSON.stringify(m))}catch(e){}}
-function slotsStore(){try{LS.setItem('elyndra_slots',JSON.stringify(SL))}catch(e){}}
-function slotsLoad(){let raw=null;try{raw=LS.getItem('elyndra_slots')}catch(e){}
- if(raw){try{const a=JSON.parse(raw);if(Array.isArray(a))SL=[0,1,2].map(i=>a[i]&&a[i].stage?a[i]:null)}catch(e){}return}
+function slotsStore(){try{const j=JSON.stringify(SL);LS.setItem('elyndra_slots',j);LS.setItem('elyndra_slots_bk',j)}catch(e){}}
+function slotsLoad(){for(const k of['elyndra_slots','elyndra_slots_bk']){let raw=null;try{raw=LS.getItem(k)}catch(e){}if(!raw)continue;try{const a=JSON.parse(raw);if(Array.isArray(a)){SL=[0,1,2].map(i=>a[i]&&a[i].stage?a[i]:null);return}}catch(e){}}
  try{const o=JSON.parse(LS.getItem('elyndra_save'));if(o&&o.stage){SL[0]={v:3,ver:o.ver||'',stage:o.stage,F:o.F||{},ch:stageCh(o.stage,0),t:0,ts:0,loc:'',frac:fracOf(o.stage,0,0)};slotsStore();LS.removeItem('elyndra_save');const m=metaGet();if(SL[0].frac>m.best){m.best=SL[0].frac;metaSet(m)}}}catch(e){}}
 function save(stage,silent){if(NOSAVE||curSlot<0)return;
  if(!stage){const c=SL[curSlot];if(!c||!c.stage)return;c.F={...F};c.M3={...M3};c.ts=Date.now();slotsStore();return}if(!silent)try{sfx('ui_salvar',{v:.6})}catch(e){}
@@ -179,7 +178,7 @@ function protStyle(a,w,A,C,p){const cols=Math.floor(w/20),dk=(c,f)=>c.map(v=>Mat
 function openCust(ret,cb){CU={ret,cb,err:0};if(!F.pc)F.pc=defPc();S='cust';ptr=null;P0=null;PCD=1}
 function cuChg(k,d){const p=F.pc,L={sk:SKN.length,hr:HRN.length,ot:OTN.length,li:LIN.length,hs:HST.length,ey:EYT.length,sh:SHT.length,pt:PTT.length,pn:PNT.length,hd:HDT.length,ac:ACT.length}[k];p[k]=((p[k]|0)+d+L)%L;PCD=1;beep(440)}
 function cuName(){const p=F.pc;let v=null;try{v=prompt('Nome do personagem (até 12 letras):',p.n||'')}catch(e){}if(v==null)return;v=v.replace(/[^\p{L}\p{N} '\-]/gu,'').trim().slice(0,12);if(v)p.n=v;beep(500)}
-function cuOk(){const r=CU.ret,cb=CU.cb;if(curSlot>=0&&SL[curSlot]){SL[curSlot].F=SL[curSlot].F||{};SL[curSlot].F.pc={...F.pc};slotsStore()}beep(500);if(r==='new')startPro();else if(r==='opt'){S='opt'}else if(cb)cb()}
+function cuOk(){const r=CU.ret,cb=CU.cb;if(curSlot>=0&&SL[curSlot]){SL[curSlot].F=SL[curSlot].F||{};SL[curSlot].F.pc={...F.pc};slotsStore()}beep(500);if(r==='new'){SLBK=null;startPro()}else if(r==='opt'){S='opt'}else if(cb)cb()}
 const CUT=[['CORPO',['n','sk','ey']],['CABELO',['hs','hr']],['ROUPA',['ot','sh','pt','pn']],['EXTRAS',['hd','ac','li']]],CUN={n:'Nome',sk:'Pele',ey:'Olhos',hs:'Estilo',hr:'Cor',ot:'Camisa: cor',sh:'Camisa: tipo',pt:'Calça: cor',pn:'Calça: tipo',hd:'Cabeça',ac:'Acessório',li:'Detalhes'};
 function cuVal(k,p){const o=OTN[p.ot|0];return{sk:[SKT[p.sk],[SKN[p.sk]]],ey:[EYT[p.ey|0],p.ey?[EYN[p.ey]]:[]],hs:[HST[p.hs|0],[]],hr:[HRT[p.hr],[HRN[p.hr]]],ot:[o[0],[o[1]]],sh:[SHT[p.sh|0],[]],pt:[PTT[p.pt|0],[p.pt?PTN[p.pt]:o[2]]],pn:[PNT[p.pn|0],[]],hd:[HDT[p.hd|0],[]],ac:[ACT[p.ac|0],[]],li:[LIT[p.li],[LIN[p.li]]]}[k]}
 const cuY=i=>66+i*34;
@@ -215,11 +214,15 @@ function jordana(x,y,a=1){g.globalAlpha=a;g.fillStyle='#1b1830';g.fillRect(x-9,y
 const stars=Array.from({length:50},(_,i)=>[(i*97)%480,(i*53)%270,i%3+1]);
 function menuItems(){const m=SL.some(Boolean)?['Novo jogo','Continuar','Opções']:['Novo jogo','Opções'];return m}
 function resetF(){Object.assign(F,{inv:null,jr_tobias:null,jr_kael:null,jr_iris:null,jr_dante:null,jr_helena:null,fm1:0,fm2:0,fm3:0,fm4:0,fm5:0,fm6:0,fm7:0,fm8:0,resets:0,elynHint:0,lixeira:0,pc:null,pts:0,evil:false,jordana:false,tobias:0,kaelIn:0,iris:0,dante:0,kael:-1,cain:-1,morph:-1,guardSpared:false,hrel:0,judas:-1,tj:0,trusted_judas:0,debt:0,hpress:-1,helenaIn:0,karma:0,tfN:0,irisRef:0,irisAlly:0,tobiasLate:0,tobiasTrust:0,kaelDead:0,tobiasDead:0,tobiasKeep:0,tobias_memory_kept:0,anubis:-1,iris_records_found:0,dante_family_truth:0,author_records_found:0,irisGone:0,danteGone:0,irisDiary:0,gods:0,route:'',jfall:0,prophecy_read:0,jordana_truth_known:0,sacrifice_understood:0,route_sacrifice:0,floris8:0,pa_defeated:0,atk:0,par:0,agr:0,hits:0,bt:{}});M3={hp:20,hard:0}}
-function startNew(i,gen){curSlot=i;SL[i]=null;slotsStore();PLAY=0;sfx(gen?'ui_genocide_ativar':'ui_novo_jogo');resetF();F.gen=gen?1:0;GEN=!!gen;F.pc=defPc();openCust('new')}
-function loadSlot(i){const s=SL[i];if(!s)return;curSlot=i;PLAY=s.t||0;if(!(s.F&&s.F.pc)){for(const k in F)delete F[k];resetF();F.pc=defPc();openCust('load',()=>cont(s));return}cont(s)}
+let SLBK=null;
+function slotCreate(i,gen){SLBK={i,s:SL[i]};curSlot=i;PLAY=0;NOSAVE=0;sfx(gen?'ui_genocide_ativar':'ui_novo_jogo');resetF();F.gen=gen?1:0;GEN=!!gen;F.pc=defPc();SL[i]={v:3,ver:VER,stage:'novo',F:{...F},M3:{...M3},ch:0,t:0,ts:Date.now(),frac:0,loc:'Início'};slotsStore();openCust('new')}
+function slotCancelNew(){if(SLBK){SL[SLBK.i]=SLBK.s;slotsStore();SLBK=null}curSlot=-1}
+const startNew=slotCreate;
+function slotLoad(i){const s=SL[i];if(!s||!s.stage){beep(120);return}curSlot=i;PLAY=s.t||0;SLBK=null;const go=()=>{try{cont(s)}catch(e){console.error(e);NOSAVE=0;curSlot=-1;openSlots('load')}};if(!(s.F&&s.F.pc)){for(const k in F)delete F[k];resetF();F.pc=defPc();openCust('load',go);return}go()}
+const loadSlot=slotLoad;
 function resumePoint(s){NOSAVE=1;try{const f={1:startC1,2:startC2}[s.ch]||startFim;f();if(S==='end'||S==='adm')return;Object.assign(F,s.F);C2=JSON.parse(JSON.stringify(s.C2));pl.x=s.px;pl.y=s.py;D=null;ex.t=0;TRL.length=0;S='c2'}finally{NOSAVE=0}}
 const startC1=()=>startAdm(),startC2=startC1;
-function cont(s){for(const k in F)delete F[k];resetF();Object.assign(F,s.F||{});PCD=1;GEN=!!F.gen;if(s.M3)M3={...s.M3};D=null;ptr=null;P0=null;const t=s.stage;if(SCI[t]){NOSAVE=1;try{SCI[t].fn()}finally{NOSAVE=0}return}if(/^boss_/.test(t)){NOSAVE=1;try{if(t==='boss_floris')startFlBattle();else if(t==='boss_furias'){startGob();startFur()}else if(t==='boss_hidra'){startBattle('Y')}else if(t==='boss_midas'){startBattle('D')}else{startOuro();startDance()}}finally{NOSAVE=0}return}if(t==='ponto'){if(s.C2&&s.C2.ch&&s.px!==undefined)return resumePoint(s);return cont({...s,stage:'cap'+(s.ch||1)})}if(/^(fim[2-8]|cap[3-8])$/.test(t))startFim();else if(t==='fim'||t==='cap1')startC1();else if(t==='cap2')startC2();else startExplore()}
+function cont(s){for(const k in F)delete F[k];resetF();Object.assign(F,s.F||{});PCD=1;GEN=!!F.gen;if(s.M3)M3={...s.M3};D=null;ptr=null;P0=null;const t=s.stage;if(t==='novo'){startPro();return}if(SCI[t]){NOSAVE=1;try{SCI[t].fn()}finally{NOSAVE=0}return}if(/^boss_/.test(t)){NOSAVE=1;try{if(t==='boss_floris')startFlBattle();else if(t==='boss_furias'){startGob();startFur()}else if(t==='boss_hidra'){startBattle('Y')}else if(t==='boss_midas'){startBattle('D')}else{startOuro();startDance()}}finally{NOSAVE=0}return}if(t==='ponto'){if(s.C2&&s.C2.ch&&s.px!==undefined)return resumePoint(s);return cont({...s,stage:'cap'+(s.ch||1)})}if(/^(fim[2-8]|cap[3-8])$/.test(t))startFim();else if(t==='fim'||t==='cap1')startC1();else if(t==='cap2')startC2();else startExplore()}
 /* ---------- UI INDIE: fundo, botões, título ---------- */
 let optTab=0;
 function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
@@ -289,7 +292,7 @@ function optRows(){const R={snd:['Som',CFG.snd?'ligado':'desligado'],mv:['Músic
 function optAct(k,od){
  if(k==='mv'){CFG.mv=CFG.mv>.85?.7:CFG.mv>.55?.4:CFG.mv>.1?0:1;saveCfg()}else if(k==='sv'){CFG.sv=CFG.sv>.85?.7:CFG.sv>.55?.4:CFG.sv>.1?0:1;saveCfg();beep(500)}else if(k==='snd'){CFG.snd^=1;saveCfg();beep(500)}else if(k==='vib'){CFG.vl=((CFG.vl|0)+1)%4;CFG.vib=CFG.vl>0?1:0;saveCfg();VIB.play('hit')}else if(k==='shk'){CFG.shake^=1;saveCfg();if(CFG.shake)VIB.play('slam')}else if(k==='fs'){toggleFS()}else if(k==='pad'){S='pad';PAD.wait=null}else if(k==='ts'){CFG.ts=CFG.ts===18?28:CFG.ts===28?45:18;saveCfg();beep(500)}else if(k==='easy'){CFG.easy^=1;saveCfg();beep(500)}
  else if(k==='pers'){openCust('opt')}else if(k==='pwa'){pwaAdd()}else if(k==='diary'){S='diary'}else if(k==='ach'){S='ach'}else if(k==='dev'){openDev()}else if(k==='keys'){S='keys';kbWait=null}
- else if(k==='title'){if(od){S='title';T=0;D=null;curSlot=-1;ptr=null;P0=null}else optDel=1}
+ else if(k==='title'){if(od){slotCancelNew();S='title';T=0;D=null;curSlot=-1;ptr=null;P0=null}else optDel=1}
  else{S=optBack;ptr=null;P0=null}}
 const optBot=()=>optIng()?[['title',60,170],['back',250,170]]:[['back',170,140]];
 function updOpt(){if(!tap)return;const od=optDel;optDel=0;
@@ -1710,10 +1713,11 @@ let ERR=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;GD=0;if(PCD&&IMG.prot&&IMG.faces&&IMG.faces_expr){PCD=0;try{pcPaint()}catch(e){}}if(curSlot>=0&&!NOPLAY.includes(S))PLAY+=dt;
  try{
   padTick(dt);if(tap&&ptr&&inRect(ptr,440,0,40,30)&&menuOK()){tap=false;ptr=null;P0=null;openOpt()}
-  if(S==='gover')updGover(dt);else if(S==='cust')updCust(dt);else if(S==='fones')updFones();else if(S==='intro')updIntro(dt);else if(S==='fmr')updFmr(dt);else if(S==='mir')updMir(dt);else if(S==='mrm')updMrm(dt);else if(S==='jrs')updJrs(dt);else if(S==='jr2')updJr2(dt);else if(S==='pkb')updPkb(dt);else if(S==='cs3')updCs3(dt);else if(S==='vs')updVs(dt);else if(S==='pan')updPan(dt);else if(S==='mf')updMf(dt);else if(S==='reun')updReun(dt);else if(S==='prop')updProp(dt);else if(S==='rato')updRato();else if(S==='pad')updPad();else if(S==='title')updTitle();else if(S==='pro')updPro(dt);else if(S==='rit')updRit(dt);else if(S==='explore')updExplore(dt);else if(S==='battle')updBattle(dt);else if(S==='bintro')updBI(dt);else if(S==='jord')updJord(dt);else if(S==='gob')updGob(dt);else if(S==='cut')updCut(dt);else if(S==='beach')updBeach(dt);else if(S==='beach2')updBeach2(dt);else if(S==='ouro')updOuro(dt);else if(S==='trav')updTrav(dt);else if(S==='ponte')updPonte(dt);else if(S==='hyend')updHyEnd(dt);else if(S==='midas')updMidas(dt);else if(S==='mend')updMend(dt);else if(S==='vcut')updVc(dt);else if(S==='barco')updBarco(dt);else if(S==='bgr')updBgr(dt);else if(S==='bgb')updBgb(dt);else if(S==='jmt')updJmt(dt);else if(S==='dev')updDev(dt);else if(S==='skyf')updSkyF(dt);else if(S==='adm')updAdm(dt);else if(S==='dance')updDance(dt);else if(S==='end')updEnd();else if(S==='c2i')updC2i(dt);else if(S==='c2')updC2(dt);else if(S==='choice')updCh();else if(S==='qend')dlg(dt);else if(S==='end2')updE2();else if(S==='opt')updOpt();else if(S==='slots')updSlots();else if(S==='keys')updKeys();else if(S==='diary')updDiary();else if(S==='ach')updAch();else if(S==='world')updWorld(dt);else if(S==='puz')updPuz(dt);else if(S==='sp')updSp(dt);else if(S==='loc')updLoc(dt);
+  if(S==='gover')updGover(dt);else if(S==='cust')updCust(dt);else if(S==='fones')updFones();else if(S==='intro')updIntro(dt);else if(S==='fmr')updFmr(dt);else if(S==='mir')updMir(dt);else if(S==='mrm')updMrm(dt);else if(S==='jrs')updJrs(dt);else if(S==='jr2')updJr2(dt);else if(S==='pkb')updPkb(dt);else if(S==='cs3')updCs3(dt);else if(S==='vs')updVs(dt);else if(S==='pan')updPan(dt);else if(S==='mf')updMf(dt);else if(S==='reun')updReun(dt);else if(S==='prop')updProp(dt);else if(S==='rato')updRato();else if(S==='pad')updPad();else if(S==='title')updTitle();else if(S==='pro')updPro(dt);else if(S==='rit')updRit(dt);else if(S==='explore')updExplore(dt);else if(S==='battle')updBattle(dt);else if(S==='bintro')updBI(dt);else if(S==='jord')updJord(dt);else if(S==='gob')updGob(dt);else if(S==='cut')updCut(dt);else if(S==='beach')updBeach(dt);else if(S==='beach2')updBeach2(dt);else if(S==='ouro')updOuro(dt);else if(S==='trav')updTrav(dt);else if(S==='ponte')updPonte(dt);else if(S==='hyend')updHyEnd(dt);else if(S==='midas')updMidas(dt);else if(S==='mend')updMend(dt);else if(S==='vcut')updVc(dt);else if(S==='barco')updBarco(dt);else if(S==='bgr')updBgr(dt);else if(S==='flw')updFlw(dt);else if(S==='bgb')updBgb(dt);else if(S==='jmt')updJmt(dt);else if(S==='dev')updDev(dt);else if(S==='skyf')updSkyF(dt);else if(S==='adm')updAdm(dt);else if(S==='dance')updDance(dt);else if(S==='end')updEnd();else if(S==='c2i')updC2i(dt);else if(S==='c2')updC2(dt);else if(S==='choice')updCh();else if(S==='qend')dlg(dt);else if(S==='end2')updE2();else if(S==='opt')updOpt();else if(S==='slots')updSlots();else if(S==='keys')updKeys();else if(S==='diary')updDiary();else if(S==='ach')updAch();else if(S==='world')updWorld(dt);else if(S==='puz')updPuz(dt);else if(S==='sp')updSp(dt);else if(S==='loc')updLoc(dt);
   vibTick(dt);if(VIB.sh>0){g.setTransform(1,0,0,1,0,0);g.fillStyle='#000';g.fillRect(0,0,W,H);g.setTransform(1,0,0,1,Math.round((Math.random()-.5)*2*VIB.sh),Math.round((Math.random()-.5)*2*VIB.sh))}
-  if(S==='gover')drawGover();else if(S==='cust')drawCust();else if(S==='fones')drawFones();else if(S==='intro')drawIntro();else if(S==='fmr')drawFmr();else if(S==='mir')drawMir();else if(S==='mrm')drawMrm();else if(S==='jrs')drawJrs();else if(S==='jr2')drawJr2();else if(S==='pkb')drawPkb();else if(S==='cs3')drawCs3();else if(S==='vs')drawVs();else if(S==='pan')drawPan();else if(S==='mf')drawMf();else if(S==='reun')drawReun();else if(S==='prop')drawProp();else if(S==='rato')drawRato();else if(S==='pad')drawPad();else if(S==='title')drawTitle();else if(S==='pro')drawPro();else if(S==='rit')drawRit();else if(S==='explore'){drawExplore();dnOverlay()}else if(S==='battle')drawBattle();else if(S==='bintro')drawBI();else if(S==='jord')drawJord();else if(S==='gob')drawGob();else if(S==='cut')drawCut();else if(S==='beach')drawBeach();else if(S==='beach2')drawBeach2();else if(S==='ouro')drawOuro();else if(S==='trav')drawTrav();else if(S==='ponte')drawPonte();else if(S==='hyend')drawHyEnd();else if(S==='midas')drawMidas();else if(S==='mend')drawMend();else if(S==='vcut')drawVc();else if(S==='barco')drawBarco();else if(S==='bgr')drawBgr();else if(S==='bgb')drawBgb();else if(S==='jmt')drawJmt();else if(S==='dev')drawDev();else if(S==='skyf')drawSkyF();else if(S==='adm')drawAdm();else if(S==='c2i')drawC2i();else if(S==='dance')drawDance();else if(S==='c2'){drawC2();dnOverlay()}else if(S==='choice'){drawC2();dnOverlay();drawCh()}else if(S==='qend')drawBattle();else if(S==='end2')drawE2();else if(S==='opt')drawOpt();else if(S==='slots')drawSlots();else if(S==='keys')drawKeys();else if(S==='diary')drawDiary();else if(S==='ach')drawAch();else if(S==='world')drawWorld();else if(S==='puz')drawPuz();else if(S==='sp')drawSp();else if(S==='loc')drawLoc();else drawEnd();if(RV&&T>=RV.t&&T-RV.t<2.2){const u=T-RV.t;g.save();g.globalAlpha=Math.max(0,1-u/2.2);tx('+7 HP',RV.x,RV.y-18-Math.round(u*14),'#5af08a',14,'center');g.restore()}if(!GD&&menuOK())drawGear();g.setTransform(1,0,0,1,0,0);padDraw();ERR=0;
- }catch(e){g.setTransform(1,0,0,1,0,0);console.error(e);if(++ERR>2){ERR=0;D=null;B=null;J=null;ptr=null;P0=null;S='title';T=0}}
+  if(S==='gover')drawGover();else if(S==='cust')drawCust();else if(S==='fones')drawFones();else if(S==='intro')drawIntro();else if(S==='fmr')drawFmr();else if(S==='mir')drawMir();else if(S==='mrm')drawMrm();else if(S==='jrs')drawJrs();else if(S==='jr2')drawJr2();else if(S==='pkb')drawPkb();else if(S==='cs3')drawCs3();else if(S==='vs')drawVs();else if(S==='pan')drawPan();else if(S==='mf')drawMf();else if(S==='reun')drawReun();else if(S==='prop')drawProp();else if(S==='rato')drawRato();else if(S==='pad')drawPad();else if(S==='title')drawTitle();else if(S==='pro')drawPro();else if(S==='rit')drawRit();else if(S==='explore'){drawExplore();dnOverlay()}else if(S==='battle')drawBattle();else if(S==='bintro')drawBI();else if(S==='jord')drawJord();else if(S==='gob')drawGob();else if(S==='cut')drawCut();else if(S==='beach')drawBeach();else if(S==='beach2')drawBeach2();else if(S==='ouro')drawOuro();else if(S==='trav')drawTrav();else if(S==='ponte')drawPonte();else if(S==='hyend')drawHyEnd();else if(S==='midas')drawMidas();else if(S==='mend')drawMend();else if(S==='vcut')drawVc();else if(S==='barco')drawBarco();else if(S==='bgr')drawBgr();else if(S==='flw')drawFlw();else if(S==='bgb')drawBgb();else if(S==='jmt')drawJmt();else if(S==='dev')drawDev();else if(S==='skyf')drawSkyF();else if(S==='adm')drawAdm();else if(S==='c2i')drawC2i();else if(S==='dance')drawDance();else if(S==='c2'){drawC2();dnOverlay()}else if(S==='choice'){drawC2();dnOverlay();drawCh()}else if(S==='qend')drawBattle();else if(S==='end2')drawE2();else if(S==='opt')drawOpt();else if(S==='slots')drawSlots();else if(S==='keys')drawKeys();else if(S==='diary')drawDiary();else if(S==='ach')drawAch();else if(S==='world')drawWorld();else if(S==='puz')drawPuz();else if(S==='sp')drawSp();else if(S==='loc')drawLoc();else drawEnd();if(RV&&T>=RV.t&&T-RV.t<2.2){const u=T-RV.t;g.save();g.globalAlpha=Math.max(0,1-u/2.2);tx('+7 HP',RV.x,RV.y-18-Math.round(u*14),'#5af08a',14,'center');g.restore()}if(!GD&&menuOK())drawGear();g.setTransform(1,0,0,1,0,0);padDraw();ERR=0;
+ ERR=0;
+ }catch(e){g.setTransform(1,0,0,1,0,0);console.error(e);if(++ERR>5){try{save()}catch(_){}ERR=0;D=null;B=null;J=null;ptr=null;P0=null;S='title';T=0}}
  try{audTick(dt)}catch(e){}try{achTick(dt)}catch(e){}padEnd();tap=false;drag.x=0;drag.y=0;requestAnimationFrame(frame)}
 /* --- polimento final dos cenarios (Reino do Ouro, viagem, ponte, salao do Midas) --- */
 {const glow=(x,y,r,c,a)=>{const q=g.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,'rgba('+c+','+a+')');q.addColorStop(1,'rgba('+c+',0)');g.fillStyle=q;g.fillRect(x-r,y-r,r*2,r*2)};
@@ -2500,29 +2504,29 @@ function drawSkyF(){const h=SF,fx=240,fy=176,u=h.st===0?Math.min(1,h.t/12):1,e=u
  drawGear();dbox()}
 </script>
 <script>
-/* ---------- PAINEL DO DESENVOLVEDOR (Opções > Extras, senha 3040) ---------- */
-let DV=null;const DVP='3040',DVK=['1','2','3','4','5','6','7','8','9','<','0','K'];
+/* ---------- PAINEL DO DESENVOLVEDOR (Opções > Extras, senhas 1234 e 3040) ---------- */
+let DV=null;const DVP='1234',DVP2='3040',DVK=['1','2','3','4','5','6','7','8','9','<','0','K'];
 const DVL=[['Prólogo',[['Prólogo',()=>startPro()]]],
 ['Capítulo 1',[['Raiz Velha',()=>startExplore()],['Boss Floris',()=>startFlBattle()],['Boss Fúrias',()=>{startGob();startFur()}],['Reino do Ouro',()=>startOuro()],['Dança Pirata',()=>{startOuro();startDance()}],['Travessia',()=>startTrav()],['Hidra (ponte)',()=>startPonte()],['Midas',()=>startMidas()],['Barco',()=>startBarco()]]],
 ['Capítulo 2',[['Início',()=>startC2i()],['Praia',()=>startBeach()],['Fragmentos',()=>startFmr()],['Espelhos',()=>startMir()],['Jornada',()=>startJrs()],['Batalha 1',()=>startPkb(0,false)],['Batalha 2',()=>startPkb(1,false)],['Cena',()=>startCs3()],['Confronto',()=>startVs()],['Reencontro',()=>startReun()],['Praia final',()=>startBeach2()]]],
-['Capítulo 3',[['Barragem ADM',()=>startAdmFim()],['Fogueira final',()=>startSkyF()],['Jordana morta',()=>startJmt()],['Mendigo (encontro)',()=>startBgr()],['Batalha do Mendigo',()=>startBgb()],['Amor e Ódio (cutscene)',()=>{startJmt();JM.st=2;JM.t=0;JM.m=0;JM.k=1;pl.x=296;pl.dir=3}]]]];
+['Capítulo 3',[['Barragem ADM',()=>startAdmFim()],['Fogueira final',()=>startSkyF()],['Jordana morta',()=>startJmt()],['Mendigo (encontro)',()=>startBgr()],['Batalha do Mendigo',()=>startBgb()],['Flower (encontro)',()=>startFlw()],['Amor e Ódio (cutscene)',()=>{startJmt();JM.st=2;JM.t=0;JM.m=0;JM.k=1;pl.x=296;pl.dir=3}]]]];
 function openDev(){S='dev';DV={st:0,v:'',msg:'',ch:0,sh:0,clr:0};ptr=null;P0=null}
 function devGo(fn){const j=DV.ch>=1;for(const k in F)delete F[k];resetF();F.jordana=j;PCD=1;GEN=false;curSlot=-1;D=null;B=null;ptr=null;P0=null;DV=null;NOSAVE=1;try{fn()}catch(e){console.error(e);S='title';T=0}finally{NOSAVE=0}}
-function dvCheck(){if(DV.v===DVP){DV.st=1;try{beep(900)}catch(e){}}else{DV.msg='SENHA INCORRETA';DV.clr=.7;DV.sh=.4;try{beep(260)}catch(e){}}}
+function dvCheck(){if(DV.v===DVP||DV.v===DVP2){DV.lv=DV.v===DVP2?4:3;DV.st=1;try{beep(900)}catch(e){}}else{DV.msg='SENHA INCORRETA';DV.clr=.7;DV.sh=.4;try{beep(260)}catch(e){}}}
 function dvKey(k){const v=DV;if(v.clr>0)return;if(k==='<'){v.v=v.v.slice(0,-1);v.msg=''}else if(k==='K'){if(v.v.length===4)dvCheck()}else if(v.v.length<4){v.v+=k;v.msg='';try{beep(700)}catch(e){}if(v.v.length===4)dvCheck()}}
 addEventListener('keydown',e=>{if(S!=='dev'||!DV||DV.st!==0)return;const k=e.key;if(/^[0-9]$/.test(k))dvKey(k);else if(k==='Backspace')dvKey('<');else if(k==='Enter')dvKey('K')});
 function updDev(dt){const v=DV;if(!v)return;if(v.sh>0)v.sh-=dt;if(v.clr>0){v.clr-=dt;if(v.clr<=0)v.v=''}
  if(!tap||!ptr)return;
  if(inRect(ptr,170,226,140,26)){beep(440);if(v.st===2)v.st=1;else{S='opt';DV=null}ptr=null;P0=null;return}
  if(v.st===0){for(let i=0;i<12;i++)if(inRect(ptr,310+(i%3)*44,62+Math.floor(i/3)*34,40,30)){dvKey(DVK[i]);return}}
- else if(v.st===1){for(let i=0;i<4;i++)if(inRect(ptr,60,66+i*36,360,30)){v.ch=i;v.st=2;beep(500);return}}
+ else if(v.st===1){for(let i=0;i<DV.lv;i++)if(inRect(ptr,60,66+i*36,360,30)){v.ch=i;v.st=2;beep(500);return}}
  else{const L=DVL[v.ch][1];for(let i=0;i<L.length;i++)if(inRect(ptr,40+(i%3)*140,62+Math.floor(i/3)*34,136,28)){beep(600);devGo(L[i][1]);return}}}
 function drawDev(){const v=DV;if(!v)return;bgMenu();g.fillStyle='rgba(8,4,20,.75)';rr(24,28,432,232,10);g.fill();tx('PAINEL DO DESENVOLVEDOR',W/2,21,'#ffd86a',14,'center');
  const btn=(x,y,w,h,t,c)=>{rr(x,y,w,h,6);g.fillStyle=c||'rgba(30,18,60,.9)';g.fill();g.lineWidth=1.5;g.strokeStyle='#8f7fd0';g.stroke();tx(t,x+w/2,y+h/2+4,'#fff',11,'center')};
  if(v.st===0){g.save();if(v.sh>0)g.translate(Math.round((Math.random()-.5)*6),0);for(let i=0;i<4;i++){const x=50+i*50;g.fillStyle='#000';g.fillRect(x,90,44,44);g.strokeStyle=v.clr>0?'#ff4a50':'#ffd86a';g.lineWidth=2;g.strokeRect(x+1,91,42,42);if(v.v[i])tx('*',x+22,125,'#fff',24,'center')}g.restore();
   tx(v.msg||'Digite a senha de 4 dígitos',125,160,v.msg?'#ff4a50':'#9b8fc4',10,'center');
   DVK.forEach((k,i)=>btn(310+(i%3)*44,62+Math.floor(i/3)*34,40,30,k==='<'?'⌫':k==='K'?'OK':k,k==='K'?'#2d6a3a':k==='<'?'#6a2d2d':null))}
- else if(v.st===1){DVL.forEach((c,i)=>btn(60,66+i*36,360,30,c[0]));tx('Entrar nestas cenas não salva o progresso.',W/2,216,'#9b8fc4',10,'center')}
+ else if(v.st===1){DVL.slice(0,v.lv).forEach((c,i)=>btn(60,66+i*36,360,30,c[0]));tx('Entrar nestas cenas não salva o progresso.',W/2,216,'#9b8fc4',10,'center')}
  else{tx(DVL[v.ch][0],W/2,54,'#e8dcff',12,'center');DVL[v.ch][1].forEach((c,i)=>btn(40+(i%3)*140,62+Math.floor(i/3)*34,136,28,c[0]))}
  btn(170,226,140,26,v.st===2?'voltar':'sair')}
 </script>
@@ -2611,15 +2615,60 @@ function drawFb(){const h=JM;if(h.st!==3)return;for(let k=0;k<5;k++){const a0=FB
 let BR=null,BG=null;
 function startBgr(){S='bgr';D=null;B=null;ptr=null;P0=null;LG=null;BR={t:0,st:0,sx:0};pl.x=170;pl.y=190;pl.dir=3;pl.mv=false;pl.fr=0;try{playAmb('amb_chuva_janela')}catch(e){}}
 function updBgr(dt){const h=BR;h.t+=dt;if(dlg(dt))return;
- if(h.st===0){pl.mv=true;pl.dir=3;pl.fr+=dt*6;h.sx=h.t*40;if(h.sx>=430){h.sx=430;pl.mv=false;pl.fr=0;h.st=1;h.t=0}}
- else if(h.st===1&&h.t>1.2){h.st=2;say([['Mendigo','Ei... moço. Tem algum dinheiro aí?'],['Mendigo','Qualquer moeda serve. Faz dias que eu não como.'],['Narração','Você não responde. Você nunca responde.'],['Mendigo','Ahn? Perdeu a língua? Então olha nos bolsos. Tem dinheiro ou não tem?']],()=>say([['Narração','Dinheiro. Ele pergunta se você tem dinheiro.'],['Narração','Agora? Depois de tudo o que você perdeu esta noite?'],['Narração','Só pode ser ironia. Uma piada de mau gosto.'],['Narração','Seus punhos se fecham. A chuva não esfria a raiva.'],['Mendigo','Ei, calma, moço... eu só perguntei!']],()=>{h.st=4;h.t=0}))}
- else if(h.st===4&&h.t>.8)startBgb()}
+ if(h.st===0){let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}if(h.t<1)d={x:0,y:0};setMove(d,dt);h.sx=Math.max(0,Math.min(430,h.sx+d.x*58*dt));pl.y=Math.max(184,Math.min(232,pl.y+d.y*40*dt));if(h.sx>=430){pl.mv=false;pl.fr=0;pl.dir=3;h.st=1;h.t=0}}
+ else if(h.st===1&&h.t>1.2){h.st=2;say([['Narração','Um vulto encolhido sob a marquise estende a mão na sua direção.'],['Mendigo','Ei... moço. Tem algum dinheiro aí?'],['Mendigo','Qualquer moeda serve. Faz dias que eu não como.'],['Narração','Você não responde. Você nunca responde.'],['Narração','Um sorriso torto escapa do seu rosto. Sem graça. Sem alegria.'],['Mendigo','Tá rindo de quê? Acha engraçado, é? Então olha nos bolsos. Tem dinheiro ou não tem?'],['Narração','Dinheiro. Ele pergunta se você tem dinheiro.'],['Narração','Agora? Depois de tudo o que você perdeu esta noite?'],['Narração','Só pode ser ironia. Uma piada de mau gosto.'],['Narração','Seus punhos se fecham. A chuva não esfria a raiva.'],['Mendigo','Ei, calma, moço... eu só perguntei!']],()=>{h.st=4;h.t=0})}
+  else if(h.st===4&&h.t>.8)startBgb()}
 function bgSp(r,c,x,y,sc,flip){const im=IMGR.mendigo;if(!im)return;g.save();g.imageSmoothingEnabled=false;if(flip){g.translate(Math.round(x),0);g.scale(-1,1);g.drawImage(im,c*96,r*80,96,80,Math.round(-48*sc),Math.round(y-78*sc),Math.round(96*sc),Math.round(80*sc))}else g.drawImage(im,c*96,r*80,96,80,Math.round(x-48*sc),Math.round(y-78*sc),Math.round(96*sc),Math.round(80*sc));g.restore()}
 function drawBgr(){const h=BR,sx=h.sx||0;g.fillStyle='#000';g.fillRect(0,0,W,H);
  const gr=g.createLinearGradient(0,0,0,150);gr.addColorStop(0,'#020208');gr.addColorStop(1,'#1d1a2c');g.fillStyle=gr;g.fillRect(0,0,W,150);g.fillStyle='#14111c';g.fillRect(0,150,W,H-150);g.fillStyle='#211b2e';g.fillRect(0,178,W,40);
  for(let i=Math.floor(sx/400);i<=Math.floor((sx+W)/400);i++)wkSeg(i+7,i*400-sx);
- bgSp(0,Math.floor(T*3)%4,700-sx,202,.5);pl.dir=3;pl.x=170;pl.y=190;pl.mv=h.st===0;drawPlayer(pl.x,pl.y);
+ bgSp(0,Math.floor(T*3)%4,700-sx,202,.5);pl.x=170;if(h.st>0){pl.dir=3;pl.y=190}drawPlayer(pl.x,pl.y);
  g.fillStyle='rgba(0,0,16,.34)';g.fillRect(0,0,W,H);jmRain(.8);vignette();
+ if(h.st===0&&h.t<1.5){g.fillStyle='rgba(0,0,0,'+(1-h.t/1.5)+')';g.fillRect(0,0,W,H)}
+ dbox()}
+
+/* ---------- FLOWER: encontro sob a chuva após o mendigo ---------- */
+let FW=null;
+const FLX=560;
+function startFlw(){S='flw';D=null;B=null;ptr=null;P0=null;LG=null;FW={t:0,st:0,sx:0,a:1};pl.x=170;pl.y=190;pl.dir=3;pl.mv=false;pl.fr=0;try{playAmb('amb_chuva_janela')}catch(e){}}
+function updFlw(dt){const h=FW;h.t+=dt;if(dlg(dt))return;
+ if(h.st===0||h.st===4){let d=dirKeys();if(ptr&&P0){const dx=ptr.x-P0.x,dy=ptr.y-P0.y,m=Math.hypot(dx,dy);if(m>8)d={x:dx/m,y:dy/m}}if(h.t<1)d={x:0,y:0};setMove(d,dt);
+  const mx=h.st===0?330:900;h.sx=Math.max(0,Math.min(mx,h.sx+d.x*58*dt));pl.y=Math.max(184,Math.min(232,pl.y+d.y*40*dt));
+  if(h.st===0&&h.sx>=330){pl.mv=false;pl.fr=0;pl.dir=3;h.st=1;h.t=0}
+  else if(h.st===4&&h.sx>=900){pl.mv=false;h.st=5;h.t=0}}
+ else if(h.st===1&&h.t>1.5){h.st=2;say([
+  ['Narração','A chuva não para. Seus passos ecoam molhados na rua vazia.'],
+  ['Narração','Mais à frente, alguém espera. Parado. Imóvel. A chuva não parece tocá-lo.'],
+  ['Narração','Pétalas amarelas. Um sorriso com dentes demais.'],
+  ['Floris','Então é verdade... você ainda está de pé.','neutro'],
+  ['Floris','Eu soube da Jordana. Eu sei o que aconteceu.','triste'],
+  ['Floris','Sei o quanto ela era importante pra você. Era a única coisa que ainda mantinha você inteiro.','triste'],
+  ['Narração','Você aperta os punhos. A chuva escorre pelo seu rosto. Talvez não só ela.'],
+  ['Floris','E você não pôde fazer nada. Nada. Ficou olhando.','neutro'],
+  ['Floris','Vamos ser honestos: você é inútil. Sempre foi.','bravo'],
+  ['Floris','Sem ela, você nem teria durado até aqui. Nem até mim. Eu mesmo teria acabado com você em dois minutos.','bravo'],
+  ['Narração','As palavras cortam porque você não tem como negá-las.'],
+  ['Narração','Floris dá um passo à frente. Você espera o golpe. Ele não vem.'],
+  ['Floris','Mas relaxa. Dessa vez eu não vim terminar o trabalho.','neutro'],
+  ['Floris','Vim te contar uma coisa. Uma coisa que você precisa ouvir.','feliz'],
+  ['Floris','Existe uma forma de trazer a Jordana de volta.','feliz'],
+  ['Narração','Seu coração para. A chuva parece parar junto.'],
+  ['Floris','Derrote todos os pecados. Cada um deles. Sem deixar nenhum de pé.','neutro'],
+  ['Floris','E entregue todos eles pra mim. Só isso. Faça isso e ela volta.','neutro'],
+  ['Narração','Você não responde. Você nunca responde. Mas ele fica olhando para você, como se já soubesse o que vai dizer.'],
+  ['Floris','Não precisa dizer nada. Eu conheço o seu silêncio.','feliz'],
+  ['Floris','Eu não vou te obrigar a nada. Sem escolhas, sem promessas. Só um caminho.','neutro'],
+  ['Floris','Você continua o seu caminho. E no final... nós nos veremos.','feliz'],
+  ['Narração','Ele sorri uma última vez. As pétalas se soltam, uma a uma, levadas pela chuva.'],
+  ['Narração','Quando você pisca, a rua está vazia de novo. Só a chuva. Sempre a chuva.']],()=>{h.st=3;h.t=0})}
+ else if(h.st===3){h.a=Math.max(0,1-h.t/1.6);if(h.t>=1.8){h.a=0;h.st=4;h.t=0}}
+ else if(h.st===5&&h.t>.6){FW=null;startFim()}}
+function drawFlw(){const h=FW,sx=h.sx||0;g.fillStyle='#000';g.fillRect(0,0,W,H);
+ const gr=g.createLinearGradient(0,0,0,150);gr.addColorStop(0,'#020208');gr.addColorStop(1,'#1d1a2c');g.fillStyle=gr;g.fillRect(0,0,W,150);g.fillStyle='#14111c';g.fillRect(0,150,W,H-150);g.fillStyle='#211b2e';g.fillRect(0,178,W,40);
+ for(let i=Math.floor(sx/400);i<=Math.floor((sx+W)/400);i++)wkSeg(i+11,i*400-sx);
+ if(h.a>0)floris(FLX-sx,184,1,h.a);
+ pl.x=170;if(h.st===1||h.st===2||h.st===3){pl.dir=3;if(h.st<4)pl.mv=false}drawPlayer(pl.x,pl.y);
+ g.fillStyle='rgba(0,0,16,.34)';g.fillRect(0,0,W,H);jmRain(.9);vignette();
  if(h.st===0&&h.t<1.5){g.fillStyle='rgba(0,0,0,'+(1-h.t/1.5)+')';g.fillRect(0,0,W,H)}
  dbox()}
 const BGSH=[[180,100,0],[290,66,.35],[70,120,.3],[116,116,1],[230,80,1],[60,60,1]];
@@ -2643,7 +2692,7 @@ function updBgb(dt){const s=BG;if(D){dlg(dt);return}s.t+=dt;s.inv=Math.max(0,s.i
   if(s.t>=7){s.ph='atk';s.t=0;s.res=0;s.A={w:180,h:100,r:0};s.txt='Toque quando a barra estiver no meio!'}}
  else if(s.ph==='atk'){if(!s.res){const pos=.5+.5*Math.sin(s.t*3.4);s.pos=pos;if(tap&&s.t>.25){const q=1-Math.abs(pos-.5)*2,dm=q>.8?3:q>.45?2:1;s.eh-=dm;s.res=1;s.rt=0;s.txt=q>.8?'ACERTO PERFEITO!':q>.45?'Bom golpe.':'Golpe fraco...';try{beep(q>.8?880:500)}catch(e){}}}
   else{s.rt+=dt;if(s.rt>1){s.turn++;
-   if(s.f2&&s.eh<=0){s.ph='over';say([['Mendigo','Argh... eu só... queria uma moeda...'],['Narração','A chuva continua caindo. Você fica olhando as próprias mãos vazias.']],()=>{BG=null;startFim()})}
+   if(s.f2&&s.eh<=0){s.ph='over';say([['Mendigo','Argh... eu só... queria uma moeda...'],['Narração','A chuva continua caindo. Você fica olhando as próprias mãos vazias.']],()=>{BG=null;startFlw()})}
    else if(!s.f2&&s.eh<=2){s.ph='over';s.f2=1;say([['Mendigo','Hehe... acha que eu caio assim tão fácil?'],['Narração','Algo estranho brilha no corpo do mendigo. A vida dele volta, inteira.']],()=>{s.ph='heal';s.t=0})}
    else bgDodge()}}}
  else if(s.ph==='heal'){s.eh=Math.min(s.em,s.eh+dt*s.em/1.6);if(((s.t*8)|0)%2===0&&Math.random()<.2)try{beep(660)}catch(e){}if(s.eh>=s.em){s.ph='over';say([['Mendigo','Agora... eu também mexo no jogo.'],['Narração','A área de batalha se estica. Se curva. Fica redonda.']],()=>bgDodge())}}}
