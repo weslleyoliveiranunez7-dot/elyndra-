@@ -1207,7 +1207,6 @@ function drawDance(){const d=DN,pp=d.ph==='play',tp=pp?d.t+DNOFF:d.vt,b=(tp-DNP)
 /* ---------- BARRAGEM DO ADM (senha) ---------- */
 const ADMPW='3040';let AD=null;
 function startAdm(){startC2i()}
-function startAdmFim(){startSkyF();return;S='adm';D=null;B=null;ptr=null;P0=null;AD={v:'',st:0,t:0,sh:0,clr:0,msg:'',w:0,fin:1}}
 function admCheck(){if(AD.v===ADMPW){AD.st=1;AD.w=0;try{beep(900)}catch(e){}}else{AD.sh=.6;AD.clr=.7;AD.msg='SENHA INCORRETA';try{beep(260)}catch(e){}}}
 addEventListener('keydown',e=>{if(S!=='adm'||!AD||AD.st!==0||AD.clr>0)return;const k=e.key;
  if(/^[0-9]$/.test(k)){if(AD.v.length<4){AD.v+=k;AD.msg='';try{beep(700)}catch(x){}if(AD.v.length===4)admCheck()}}
@@ -2635,7 +2634,7 @@ let DV=null;const DVP='1234',DVP2='3040',DVK=['1','2','3','4','5','6','7','8','9
 const DVL=[['Prólogo',[['Prólogo',()=>startPro()]]],
 ['Capítulo 1',[['Raiz Velha',()=>startExplore()],['Boss Floris',()=>startFlBattle()],['Boss Fúrias',()=>{startGob();startFur()}],['Reino do Ouro',()=>startOuro()],['Dança Pirata',()=>{startOuro();startDance()}],['Travessia',()=>startTrav()],['Hidra (ponte)',()=>startPonte()],['Midas',()=>startMidas()],['Barco',()=>startBarco()]]],
 ['Capítulo 2',[['Início',()=>startC2i()],['Praia',()=>startBeach()],['Fragmentos',()=>startFmr()],['Espelhos',()=>startMir()],['Jornada',()=>startJrs()],['Batalha 1',()=>startPkb(0,false)],['Batalha 2',()=>startPkb(1,false)],['Cena',()=>startCs3()],['Confronto',()=>startVs()],['Reencontro',()=>startReun()],['Praia final',()=>startBeach2()]]],
-['Capítulo 3',[['Barragem ADM',()=>startAdmFim()],['Fogueira final',()=>startSkyF()],['Jordana morta',()=>startJmt()],['Mendigo (encontro)',()=>startBgr()],['Batalha do Mendigo',()=>startBgb()],['Flower (encontro)',()=>startFlw()],['Final (vagalume)',()=>startVgl()],['Amor e Ódio (cutscene)',()=>{startJmt();JM.st=2;JM.t=0;JM.m=0;JM.k=1;pl.x=296;pl.dir=3}]]]];
+['Capítulo 3',[['Fogueira final',()=>startSkyF()],['Jordana morta',()=>startJmt()],['Mendigo (encontro)',()=>startBgr()],['Batalha do Mendigo',()=>startBgb()],['Flower (encontro)',()=>startFlw()],['Final (vagalume)',()=>startVgl()],['Amor e Ódio (cutscene)',()=>{startJmt();JM.st=2;JM.t=0;JM.m=0;JM.k=1;pl.x=296;pl.dir=3}]]]];
 function openDev(){S='dev';DV={st:0,v:'',msg:'',ch:0,sh:0,clr:0};ptr=null;P0=null}
 function devGo(fn){const j=DV.ch>=1;for(const k in F)delete F[k];resetF();F.jordana=j;PCD=1;GEN=false;curSlot=-1;D=null;B=null;ptr=null;P0=null;DV=null;NOSAVE=1;try{fn()}catch(e){console.error(e);S='title';T=0}finally{NOSAVE=0}}
 function dvCheck(){if(DV.v===DVP||DV.v===DVP2){DV.lv=DV.v===DVP2?4:3;DV.st=1;try{beep(900)}catch(e){}}else{DV.msg='SENHA INCORRETA';DV.clr=.7;DV.sh=.4;try{beep(260)}catch(e){}}}
