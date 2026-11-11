@@ -414,13 +414,13 @@ const A={x:170,y:96,w:140,h:84};let B=null;
 const ACTS=[['Atacar','Você reúne a Determinação num só golpe.'],['Agir','Você tenta conversar. Floris sorri com dentes demais.'],['Defender','Você se encolhe e se prepara. O próximo golpe dói menos.']];
 const NEXT=['Pétalas caem como lâminas.','As raízes se contorcem sob seus pés.','Floris não sorri mais.'];
 /* v3.1: HP proprio de cada inimigo (nao se vence mais so sobrevivendo a 3 ataques) */
-function EHP(q){if(q==='Y')return 20;if(q==='D')return 34;return q===true?30:q==='g'?34:q==='m'?40:q==='h'?44:q==='z'?50:q==='H'?56:q==='E'?60:q==='P'?72:24}
+function EHP(q){if(q==='I')return 36;if(q==='Y')return 20;if(q==='D')return 34;return q===true?30:q==='g'?34:q==='m'?40:q==='h'?44:q==='z'?50:q==='H'?56:q==='E'?60:q==='P'?72:24}
 const BNAME=b=>b.ig?'Ares':b.cn?'Cain':b.md?'Midas':b.hy?'Hidra':b.fu?'Fúrias':b.pa?'Autor':b.er?'Erro':b.g?'Guardião':b.q?'Rainha':b.mo?'Morpheus':b.he?'Herdeiros':b.z?'Zeus':b.hd?'Hades':'Floris';
 const BKEY=b=>b.ig?'ig':b.cn?'fu':b.md?'md':b.hy?'hy':b.fu?'fu':b.pa?'pa':b.er?'er':b.g?'g':b.q?'q':b.mo?'mo':b.he?'he':b.z?'z':b.hd?'hd':'fl';
 const NTXT=b=>b.ig?NIG:b.md?NMD:b.hy?NHYS[b.hh|0]:b.fu?NFU:b.q?NQ:b.g?NG:b.mo?NM:b.he?NH:b.z?NZ:b.hd?NHD:b.er?(b.pa?NPA:NER):NEXT;
 /* fim de batalha: grava a consequencia (golpes, parries, conversas) em F, que vai nos 3 slots, e chama o final do chefe */
 function endBattle(b){F.mhp=Math.max(1,Math.min(30,Math.ceil(b.hp||1)));b.eh=0;b.ed=0;F.bt=F.bt||{};F.bt[BKEY(b)]={atk:b.na,par:b.np,hit:b.nh,agr:b.agir?1:0,turn:b.turn};
- (b.md?startMend():b.hy?hyEnd(b):b.fu?endFu():b.q?endQ():b.g?endG():b.mo?endM():b.he?endH():b.z?endZ():b.hd?endHd():b.er?(b.pa?endPa():endEr()):startJord())}
+ (b.ig?endIg(b):b.md?startMend():b.hy?hyEnd(b):b.fu?endFu():b.q?endQ():b.g?endG():b.mo?endM():b.he?endH():b.z?endZ():b.hd?endHd():b.er?(b.pa?endPa():endEr()):startJord())}
 function startBattle(q){S='battle';J=null;D=null;B={q:q===true,g:q==='g',mo:q==='m',he:q==='h',z:q==='z',hd:q==='H',md:q==='D',hy:q==='Y',hh:0,cn:q==='C',ig:q==='I',dk:[0,0,0],er:q==='E'||q==='P',pa:q==='P',hard:q==='m'&&M3.hard,hp:Math.max(1,Math.min(q==='m'?M3.hp+10:30,F.mhp||30)),mx:30,eh:EHP(q),em:EHP(q),ed:EHP(q),na:0,np:0,nh:0,turn:0,ph:'menu',txt:GEN?'MODO GENOCIDE. Ele não quer mais ser convencido.':'Floris bloqueia o caminho.',t:0,sh:false,bul:[],sx:0,sy:0,inv:0,n:0}}
 function startDodge(){const b=B;if(!b.tf&&!b.fq&&b.eh>0&&b.eh<=b.em*.5){b.tf=1;b.tft=T;F.tfN=(F.tfN|0)+1;beep(180,.4,.08);vib(80)}b.ph='dodge';b.t=0;b.sp=0;b.bul=[];b.n=0;b.sx=A.x+A.w/2;b.sy=A.y+A.h/2;b.r=rng(1000+b.turn);b.oi=-1;b.last=-9;b.lt=0;b.pd=1.6+Math.random()*1.8;b.pf=null}
 function startFlBattle(){startBattle();const b=B;b.fq=1;b.ev=0;b.ph='x';b.txt='Floris sorri. Escolha um comando.';
@@ -431,12 +431,12 @@ function flStep(b){if(b.ev)return;
 function flFinal(b){b.fin=1;b.ph='x';b.t=-99;b.bul=[];b.hp=1;F.mhp=1;F.evil=true;vib(250);beep(90,.5,.1);
  say([['Narração','Um último golpe. Não há como desviar dele.'],['Floris','Boa noite, {N}.','bravo']],()=>{startJord()})}
 function updBattle(dt){const b=B;if((b.fq||b.cn||b.ig)&&D){dlg(dt);return}b.ed+=(b.eh-b.ed)*Math.min(1,dt*5);
- if(b.ph==='hyk'){b.t+=dt;if(b.t>2.4){b.ph='menu';b.txt=HYN[b.hh]}}else if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,15+i*155,222,145,36)){beep(500);b.msel=i;b.txt=(b.ig?IGA:b.md?MDA:b.hy?HYA:b.fu?FUA:b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1){b.agir=1;F.agr=(F.agr|0)+1;b.calm=1;b.txt+=' Calma: balas 25% mais lentas.';if(!b.fq&&!b.cn&&!b.ig)b.eh=Math.max(1,b.eh-2)}if(i===2&&!b.fq){b.hp=Math.min(b.mx,b.hp+4);b.txt+=' +4 de vida.'}b.sh=i===2;if(i===0){b.at=0;b.ax=0;b.ar=null;b.ak=0;if(F.alf){b.ph='qte';qteStart()}else b.ph='atk'}else{b.ph='msg';b.t=0}}})}
+ if(b.ph==='hyk'){b.t+=dt;if(b.t>2.4){b.ph='menu';b.txt=HYN[b.hh]}}else if(b.ph==='menu'){if(tap)ACTS.forEach((a,i)=>{if(inRect(ptr,15+i*155,222,145,36)){beep(500);b.msel=i;b.txt=(b.ig?IGA:b.md?MDA:b.hy?HYA:b.fu?FUA:b.q?QA:b.g?GA:b.mo?MA:b.he?HA:b.z?ZA:b.hd?HDA:b.er?(b.pa?PAA:ERA):ACTS)[i][1];if(i===1){b.agir=1;F.agr=(F.agr|0)+1;b.calm=1;b.txt+=' Calma: balas 25% mais lentas.';if(!b.fq&&!b.cn)b.eh=Math.max(1,b.eh-2)}if(i===2&&!b.fq){b.hp=Math.min(b.mx,b.hp+4);b.txt+=' +4 de vida.'}b.sh=i===2;if(i===0){b.at=0;b.ax=0;b.ar=null;b.ak=0;if(F.alf){b.ph='qte';qteStart()}else b.ph='atk'}else{b.ph='msg';b.t=0}}})}
  else if(b.ph==='msg'){b.t+=dt;if(b.t>3.2||(tap&&b.t>.8))startDodge()}
  else if(b.ph==='qte'){qteUpd(dt);if(QT.res&&QT.w>.55){b.ph='atk';b.at=0;if(!QT.ok){b.ar={dm:0,crit:false,miss:true};b.ak=0;b.ef=T}QT=null}}
  else if(b.ph==='atk'){if(b.ar){b.ak+=dt;if(b.ak>1){b.ar=null;if(b.eh<=0)endBattle(b);else startDodge()}}
   else{b.at+=dt;const u=(b.at/.95)%2;b.ax=u<1?u:2-u;const go=tap&&b.at>.15;
-   if(go||b.at>2.9){const miss=!go,acc=miss?0:1-Math.abs(b.ax-.5)*2,crit=acc>.88,dm=(b.cn||b.ig)?0:miss?0:Math.round(3+acc*9)+(crit?2:0)+(GEN?2:0);
+   if(go||b.at>2.9){const miss=!go,acc=miss?0:1-Math.abs(b.ax-.5)*2,crit=acc>.88,dm=b.cn?0:miss?0:Math.round(3+acc*9)+(crit?2:0)+(GEN?2:0);
     b.eh=Math.max(0,b.eh-dm);if(b.fq)b.eh=b.ev?b.em:Math.max(1,b.eh);b.ar={dm,crit,miss};b.ak=0;b.ef=T;if(dm>0){b.na++;F.atk=(F.atk|0)+1;vib(30);if(crit&&typeof VIB!=='undefined')VIB.sh=Math.max(VIB.sh||0,3)}beep(miss?260:crit?900:440);
     if(b.er&&!b.pa&&dm>0&&typeof AUD!=='undefined')AUD.bt=Math.max(0,(AUD.bt||0)-14)}}}
  else if(b.ph==='dodge'){b.t+=dt;b.sp-=dt*(GEN?1.6:1)*rushMul()*(b.tf?1.35:1);b.inv-=dt;if(b.tf&&T-b.tft<1.6)b.inv=Math.max(b.inv,.2);const k=dirKeys();const iv=(b.mo||b.er)&&b.turn%3===1?-1:1;b.sx+=iv*(k.x*90*dt+drag.x);b.sy+=iv*(k.y*90*dt+drag.y);
@@ -614,14 +614,13 @@ const IGINTRO=[['Narração','Alguma coisa se acende à direita. A chuva chia ao
 const IGMON=['Corra. É o que os fracos sabem fazer de melhor.','Cada passo seu levanta mais fumaça. E mais cinza.','Cain implorou até o fim. Você vai implorar mais depressa.','Sua vida cabe numa gota de chuva. Eu só espero ela evaporar.','Ainda de pé? A chuva também insiste em cair. Ela também vai secar.','Meu fogo não pergunta quem merece. Ele só consome.','Ninguém vai sobrar para rezar por vocês.'];
 const IGFC=[3,0,3,4,3,4,4];
 const NIG=['A chuva cai. Ares avança sem pressa.','As chamas dele lambem o ar à sua volta.','As poças no chão refletem o fogo.','O calor seca a roupa no seu corpo.','Ares ergue a lança de novo.','As brasas giram como um enxame.','O fogo dele está mais fraco. A chuva insiste.'];
-const IGA=[['Atacar','Você reúne sua Determinação. O golpe se perde nas chamas, sem tocá-lo.'],['Agir','Você tenta falar. Ares ri baixo: palavras evaporam antes de chegar.'],['Defender','Você se encolhe sob a chuva. O fogo chia por perto, mas queima menos.']];
-const IGTX0='Ares queima sob a chuva. Você só pode desviar.';
+const IGA=[['Atacar','Você reúne sua Determinação. Você golpeia Ares através das chamas.'],['Agir','Você tenta falar. Ares ri baixo, mas a chama dele vacila por um instante.'],['Defender','Você se encolhe sob a chuva. O fogo chia por perto, mas queima menos.']];
+const IGTX0='Ares queima sob a chuva.';
 const IGLAST=[['Narração','Na oitava investida o céu desaba. A chuva cai grossa, pesada, e as chamas dele chiam e encolhem.'],['Ares','Hm...! Essa... maldita chuva...',4]];
 const E3=new Image();E3.src='img/esfera3.png';
 const IGOUT=[['Narração','As brasas se apagam uma a uma. Ares cai sobre um joelho, e vapor sobe da capa.'],['Ares','Fogo nenhum morre por um pouco de água... mas até o fogo sabe quando perdeu.',3],['Ares','Levem. A terceira esfera é de vocês. Mas lembrem: o fogo dentro dela nunca apaga.',4],['Narração','Ele se desfaz em fumaça e brasa. Onde ele estava, uma esfera arde sozinha.'],['Narração','A esfera surge com três estrelas brilhando dentro dela e flutua até as suas mãos.'],['Narração','Você recebeu a TERCEIRA ESFERA DOS PECADOS.'],['Narração','Você segue em frente. A chuva continua, como sempre.']];
 function igStep(b){const k=b.turn-1;b.ph='x';b.bul=[];b.tg=[];b.dl=[];
- if(k<7)say([['Ares',IGMON[k],IGFC[k]]],()=>{b.ph='menu';b.txt=NIG[k%NIG.length]});
- else say(IGLAST,()=>endIg(b))}
+ say([['Ares',IGMON[k%IGMON.length],IGFC[k%IGFC.length]]],()=>{b.ph='menu';b.txt=NIG[k%NIG.length]})}
 function endIg(b){const cb=IGCB;B=null;S='cain';ptr=null;T=0;F.ignis=1;C={cb,t:0,ph:'ig_out',cam:1,turn:8,hp:b.hp,fx:0,sp:0,fl:0};
  say(IGOUT,()=>{F.esfera3=1;try{save()}catch(e){}C.ph='fade';C.t=0})}
 /* ataques do Ares: 0 = Lança Flamejante, 1 = Colunas de Fogo, 2 = Anel Ardente */
@@ -662,7 +661,7 @@ function igBat(b){const sc=.8,by=100,x=240,ph=b.ph,p=b.turn%3,bob=Math.sin(T*2.2
   else igS(b.tg&&b.tg.length?'burst':b.t-(b.le||-9)<.4?'spin':'idle0',x,by,sc*(b.tg&&b.tg.length?.95:b.t-(b.le||-9)<.4?.85:1))}
  else igS((T*2|0)%2?'idle1':'idle0',x,by+bob,sc);
  firep(x,by,6);
- if(b.ar&&b.ak<1)tx('INÚTIL',240,26,'#ff9a4a',13,'center');if(ph!=='over')tx('Turno '+Math.min(8,b.turn+(ph==='dodge'?1:0))+'/8',10,16,'#ff9a4a',11)}
+ }
 /* cena na chuva: a câmera puxa para ele depois que o Cain cai */
 function igDecor(c){const cam=(c.cam||0)*380,al=Math.min(1,(c.cam||0)*6);if(al<=0)return;g.save();g.globalAlpha=al;
  for(let i=0;i<14;i++){const wx=i*70-40+cam*.5,h=40+((i*37)%5)*14;g.fillStyle='#07060d';g.fillRect(wx,150-h,52,h);if(i%3===0){g.fillStyle='rgba(255,200,90,.35)';g.fillRect(wx+10,150-h+10,4,5);g.fillRect(wx+30,150-h+22,4,5)}}
