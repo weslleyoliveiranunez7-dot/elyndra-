@@ -112,7 +112,7 @@ function pc(){return F.pc||defPc()}
 function nm(){return(F.pc&&F.pc.n)||'Viajante'}
 const PCO={};let PCD=1,CU={};
 function hx(h){return[1,3,5].map(i=>parseInt(h.slice(i,i+2),16))}
-function pcPaint(){const p=pc(),sk=hx(SKN[p.sk]),hr=hx(HRN[p.hr]),sh=hx(OTN[p.ot][1]),pa=hx(p.pt?PTN[p.pt]:OTN[p.ot][2]),li=hx(LIN[p.li]),CC={sk,hr,sh,pa,li,ey:p.ey?hx(EYN[p.ey]):null};
+function pcPaint(){const p=pc();try{LS.setItem('elyndra_pc',JSON.stringify(p))}catch(e){}const sk=hx(SKN[p.sk]),hr=hx(HRN[p.hr]),sh=hx(OTN[p.ot][1]),pa=hx(p.pt?PTN[p.pt]:OTN[p.ot][2]),li=hx(LIN[p.li]),CC={sk,hr,sh,pa,li,ey:p.ey?hx(EYN[p.ey]):null};
 const dk=(c,f)=>c.map(v=>Math.max(0,Math.min(255,Math.round(v*f))));
 const KY={'255,201,14':sk,'255,201,15':dk(sk,.82),'61,18,14':hr,'61,18,15':dk(hr,.62),'61,18,16':dk(hr,1.5),'103,164,224':sh,'103,164,226':dk(sh,.78),'103,164,225':pa,'230,7,248':li,'230,7,249':dk(li,.72)};
 ['prot','faces','faces_expr'].forEach(n=>{const o=PCO[n]||(PCO[n]=IMG[n]);if(!o)return;const c=document.createElement('canvas');c.width=o.width;c.height=o.height;const x=c.getContext('2d');x.drawImage(o,0,0);
