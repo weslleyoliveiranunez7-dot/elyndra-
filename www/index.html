@@ -237,7 +237,7 @@ function ubtn(x,y,w,h,label,hot){PAD.rec.push([x,y,w,h]);rr(x,y,w,h,3);g.fillSty
 const TY=i=>138+i*33;
 function updTitle(){if(tap){menuItems().forEach((n,i)=>{if(inRect(ptr,160,TY(i),160,28)){beep(440);if(n==='Novo jogo')openSlots('new');else if(n==='Modo Genocide')openSlots('gen');else if(n==='Continuar')openSlots('load');else openOpt()}})}}
 function drawTitle(){bgMenu();drawLogoT();menuItems().forEach((n,i)=>ubtn(160,TY(i),160,28,'◆  '+n,i===0));
- tx('Toque numa opção para começar',W/2,262,'#8d80b3',10,'center');tx('v'+VER,W-8,264,'#6b5f8f',9,'right')}
+ tx('Toque numa opção para começar',W/2,262,'#8d80b3',10,'center');tx('v0001',4,266,'#6b5f8f',6,'left')}
 /* ---------- opções ---------- */
 /* ---------- v3.0 — TELA DE SLOTS (novo / continuar / ponto de save) ---------- */
 let slMode='load',slPrev='title',slConf=-1,slDelC=-1;
@@ -1206,12 +1206,13 @@ function drawDance(){const d=DN,pp=d.ph==='play',tp=pp?d.t+DNOFF:d.vt,b=(tp-DNP)
 /* ---------- BARRAGEM DO ADM (senha) ---------- */
 const ADMPW='3040';let AD=null;
 function startAdm(){startC2i()}
+function startAdm5(){S='adm';D=null;B=null;ptr=null;P0=null;LG=null;AD={v:'',st:0,w:0,t:0,sh:0,clr:0,msg:'',fin:3}}
 function admCheck(){if(AD.v===ADMPW){AD.st=1;AD.w=0;try{beep(900)}catch(e){}}else{AD.sh=.6;AD.clr=.7;AD.msg='SENHA INCORRETA';try{beep(260)}catch(e){}}}
 addEventListener('keydown',e=>{if(S!=='adm'||!AD||AD.st!==0||AD.clr>0)return;const k=e.key;
  if(/^[0-9]$/.test(k)){if(AD.v.length<4){AD.v+=k;AD.msg='';try{beep(700)}catch(x){}if(AD.v.length===4)admCheck()}}
  else if(k==='Backspace'){AD.v=AD.v.slice(0,-1);AD.msg=''}else if(k==='Enter'&&AD.v.length===4)admCheck()});
 function updAdm(dt){const a=AD;a.t+=dt;if(a.sh>0)a.sh-=dt;if(a.clr>0){a.clr-=dt;if(a.clr<=0)a.v=''}
- if(a.st===1){a.w+=dt;if(a.w>3&&tap){if(a.fin===2){S='vgl';ptr=null;P0=null;AD=null}else if(a.fin)startSkyF();else startC2i()}}
+ if(a.st===1){a.w+=dt;if(a.w>3&&tap){if(a.fin===3){AD=null;ptr=null;P0=null;startMks()}else if(a.fin===2){S='vgl';ptr=null;P0=null;AD=null}else if(a.fin)startSkyF();else startC2i()}}
  if(a.st===0&&a.clr<=0&&tap&&ptr){const k=admKey(ptr);if(k!==null){if(k==='<'){a.v=a.v.slice(0,-1);a.msg=''}else if(k==='K'){if(a.v.length===4)admCheck()}else if(a.v.length<4){a.v+=k;a.msg='';try{beep(700)}catch(x){}if(a.v.length===4)admCheck()}}}}
 const ADK=['1','2','3','4','5','6','7','8','9','<','0','K'];
 function admKey(p){for(let i=0;i<12;i++){const x=378+(i%3)*31,y=56+Math.floor(i/3)*28;if(inRect(p,x,y,28,25))return ADK[i]}return null}
@@ -1229,7 +1230,7 @@ function drawAdm0(){const a=AD;g.fillStyle='#0b0b12';g.fillRect(0,0,W,H);g.save(
  tx('BARRAGEM DO ADM',W/2,28,'#ffd86a',16,'center');
  if(a.st===0){for(let i=0;i<4;i++){const x=240-70+i*36;g.fillStyle='#000';g.fillRect(x,212,30,30);g.strokeStyle=a.clr>0?'#ff4a50':'#ffd86a';g.lineWidth=2;g.strokeRect(x+1,212+1,28,28);if(a.v[i])tx('*',x+15,236,'#fff',22,'center')}
   tx(a.msg||'Digite a senha de 4 dígitos',W/2,262,a.msg?'#ff4a50':'#9b8fc4',11,'center')}
- else{tx('ACESSO LIBERADO',W/2,228,'#7dff8a',18,'center');if(a.w>1.6)tx('Bem-vindo, ADM. '+(a.fin?'Capítulo 3':'Capítulo 2')+' em construção.',W/2,248,'#e8dcff',10,'center');if(a.w>3&&Math.sin(a.t*4)>-.3)tx('Toque para continuar',W/2,264,'#ffe27a',11,'center')}}
+ else{tx('ACESSO LIBERADO',W/2,228,'#7dff8a',18,'center');if(a.w>1.6)tx((a.fin===3?'Bem-vindo, ADM. Capítulo 5 liberado.':'Bem-vindo, ADM. '+(a.fin?'Capítulo 3':'Capítulo 2')+' em construção.'),W/2,248,'#e8dcff',10,'center');if(a.w>3&&Math.sin(a.t*4)>-.3)tx('Toque para continuar',W/2,264,'#ffe27a',11,'center')}}
 
 function updEnd(){if(tap&&T>.6){S='title';T=0}}
 function drawEnd(){g.fillStyle='#0a0910';g.fillRect(0,0,W,H);tx('CONTINUA...',W/2,100,'#d9c8ff',24,'center');wr('Obrigado por jogar! A história de Elyndra continua em breve.',50,140,380,20,999,'#d9d2ea');tx('toque para voltar ao título',W/2,245,'#6c6290',12,'center')}
@@ -2641,24 +2642,25 @@ const DVL=[['Prólogo',[['Prólogo',()=>startPro()]]],
 ['Capítulo 1',[['Raiz Velha',()=>startExplore()],['Boss Floris',()=>startFlBattle()],['Boss Fúrias',()=>{startGob();startFur()}],['Reino do Ouro',()=>startOuro()],['Dança Pirata',()=>{startOuro();startDance()}],['Travessia',()=>startTrav()],['Hidra (ponte)',()=>startPonte()],['Midas',()=>startMidas()],['Barco',()=>startBarco()]]],
 ['Capítulo 2',[['Início',()=>startC2i()],['Praia',()=>startBeach()],['Fragmentos',()=>startFmr()],['Espelhos',()=>startMir()],['Jornada',()=>startJrs()],['Batalha 1',()=>startPkb(0,false)],['Batalha 2',()=>startPkb(1,false)],['Cena',()=>startCs3()],['Confronto',()=>startVs()],['Reencontro',()=>startReun()],['Praia final',()=>startBeach2()]]],
 ['Capítulo 3',[['Fogueira final',()=>startSkyF()],['Jordana morta',()=>startJmt()],['Mendigo (encontro)',()=>startBgr()],['Batalha do Mendigo',()=>startBgb()],['Flower (encontro)',()=>startFlw()],['Final (vagalume)',()=>startVgl()],['Amor e Ódio (cutscene)',()=>{startJmt();JM.st=2;JM.t=0;JM.m=0;JM.k=1;pl.x=296;pl.dir=3}]]],
-['Capítulo 4',[['Início (Alto Mar)',()=>{startVgl();VG.st=8;VG.t=0}],['Correnteza (batalha)',()=>startC4b()],['Palácio submerso',()=>startC4p()],['Cutscene: festival de máscaras',()=>startMks()],['Vendedor de máscaras',()=>{startMks();mkvBegin()}],['Caminhada submersa',()=>startC4w()],['Boss: Estátua da Liberdade',()=>startC4s()],['Corredor até a sereia',()=>startC4w(3)],['Boss: Sereia',()=>startC4m()],['Corredor até Poseidon',()=>startC4w(5)],['Boss: Poseidon',()=>startC4o()],['Corredor até Athena',()=>startC4w(6)],['Boss: Athena',()=>startAth()],['Subida à superfície',()=>startAsf()]]]];
+['Capítulo 4',[['Início (Alto Mar)',()=>{startVgl();VG.st=8;VG.t=0}],['Correnteza (batalha)',()=>startC4b()],['Palácio submerso',()=>startC4p()],['Caminhada submersa',()=>startC4w()],['Boss: Estátua da Liberdade',()=>startC4s()],['Corredor até a sereia',()=>startC4w(3)],['Boss: Sereia',()=>startC4m()],['Corredor até Poseidon',()=>startC4w(5)],['Boss: Poseidon',()=>startC4o()],['Corredor até Athena',()=>startC4w(6)],['Boss: Athena',()=>startAth()],['Subida à superfície',()=>startAsf()],['Barragem do ADM (cap. 5)',()=>startAdm5()]]],
+['Capítulo 5',[['Festival de máscaras',()=>startMks()],['Vendedor de máscaras',()=>{startMks();mkvBegin()}],['Flauta (Rufo)',()=>startFlu()]]]];
 function openDev(){S='dev';DV={st:0,v:'',msg:'',ch:0,sh:0,clr:0};ptr=null;P0=null}
 function devGo(fn){const j=DV.ch>=1;for(const k in F)delete F[k];resetF();F.jordana=j;PCD=1;GEN=false;curSlot=-1;D=null;B=null;ptr=null;P0=null;DV=null;NOSAVE=1;try{fn()}catch(e){console.error(e);S='title';T=0}finally{NOSAVE=0}}
-function dvCheck(){if(DV.v===DVP||DV.v===DVP2){DV.lv=5;DV.st=1;try{beep(900)}catch(e){}}else{DV.msg='SENHA INCORRETA';DV.clr=.7;DV.sh=.4;try{beep(260)}catch(e){}}}
+function dvCheck(){if(DV.v===DVP||DV.v===DVP2){DV.lv=6;DV.st=1;try{beep(900)}catch(e){}}else{DV.msg='SENHA INCORRETA';DV.clr=.7;DV.sh=.4;try{beep(260)}catch(e){}}}
 function dvKey(k){const v=DV;if(v.clr>0)return;if(k==='<'){v.v=v.v.slice(0,-1);v.msg=''}else if(k==='K'){if(v.v.length===4)dvCheck()}else if(v.v.length<4){v.v+=k;v.msg='';try{beep(700)}catch(e){}if(v.v.length===4)dvCheck()}}
 addEventListener('keydown',e=>{if(S!=='dev'||!DV||DV.st!==0)return;const k=e.key;if(/^[0-9]$/.test(k))dvKey(k);else if(k==='Backspace')dvKey('<');else if(k==='Enter')dvKey('K')});
 function updDev(dt){const v=DV;if(!v)return;if(v.sh>0)v.sh-=dt;if(v.clr>0){v.clr-=dt;if(v.clr<=0)v.v=''}
  if(!tap||!ptr)return;
  if(inRect(ptr,170,226,140,26)){beep(440);if(v.st===2)v.st=1;else{S='opt';DV=null}ptr=null;P0=null;return}
  if(v.st===0){for(let i=0;i<12;i++)if(inRect(ptr,310+(i%3)*44,62+Math.floor(i/3)*34,40,30)){dvKey(DVK[i]);return}}
- else if(v.st===1){for(let i=0;i<DV.lv;i++)if(inRect(ptr,60,60+i*31,360,26)){v.ch=i;v.st=2;beep(500);return}}
+ else if(v.st===1){for(let i=0;i<DV.lv;i++)if(inRect(ptr,60,60+i*26,360,22)){v.ch=i;v.st=2;beep(500);return}}
  else{const L=DVL[v.ch][1];for(let i=0;i<L.length;i++)if(inRect(ptr,40+(i%3)*140,62+Math.floor(i/3)*34,136,28)){beep(600);devGo(L[i][1]);return}}}
 function drawDev(){const v=DV;if(!v)return;bgMenu();g.fillStyle='rgba(8,4,20,.75)';rr(24,28,432,232,10);g.fill();tx('PAINEL DO DESENVOLVEDOR',W/2,21,'#ffd86a',14,'center');
  const btn=(x,y,w,h,t,c)=>{rr(x,y,w,h,6);g.fillStyle=c||'rgba(30,18,60,.9)';g.fill();g.lineWidth=1.5;g.strokeStyle='#8f7fd0';g.stroke();tx(t,x+w/2,y+h/2+4,'#fff',11,'center')};
  if(v.st===0){g.save();if(v.sh>0)g.translate(Math.round((Math.random()-.5)*6),0);for(let i=0;i<4;i++){const x=50+i*50;g.fillStyle='#000';g.fillRect(x,90,44,44);g.strokeStyle=v.clr>0?'#ff4a50':'#ffd86a';g.lineWidth=2;g.strokeRect(x+1,91,42,42);if(v.v[i])tx('*',x+22,125,'#fff',24,'center')}g.restore();
   tx(v.msg||'Digite a senha de 4 dígitos',125,160,v.msg?'#ff4a50':'#9b8fc4',10,'center');
   DVK.forEach((k,i)=>btn(310+(i%3)*44,62+Math.floor(i/3)*34,40,30,k==='<'?'⌫':k==='K'?'OK':k,k==='K'?'#2d6a3a':k==='<'?'#6a2d2d':null))}
- else if(v.st===1){DVL.slice(0,v.lv).forEach((c,i)=>btn(60,60+i*31,360,26,c[0]));tx('Entrar nestas cenas não salva o progresso.',W/2,216,'#9b8fc4',10,'center')}
+ else if(v.st===1){DVL.slice(0,v.lv).forEach((c,i)=>btn(60,60+i*26,360,22,c[0]));tx('Entrar nestas cenas não salva o progresso.',W/2,216,'#9b8fc4',10,'center')}
  else{tx(DVL[v.ch][0],W/2,54,'#e8dcff',12,'center');DVL[v.ch][1].forEach((c,i)=>btn(40+(i%3)*140,62+Math.floor(i/3)*34,136,28,c[0]))}
  btn(170,226,140,26,v.st===2?'voltar':'sair')}
 </script>
@@ -3329,7 +3331,7 @@ function updAsf(dt){const s=AF;if(!s)return;if(D){pl.mv=false;if(D.i>=2&&s.ot<0)
  if(s.t>7.4&&!s.splash){s.splash=1;pl.mv=false;try{beep(660)}catch(e){}for(let i=0;i<34;i++)s.sp.push({x:240+(Math.random()-.5)*20,y:140,vx:(Math.random()-.5)*130,vy:-60-Math.random()*120,l:.8+Math.random()*.8})}
  for(const p of s.sp){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;p.l-=dt}s.sp=s.sp.filter(p=>p.l>0);
  if(s.t>11&&!s.said){s.said=1;pl.mv=false;say([['Narração','Ar. Depois de tanto tempo debaixo d\'água, ar.'],['Narração','O céu clareia devagar. O mar está calmo, como se nunca tivesse subido.'],['Narração','Uma coruja cruza o sol e some no horizonte.'],['Narração','Lá embaixo, o palácio fica em silêncio. Pela primeira vez, ninguém está preso nele.']],()=>{s.fin=1;s.ft=0})}
- if(s.fin){s.ft+=dt;if(s.ft>2.4){AF=null;startMks()}}}
+ if(s.fin){s.ft+=dt;if(s.ft>2.4){AF=null;startAdm5()}}}
 function drawAsf(){const s=AF;if(!s)return;const t=s.t,u=Math.min(1,t/10),e=u*u*(3-2*u),wl=-80+234*e;
  const sk=g.createLinearGradient(0,0,0,Math.max(wl,1));sk.addColorStop(0,'#5f93cf');sk.addColorStop(1,'#ffc58a');g.fillStyle=sk;g.fillRect(0,0,W,H);
  if(wl>20){const sy=wl-26,gl=g.createRadialGradient(340,sy,4,340,sy,90);gl.addColorStop(0,'rgba(255,240,190,.9)');gl.addColorStop(1,'rgba(255,200,120,0)');g.fillStyle=gl;g.fillRect(0,0,W,H);g.fillStyle='#fff6d0';g.beginPath();g.arc(340,sy,14,0,6.3);g.fill()}
