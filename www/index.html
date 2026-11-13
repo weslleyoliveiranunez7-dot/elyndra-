@@ -3486,16 +3486,18 @@ const FLN=['Dó','Ré','Mi','Fá','Sol','Lá','Si'],FLC=['#e84a4a','#f08a3a','#f
 const FLH=['Dó','Ré','Mi','Fá','Sol'],FLK1='1234567',FLK2='QWERT',FLB={},FLHF=[1046.5,1174.7,1318.5,1396.9,1568],FLNM=['normal_do','normal_re','normal_mi','normal_fa','normal_sol','normal_la','normal_si','aguda_do','aguda_re','aguda_mi','aguda_fa','aguda_sol'];
 FL.p=[];FL.src=null;
 function fluPre(){if(typeof AC==='undefined'||!AC)return;FLNM.forEach(k=>{if(FLB[k]!==undefined)return;FLB[k]=null;const p='audio/flauta/'+k+'.ogg',e=window.AUDIO_EMBED&&window.AUDIO_EMBED[p];(e?Promise.resolve(Uint8Array.from(atob(e),c=>c.charCodeAt(0)).buffer):fetch(p).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()})).then(b=>new Promise((ok,no)=>AC.decodeAudioData(b,ok,no))).then(d=>{FLB[k]=d}).catch(()=>{FLB[k]=0})})}
-window.fluTone=function(i,hi){const idx=hi?7+i:i;FL.t=T;FL.n=idx;FL.col=idx%6;FL.p.push({x:40+i*58+27,y:hi?164:212,T0:T,c:FLC[i]});
+FL.h={};const FLP={};
+window.fluStop=function(idx){const q=FL.src;if(idx!==undefined)delete FL.h[idx];else FL.h={};if(!q||(idx!==undefined&&q.idx!==idx))return;FL.src=null;try{const n=AC.currentTime;q.g.gain.cancelScheduledValues(n);q.g.gain.setValueAtTime(q.g.gain.value,n);q.g.gain.linearRampToValueAtTime(0,n+.12);q.s.stop(n+.15)}catch(e){}};
+window.fluTone=function(i,hi){const idx=hi?7+i:i;fluStop();FL.h[idx]=true;FL.t=T;FL.n=idx;FL.col=idx%6;FL.p.push({x:40+i*58+27,y:hi?164:212,T0:T,c:FLC[i]});
 try{if(typeof AC==='undefined'||!AC)return;if(AC.state==='suspended')AC.resume();if(typeof CFG!=='undefined'&&(!CFG.snd||CFG.sv<=0))return;const vol=typeof CFG!=='undefined'?CFG.sv:1;fluPre();const bf=FLB[FLNM[idx]],now=AC.currentTime;
-if(FL.src){try{FL.src.g.gain.cancelScheduledValues(now);FL.src.g.gain.setTargetAtTime(0,now,.04);FL.src.s.stop(now+.25)}catch(e){}FL.src=null}
 const gn=AC.createGain();gn.connect(AUD.sb||AC.destination);
-if(bf){const s=AC.createBufferSource();s.buffer=bf;gn.gain.value=.9*vol;s.connect(gn);s.start();FL.src={s,g:gn}}
-else{const o=AC.createOscillator();o.type='sine';o.frequency.value=hi?FLHF[i]:FLF[i]*2;gn.gain.setValueAtTime(.0001,now);gn.gain.exponentialRampToValueAtTime(.25*vol+.0002,now+.03);gn.gain.exponentialRampToValueAtTime(.0001,now+.6);o.connect(gn);o.start();o.stop(now+.65)}}catch(e){}};
-window.fluInput=function(){if(!F.flauta||!ptr)return;if(tap&&inRect(ptr,398,0,40,30)&&menuOK()){tap=false;ptr=null;P0=null;FL.open=!FL.open;if(FL.open)fluPre();return}
-if(FL.open&&tap&&menuOK()){for(let i=0;i<5;i++)if(inRect(ptr,40+i*58,164,54,40)){tap=false;ptr=null;P0=null;fluTone(i,1);return}
-for(let i=0;i<7;i++)if(inRect(ptr,40+i*58,212,54,40)){tap=false;ptr=null;P0=null;fluTone(i,0);return}}};
-document.addEventListener('keydown',e=>{if(!(F.flauta&&FL.open&&menuOK())||e.key.length!==1)return;const k=e.key.toUpperCase();let i=FLK1.indexOf(k);if(i>=0)fluTone(i,0);else{i=FLK2.indexOf(k);if(i>=0)fluTone(i,1)}});
+if(bf){const s=AC.createBufferSource();s.buffer=bf;if(bf.duration>1.4){s.loop=true;s.loopStart=.5;s.loopEnd=bf.duration-.6}gn.gain.value=.9*vol;s.connect(gn);s.start();FL.src={s,g:gn,idx}}
+else{const o=AC.createOscillator();o.type='sine';o.frequency.value=hi?FLHF[i]:FLF[i]*2;gn.gain.setValueAtTime(.0001,now);gn.gain.exponentialRampToValueAtTime(.25*vol+.0002,now+.03);o.connect(gn);o.start();FL.src={s:o,g:gn,idx}}}catch(e){}};
+window.fluInput=function(){if(!F.flauta||!ptr)return;if(tap&&inRect(ptr,398,0,40,30)&&menuOK()){tap=false;ptr=null;P0=null;FL.open=!FL.open;if(FL.open)fluPre();else fluStop();return}};
+cv.addEventListener('pointerdown',e=>{if(!(F.flauta&&FL.open&&menuOK()))return;const p=pos(e);let k=-1,hi=0;for(let i=0;i<5;i++)if(inRect(p,40+i*58,164,54,40)){k=i;hi=1}if(k<0)for(let i=0;i<7;i++)if(inRect(p,40+i*58,212,54,40))k=i;if(k<0)return;tap=false;ptr=null;P0=null;FLP[e.pointerId]=hi?7+k:k;fluTone(k,hi)});
+const fluUp=e=>{const k=FLP[e.pointerId];if(k!==undefined){delete FLP[e.pointerId];fluStop(k)}};cv.addEventListener('pointerup',fluUp);cv.addEventListener('pointercancel',fluUp);
+document.addEventListener('keydown',e=>{if(e.repeat||!(F.flauta&&FL.open&&menuOK())||e.key.length!==1)return;const k=e.key.toUpperCase();let i=FLK1.indexOf(k);if(i>=0)fluTone(i,0);else{i=FLK2.indexOf(k);if(i>=0)fluTone(i,1)}});
+document.addEventListener('keyup',e=>{if(e.key.length!==1)return;const k=e.key.toUpperCase();let i=FLK1.indexOf(k);if(i>=0)fluStop(i);else{i=FLK2.indexOf(k);if(i>=0)fluStop(7+i)}});
 const _dp=drawPlayer;
 drawPlayer=function(x,y){if(F.flauta&&IMG.flauta&&(FL.open||T-FL.t<.7)){const im=IMG.flauta,c=im.height/9,d=pl.dir,row=d===0?0:d===2?5:d===1?2:7,col=(T-FL.t<.7)?FL.col:0,H=34,sc=H/c;g.drawImage(im,col*c,row*c,c,c,Math.round(x+5-c*sc/2),Math.round(y+12-H+2),c*sc,H);return}_dp(x,y)};
 const _mo=menuOK;menuOK=function(){return S==='flu'?(!D&&!!window.FLG):_mo()};
@@ -3503,7 +3505,7 @@ const _dg=drawGear;
 drawGear=function(){_dg();if(D||!F.flauta)return;rr(398,4,36,24,3);g.fillStyle=FL.open?'#e8c040':'rgba(0,0,0,.78)';g.fill();g.lineWidth=1.5;g.strokeStyle='#fff';g.stroke();g.fillStyle=FL.open?'#000':'#f0d890';g.fillRect(403,15,26,4);g.fillStyle=FL.open?'#000':'#b08040';for(let i=0;i<4;i++)g.fillRect(407+i*5,14,2,2);
 if(FL.open){rr(30,152,420,110,8);g.fillStyle='rgba(8,6,22,.84)';g.fill();g.lineWidth=2;g.strokeStyle='#e8c040';g.stroke();
  FL.p=FL.p.filter(p=>{const q=T-p.T0;return q>=0&&q<.9});
- const dk=(k,x,y,lab,c,hi,key)=>{const on=T-FL.t<.25&&FL.n===k,o=on?2:0;rr(x,y+o,54,40,5);g.fillStyle=on?'#fff':c;g.fill();if(hi&&!on){g.fillStyle='rgba(255,255,255,.38)';g.fill()}g.lineWidth=2;g.strokeStyle='#000';g.stroke();tx(lab,x+27,y+o+21,'#000',14,'center');tx(key,x+27,y+o+34,'rgba(0,0,0,.55)',8,'center')};
+ const dk=(k,x,y,lab,c,hi,key)=>{const on=!!FL.h[k]||(T-FL.t<.15&&FL.n===k),o=on?2:0;rr(x,y+o,54,40,5);g.fillStyle=on?'#fff':c;g.fill();if(hi&&!on){g.fillStyle='rgba(255,255,255,.38)';g.fill()}g.lineWidth=2;g.strokeStyle='#000';g.stroke();tx(lab,x+27,y+o+21,'#000',14,'center');tx(key,x+27,y+o+34,'rgba(0,0,0,.55)',8,'center')};
  for(let i=0;i<5;i++)dk(7+i,40+i*58,164,FLH[i],FLC[i],1,FLK2[i]);
  for(let i=0;i<7;i++)dk(i,40+i*58,212,FLN[i],FLC[i],0,FLK1[i]);
  tx('AGUDAS',415,180,'#f0d890',9,'center');tx('NORMAIS',415,229,'#f0d890',9,'center');
