@@ -1,0 +1,3 @@
+Coloque aqui suas musicas (mp3, ogg, wav, m4a, flac, opus).
+Se o servidor lista pastas, elas tocam sozinhas (ordem aleatoria, em loop).
+Senão, escreva os nomes em playlist.json, ex: ["faixa1.mp3","faixa2.ogg"]
