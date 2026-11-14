@@ -4051,11 +4051,12 @@ async function abLoadList(){let l=[];const D='audio/ambient/';
  AB.pl=[...new Set(l)];for(let i=AB.pl.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[AB.pl[i],AB.pl[j]]=[AB.pl[j],AB.pl[i]]}}
 function abNext(){if(!AB.pl.length){AB.on=0;return}const a=AB.pa||(AB.pa=new Audio());a.onended=()=>{AB.pi=(AB.pi+1)%AB.pl.length;abNext()};a.onerror=()=>{AB.bad=(AB.bad|0)+1;if(AB.bad<AB.pl.length+1){AB.pi=(AB.pi+1)%AB.pl.length;abNext()}};a.src=AB.pl[AB.pi];a.volume=CFG.snd?Math.min(1,CFG.mv):0;a.play().then(()=>{AB.bad=0;AB.on=1;AB.nm=decodeURIComponent(AB.pl[AB.pi].split('/').pop()).replace(ABEXT,'');AB.tt=5}).catch(()=>{})}
 function abStop(){const a=AB.pa;if(!a)return;let v=a.volume;const iv=setInterval(()=>{v-=.08;if(v<=0){clearInterval(iv);try{a.pause()}catch(e){}AB.on=0}else try{a.volume=v}catch(e){}},50)}
-function abTick(dt){if(!AB.st&&typeof AUD!=='undefined'&&AUD.ok){AB.st=1;abLoadList().then(()=>{if(S==='aber'&&AB.pl.length&&!AB.on)abNext()})}
+function abTick(dt){if(!AB.st&&typeof AUD!=='undefined'&&AUD.ok){AB.st=1;abLoadList().then(()=>{AB.ld=1;if(S==='aber'&&AB.pl.length&&!AB.on)abNext()})}
  AB.tm=(AB.tm+dt)%AB.LEN;if(AB.tt>0)AB.tt-=dt;
  const e=abEnv(AB.tm);const pk=e.rain>.45?'amb_chuva_leve':'';try{if(AUD.ok&&AB.ak!==pk){AB.ak=pk;playAmb(pk)}}catch(_){}
  if(AB.pa&&AB.on)try{AB.pa.volume=CFG.snd?Math.min(1,CFG.mv):0}catch(_){}}
-function updAber(dt){abTick(dt);if(tap&&T>.5){try{sfx('ui_confirmar')}catch(e){}S='title';T=0;AB.lg=0;AB.sel=0;ptr=null;P0=null}}
+function updAber(dt){abTick(dt);if(tap&&T>.5&&!AB.go&&!(AB.ld&&!AB.pl.length)){AB.go=1;try{audInit();sfx('ui_confirmar')}catch(e){}if(AB.ld&&AB.pl.length&&!AB.on)abNext();ptr=null;P0=null;return}
+ if(tap&&T>.5){try{sfx('ui_confirmar')}catch(e){}S='title';T=0;AB.lg=0;AB.sel=0;ptr=null;P0=null}}
 const _mkA=musKey;musKey=function(){return S==='aber'?null:_mkA()};
 function abRender(ttl){const t=AB.tm,e=abEnv(t),ty=e.A,r=abScene(ty,t,e,1);
  if(e.k>0&&e.B!==e.A){g.globalAlpha=e.k;abScene(e.B,t,e,1);g.globalAlpha=1}
@@ -4066,7 +4067,7 @@ function abRender(ttl){const t=AB.tm,e=abEnv(t),ty=e.A,r=abScene(ty,t,e,1);
  if(!ttl&&tt>=0&&tt<5&&T>1.5){g.globalAlpha=Math.min(1,tt,(5-tt));tx(ln,W/2,30,'#f3e6c8',13,'center');g.globalAlpha=1}
  if(S==='aber'&&AB.tt>0&&AB.nm){g.globalAlpha=Math.min(1,AB.tt);tx('♪ '+AB.nm.slice(0,48),10,16,'#d9d2ea',10);g.globalAlpha=1}
  if(!ttl&&T<1.5){g.fillStyle='rgba(0,0,0,'+(1-T/1.5)+')';g.fillRect(0,0,W,H)}}
-function drawAber(){abRender(0)}
+function drawAber(){abRender(0);if(!AB.go&&T>1.5){g.globalAlpha=.55+.4*Math.sin(T*3);tx('Toque para ativar o som',W/2,252,'#f3e6c8',11,'center');g.globalAlpha=1}}
 
 /* ---------- NOVO MENU: logo dourada surgindo devagar sobre o ambiente ---------- */
 const IMGL=new Image();IMGL.onload=()=>{IMGL.ok=1};IMGL.src='img/logo_elyndra.png';
