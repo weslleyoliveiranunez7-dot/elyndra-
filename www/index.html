@@ -1746,9 +1746,9 @@ function drawIntro(){const t=INT.t;g.fillStyle='#000';g.fillRect(0,0,W,H);
 const RT={sel:-1},RAT={x:16,y:222,w:70,h:33};
 const RQ=[['O que é este jogo?','ELYNDRA é um RPG de escolhas. Você conversa, explora, enfrenta chefes e decide quem vai ser. Cada escolha muda o caminho.'],['Como eu jogo?','Toque e arraste para andar; toque para falar e confirmar. No teclado, use as setas e Espaço ou Enter. As teclas mudam em Opções.'],['Como desviar nas batalhas?','Na esquiva, mova o coração com o dedo ou as setas e fuja dos projéteis. Em AGIR você pode conversar: nem toda luta precisa de golpes.'],['Voltar',null]];
 function drawLogoT(){g.imageSmoothingEnabled=false;if(IMGR.logo)g.drawImage(IMGR.logo,Math.round(W/2-IMGR.logo.width/2),20);else tx('ELYNDRA LEGACY',W/2,70,'#fff',34,'center');tx('uma aventura de escolhas',W/2,119,'#aaa',12,'center')}
-function drawRatT(){if(!IMGR.rato)return;const b=Math.round(Math.sin(T*3)*1.5);g.imageSmoothingEnabled=false;g.drawImage(IMGR.rato,RAT.x,RAT.y+b);g.globalAlpha=.6+.4*((Math.sin(T*4)+1)/2);box(RAT.x+28,RAT.y-24,24,20,'#dddddd');tx('?',RAT.x+40,RAT.y-9,'#dddddd',14,'center');g.globalAlpha=1}
+function drawRatT(){return;const b=Math.round(Math.sin(T*3)*1.5);g.imageSmoothingEnabled=false;g.drawImage(IMGR.rato,RAT.x,RAT.y+b);g.globalAlpha=.6+.4*((Math.sin(T*4)+1)/2);box(RAT.x+28,RAT.y-24,24,20,'#dddddd');tx('?',RAT.x+40,RAT.y-9,'#dddddd',14,'center');g.globalAlpha=1}
 const _ut0=updTitle,_dt0=drawTitle;
-updTitle=function(){if(tap&&inRect(LPT||ptr,RAT.x,RAT.y-26,RAT.w,RAT.h+26)){beep(440);S='rato';RT.sel=-1;return}_ut0()};
+updTitle=function(){_ut0()};
 drawTitle=function(){_dt0();drawRatT()};
 function updRato(){if(!tap)return;const p=LPT||ptr;if(RT.sel>=0){RT.sel=-1;beep(260);return}RQ.forEach((q,i)=>{if(inRect(p,96,148+i*22,370,20)){beep(440);if(!q[1]){S='title';T=0}else RT.sel=i}})}
 function drawRato(){drawTitle();g.fillStyle='rgba(0,0,0,.62)';g.fillRect(0,0,W,H);box(10,140,460,122,'#a5a5a5');g.imageSmoothingEnabled=false;if(IMGR.rato)g.drawImage(IMGR.rato,20,176+Math.round(Math.sin(T*3)*1.5));
@@ -4039,11 +4039,15 @@ function abFX(t,e,d){/* clima por cima */
  if(e.snow>.02){g.fillStyle='rgba(255,255,255,.85)';const n=Math.round(150*e.snow);for(let i=0;i<n;i++){const sp=22+gbr(i+7)*30,y=((gbr(i)*(H+10)+t*sp)%(H+10))-5,x=((gbr(i+100)*(W+60)+Math.sin(t*.8+i)*14-t*18)%(W+60)+W+60)%(W+60)-10,s=1+gbr(i+3)*1.6;g.fillRect(x,y,s,s)}}
  if(e.lt>.2){const f=t%9;let fl=0;if(f>8.2&&f<8.35)fl=.5;else if(f>8.45&&f<8.9)fl=.7*(1-(f-8.45)/.45);if(f<.3)fl=Math.max(fl,.0);if(fl>0){g.fillStyle='rgba(215,228,255,'+fl*e.lt+')';g.fillRect(0,0,W,H);if(fl>.3){g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=2;g.beginPath();let x=80+gbr(Math.floor(t/9))*320,y=0;g.moveTo(x,y);while(y<150){y+=14+gbr(y+x)*12;x+=(gbr(y*3+x)-.5)*30;g.lineTo(x,y)}g.stroke()}if(f>8.2&&f<8.25&&AUD&&AUD.ok)try{sfx('bat_dano_leve',{rate:.4,v:.8})}catch(_){}}}
  if(e.rain>.5||e.snow>.3){g.fillStyle='rgba(120,140,150,.08)';g.fillRect(0,170,W,100)}}
-/* ---------- trilha: pasta audio/soundtrack_ambilight ---------- */
+/* ---------- trilha: pasta audio/ambient (exemplo1.mp3, exemplo2.mp3 ou playlist.json) ---------- */
 const ABEXT=/\.(mp3|ogg|wav|m4a|flac|opus|aac)$/i;
-async function abLoadList(){let l=[];const D='audio/soundtrack_ambilight/';
+async function abLoadList(){let l=[];const D='audio/ambient/';
  try{const r=await fetch(D+'playlist.json',{cache:'no-store'});if(r.ok){const j=await r.json();l=(Array.isArray(j)?j:j.files||[]).filter(x=>ABEXT.test(x)).map(x=>/^https?:|^audio\//.test(x)?x:D+x)}}catch(e){}
  if(!l.length)try{const r=await fetch(D,{cache:'no-store'});if(r.ok){const h=await r.text(),re=/href="([^"?#]+)"/gi;let m;while(m=re.exec(h)){const f=decodeURIComponent(m[1]).split('/').pop();if(ABEXT.test(f))l.push(D+encodeURIComponent(f))}}}catch(e){}
+ if(!l.length){/* sem playlist.json/listagem (GitHub Pages): tenta os nomes conhecidos */
+  const cand=['exemplo1.mp3','exemplo2.mp3','exemplo 2.mp3','exemplo 1.mp3','exemplo3.mp3'].map(x=>D+encodeURIComponent(x));
+  const ok=await Promise.all(cand.map(u=>fetch(u,{method:'HEAD',cache:'no-store'}).then(r=>r.ok?u:null).catch(()=>null)));
+  l=ok.filter(Boolean);if(!l.length)l=cand.slice(0,2)}
  AB.pl=[...new Set(l)];for(let i=AB.pl.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[AB.pl[i],AB.pl[j]]=[AB.pl[j],AB.pl[i]]}}
 function abNext(){if(!AB.pl.length){AB.on=0;return}const a=AB.pa||(AB.pa=new Audio());a.onended=()=>{AB.pi=(AB.pi+1)%AB.pl.length;abNext()};a.onerror=()=>{AB.bad=(AB.bad|0)+1;if(AB.bad<AB.pl.length+1){AB.pi=(AB.pi+1)%AB.pl.length;abNext()}};a.src=AB.pl[AB.pi];a.volume=CFG.snd?Math.min(1,CFG.mv):0;a.play().then(()=>{AB.bad=0;AB.on=1;AB.nm=decodeURIComponent(AB.pl[AB.pi].split('/').pop()).replace(ABEXT,'');AB.tt=5}).catch(()=>{})}
 function abStop(){const a=AB.pa;if(!a)return;let v=a.volume;const iv=setInterval(()=>{v-=.08;if(v<=0){clearInterval(iv);try{a.pause()}catch(e){}AB.on=0}else try{a.volume=v}catch(e){}},50)}
@@ -4072,7 +4076,7 @@ function abMenuGo(i){try{beep(440)}catch(_){}if(i===0)openSlots('new');else if(i
 const abY=i=>208+i*24;
 cv.addEventListener('pointerdown',e=>{if(S!=='title'||AB.lg<4.6)return;const p=pos(e);ABM.forEach((n,i)=>{if(inRect(p,150,abY(i)-17,180,24)){AB.sel=i;abMenuGo(i)}})});
 addEventListener('keydown',e=>{if(S!=='title'||AB.lg<4.6)return;const k=e.key.toLowerCase();if(k==='arrowdown'||k==='s')AB.sel=(AB.sel+1)%3;else if(k==='arrowup'||k==='w')AB.sel=(AB.sel+2)%3;else if(k==='enter'||k===' '||k==='e')abMenuGo(AB.sel)});
-updTitle=function(){const n=performance.now(),dt=Math.min(.1,(n-AB.lt)/1000);AB.lt=n;AB.lg+=dt;abTick(dt);if(tap&&inRect(LPT||ptr,RAT.x,RAT.y-26,RAT.w,RAT.h+26)&&AB.lg>4.6){beep(440);S='rato';RT.sel=-1}};
+updTitle=function(){const n=performance.now(),dt=Math.min(.1,(n-AB.lt)/1000);AB.lt=n;AB.lg+=dt;abTick(dt)};
 drawTitle=function(){abRender(1);const a=abSm(Math.min(1,AB.lg/4.2)),m=abSm(Math.max(0,Math.min(1,(AB.lg-3.6)/1.2)));
  if(a<1){}g.save();const sg=g.createRadialGradient(W/2,110,30,W/2,110,230);sg.addColorStop(0,'rgba(0,0,0,'+.38*a+')');sg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=sg;g.fillRect(0,0,W,H);
  g.globalAlpha=a;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';const lw=300*(.94+.06*a),lh=lw*507/900;g.shadowColor='rgba(255,190,80,'+(.45+.2*Math.sin(T*1.6))+')';g.shadowBlur=14;
