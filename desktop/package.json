@@ -2,7 +2,7 @@
   "name": "elyndra-desktop",
   "version": "1.8.0",
   "description": "ELYNDRA para Windows",
-  "author": "Weslley Nunes",
+  "author": "W7NNON",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
