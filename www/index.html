@@ -290,16 +290,16 @@ function optItems(){const L=[['Som: '+(CFG.snd?'ligado':'desligado'),'snd'],['Vi
  if(FSOK)L.push(['Tela cheia: '+(inFS()?'ligada':'desligada')+' (tecla F)','fs']);L.push(['Controle: '+(PAD.on?PAD.name:'nenhum conectado'),'pad']);L.push(['Teclas do teclado (PC)','keys']);if(optBack==='explore'||optBack==='c2')L.push(['Personagem','pers']);if(PWAOK())L.push(['Adicionar à tela inicial','pwa']);L.push(['Diário','diary']);L.push(['Conquistas','ach']);
  if(optBack==='explore'||optBack==='c2')L.push([optDel?'Toque de novo: o que não foi salvo se perde':'Voltar ao título','title']);L.push(['Voltar','back']);return L}
 function OST(){const n=optItems().length;return n>14?16:n>12?18:n>11?19:n>9?21:26}function OH(){const n=optItems().length;return n>14?14:n>12?16:n>11?17:n>9?19:23}
-const OTABS=[['ÁUDIO',['snd','mv','sv']],['JOGO',['ts','easy','vib','asv','sav']],['VISUAL',['thm','shk','fs','pers']],['CONTROLES',['pad','keys']],['EXTRAS',['pwa','diary','ach']]];
+const OTABS=[['ÁUDIO',['snd','mv','sv']],['JOGO',['ts','easy','vib','asv','sav']],['VISUAL',['thm','shk','fs','pers']],['CONTROLES',['pad','keys']],['EXTRAS',['pwa','diary','ach','dev']]];
 const THM=[['Dourado','#ffd84a','#8a6a20'],['Safira','#6ab0ff','#2a5a9a'],['Rubi','#ff6a7a','#9a2a3a'],['Esmeralda','#6aeaa0','#2a8a5a'],['Ametista','#c08aff','#6a3a9a']];const thm=()=>THM[(CFG.thm|0)%THM.length];
 const ODESC={snd:'Liga ou desliga todo o som do jogo.',mv:'Volume da trilha sonora.',sv:'Volume dos efeitos sonoros.',ts:'Velocidade com que os textos aparecem.',easy:'Muda a dificuldade das batalhas.',vib:'Intensidade da vibração do aparelho.',asv:'O jogo salva sozinho a cada trecho importante.',sav:'Salva o progresso agora no slot atual.',thm:'Cor do menu: moldura, abas e destaques.',shk:'Tremor da tela em golpes e trovões.',fs:'Alterna tela cheia (tecla F).',pers:'Personalize a aparência do seu personagem.',pad:'Configure um controle conectado.',keys:'Escolha as teclas do teclado (PC).',pwa:'Instale o jogo na tela inicial.',diary:'Releia o que você descobriu na jornada.',ach:'Veja suas conquistas.',dev:'Ferramentas do desenvolvedor.'};let optSelK=null;
 const optIng=()=>optBack==='explore'||optBack==='c2'||optBack==='z7';
 function optRows(){const R={snd:['Som',CFG.snd?'ligado':'desligado'],mv:['Música',CFG.mv,'bar'],sv:['Efeitos',CFG.sv,'bar'],ts:['Velocidade do texto',TSN[CFG.ts]],easy:['Dificuldade',DIFN[getDif()]],vib:['Vibração',VLN[CFG.vl|0]],shk:['Tremor da tela',CFG.shake?'ligado':'desligado'],thm:['Cor do menu',thm()[0]],asv:['Salvar automático',CFG.asv===0?'desligado':'ligado'],sav:['Salvar agora',Date.now()<SAVEOK?'salvo!':curSlot<0?'indisponível':'›'],
- fs:FSOK?['Tela cheia (tecla F)',inFS()?'ligada':'desligada']:null,pad:['Controle',PAD.on?PAD.name:'nenhum conectado'],keys:['Teclas do teclado (PC)','›'],pers:optIng()?['Personagem','›']:null,pwa:PWAOK()?['Adicionar à tela inicial','›']:null,diary:['Diário','›'],ach:['Conquistas','›']};
+ fs:FSOK?['Tela cheia (tecla F)',inFS()?'ligada':'desligada']:null,pad:['Controle',PAD.on?PAD.name:'nenhum conectado'],keys:['Teclas do teclado (PC)','›'],pers:optIng()?['Personagem','›']:null,pwa:PWAOK()?['Adicionar à tela inicial','›']:null,diary:['Diário','›'],ach:['Conquistas','›'],dev:['Painel do desenvolvedor','›']};
  return OTABS[optTab][1].filter(k=>R[k]).map(k=>[k,...R[k]])}
 function optAct(k,od){
  if(k==='mv'){CFG.mv=CFG.mv>.85?.7:CFG.mv>.55?.4:CFG.mv>.1?0:1;saveCfg()}else if(k==='sv'){CFG.sv=CFG.sv>.85?.7:CFG.sv>.55?.4:CFG.sv>.1?0:1;saveCfg();beep(500)}else if(k==='snd'){CFG.snd^=1;saveCfg();beep(500)}else if(k==='vib'){CFG.vl=((CFG.vl|0)+1)%4;CFG.vib=CFG.vl>0?1:0;saveCfg();VIB.play('hit')}else if(k==='thm'){CFG.thm=((CFG.thm|0)+1)%THM.length;saveCfg();beep(500)}else if(k==='asv'){CFG.asv=CFG.asv===0?1:0;saveCfg();beep(500)}else if(k==='sav'){if(manualSave()){SAVEOK=Date.now()+2000;beep(500)}}else if(k==='shk'){CFG.shake^=1;saveCfg();if(CFG.shake)VIB.play('slam')}else if(k==='fs'){toggleFS()}else if(k==='pad'){S='pad';PAD.wait=null}else if(k==='ts'){CFG.ts=CFG.ts===18?28:CFG.ts===28?45:18;saveCfg();beep(500)}else if(k==='easy'){setDif((getDif()+1)%3);beep(500)}
- else if(k==='pers'){openCust('opt')}else if(k==='pwa'){pwaAdd()}else if(k==='diary'){S='diary'}else if(k==='ach'){S='ach'}else if(k==='keys'){S='keys';kbWait=null}
+ else if(k==='pers'){openCust('opt')}else if(k==='pwa'){pwaAdd()}else if(k==='diary'){S='diary'}else if(k==='ach'){S='ach'}else if(k==='dev'){openDev()}else if(k==='keys'){S='keys';kbWait=null}
  else if(k==='title'){if(od){slotCancelNew();S='title';T=0;D=null;curSlot=-1;ptr=null;P0=null}else optDel=1}
  else{S=optBack;ptr=null;P0=null}}
 const optBot=()=>optIng()?[['title',60,170],['back',250,170]]:[['back',170,140]];
@@ -2898,8 +2898,8 @@ function drawSkyF(){const h=SF,fx=240,fy=176,u=h.st===0?Math.min(1,h.t/12):1,e=u
  drawGear();dbox()}
 </script>
 <script>
-/* ---------- PAINEL DO DESENVOLVEDOR (Opções > Extras, senhas 1234 e 1517) ---------- */
-let DV=null;const DVP='1234',DVP2='1517',DVK=['1','2','3','4','5','6','7','8','9','<','0','K'];
+/* ---------- PAINEL DO DESENVOLVEDOR (Opções > Extras, senhas 1234, 1517 e 3040) ---------- */
+let DV=null;const DVP='1234',DVP2='1517',DVP3='3040',DVK=['1','2','3','4','5','6','7','8','9','<','0','K'];
 const DVL=[['Prólogo',[['Prólogo',()=>startPro()]]],
 ['Capítulo 1',[['Raiz Velha',()=>startExplore()],['Boss Floris',()=>startFlBattle()],['Boss Fúrias',()=>{startGob();startFur()}],['Reino do Ouro',()=>startOuro()],['Dança Pirata',()=>{startOuro();startDance()}],['Travessia',()=>startTrav()],['Hidra (ponte)',()=>startPonte()],['Midas',()=>startMidas()],['Barco',()=>startBarco()]]],
 ['Capítulo 2',[['Início',()=>startC2i()],['Praia',()=>startBeach()],['Fragmentos',()=>startFmr()],['Espelhos',()=>startMir()],['Jornada',()=>startJrs()],['Batalha 1',()=>startPkb(0,false)],['Batalha 2',()=>startPkb(1,false)],['Cena',()=>startCs3()],['Confronto',()=>startVs()],['Reencontro',()=>startReun()],['Praia final',()=>startBeach2()]]],
@@ -2908,9 +2908,9 @@ const DVL=[['Prólogo',[['Prólogo',()=>startPro()]]],
 ['Capítulo 5',[['Festival de máscaras',()=>startMks()],['Vendedor de máscaras',()=>{startMks();mkvBegin()}],['Flauta (Rufo)',()=>startFlu()],['Salão do palácio',()=>{startFlu();window.enterPal()}],['Rapaz de Asas (batalha)',()=>{startFlu();window.enterPal();startAng()}],['Boss: Thor',()=>{startFlu();window.enterPal();startThor()}],['Sala do Loki',()=>{startFlu();window.enterPal();window.lokRoom()}]]],
 ['Capítulo 6',[['Floris pós-Loki',()=>{startFlu();window.enterPal();window.lokEnd()}],['Queda e batalha do vazio',()=>startVzb()],['Planetas (campanha)',()=>startPlt(0)],['Mercúrio',()=>startPlt(0)],['Vênus',()=>startPlt(1)],['Marte',()=>startPlt(2)],['Júpiter',()=>startPlt(3)],['Saturno',()=>startPlt(4)],['Urano',()=>startPlt(5)],['Netuno',()=>startPlt(6)],['Volta à Terra',()=>startVzbEnd()]]],
 ['Capítulo 7',[['Montanha e salto',()=>startZ7()],['Queda',()=>{startZ7();Z7S.ph=2;Z7S.t2=0}],['Reino de Zeus (chegada)',()=>{startZ7();Z7S.ph=3;Z7S.t2=0}],['Caminhada pelo Reino',()=>{startZ7();Z7S.ph=4;Z7S.t2=0;Z7S.loc=0;Z7S.wk=0}],['Zeus (diálogo + luta)',()=>{startZ7();Z7S.ph=9;Z7S.t2=0;Z7S.loc=3}],['Portão de Zeus (guardião)',()=>{startZ7();Z7S.ph=5;Z7S.t2=0;Z7S.loc=3}],['FINAL: céu + casamento',()=>startFin()],['FINAL: corrupção + chefe',()=>startFin('bat')],['FINAL: barco + créditos',()=>startFin('boat')]]]];
-function openDev(){}
+function openDev(){DV={v:'',st:0,ch:0,lv:6,msg:'',clr:0,sh:0};S='dev';ptr=null;P0=null}
 function devGo(fn){const j=DV.ch>=1;for(const k in F)delete F[k];resetF();F.jordana=j;PCD=1;GEN=false;curSlot=-1;D=null;B=null;ptr=null;P0=null;DV=null;NOSAVE=1;try{fn()}catch(e){console.error(e);S='title';T=0}finally{NOSAVE=0}}
-function dvCheck(){if(DV.v===DVP||DV.v===DVP2){DV.lv=DV.v===DVP2?8:6;DV.st=1;try{beep(900)}catch(e){}}else{DV.msg='SENHA INCORRETA';DV.clr=.7;DV.sh=.4;try{beep(260)}catch(e){}}}
+function dvCheck(){if(DV.v===DVP||DV.v===DVP2||DV.v===DVP3){DV.lv=DV.v===DVP?6:DVL.length;DV.st=1;try{beep(900)}catch(e){}}else{DV.msg='SENHA INCORRETA';DV.clr=.7;DV.sh=.4;try{beep(260)}catch(e){}}}
 function dvKey(k){const v=DV;if(v.clr>0)return;if(k==='<'){v.v=v.v.slice(0,-1);v.msg=''}else if(k==='K'){if(v.v.length===4)dvCheck()}else if(v.v.length<4){v.v+=k;v.msg='';try{beep(700)}catch(e){}if(v.v.length===4)dvCheck()}}
 addEventListener('keydown',e=>{if(S!=='dev'||!DV||DV.st!==0)return;const k=e.key;if(/^[0-9]$/.test(k))dvKey(k);else if(k==='Backspace')dvKey('<');else if(k==='Enter')dvKey('K')});
 function updDev(dt){const v=DV;if(!v)return;if(v.sh>0)v.sh-=dt;if(v.clr>0){v.clr-=dt;if(v.clr<=0)v.v=''}
@@ -3170,7 +3170,7 @@ function pzRst(z){const p=z.pz;if(!p||p.done||p.exit)return;p.c=0;p.r=2;p.nc=0;p
 function pzWin(z){const p=z.pz;p.done=1;p.play=0;beep(850);F['zp'+p.k]=1;let l=PZW[p.k];if(F.zp0&&F.zp1&&F.zp2)l=l.concat([['Jordana','Sinto o ar mais leve. Acho que Zeus vai sentir o que a gente fez aqui.',0],['Narração','Bênção do Céu: Zeus ficará 10% mais fraco na luta.']]);say(l,()=>{p.play=1})}
 function pzState(p,c){const P=PER[c-1],u=(p.tm+OFF[c-1])%P;return u<P-1.5?0:u<P-.8?1:2}
 function pzArrive(z,p){if(p.done)return;if(p.k===0&&p.ph==='in'){const f=FPOS.findIndex(a=>a[0]===p.c&&a[1]===p.r);if(f>=0){p.lit=f;p.litT=.5;beep(NOTE[f]);if(f===p.seq[p.idx]){p.idx++;if(p.idx>=4)pzWin(z)}else{p.flash=.5;beep(120);try{vib(40)}catch(e){}p.ph='show';p.st=-.6;p.si=0;p.idx=0}}}
- if(p.k===2&&SOCK.every(s=>p.orbs.some(o=>o.c===s[0]&&o.r===s[1])))pzWin(z)}
+ if(p.k===1&&p.c>=5)pzWin(z);if(p.k===2&&SOCK.every(s=>p.orbs.some(o=>o.c===s[0]&&o.r===s[1])))pzWin(z)}
 window.pzUpd=function(z,dt){const p=z.pz;p.tm+=dt;z.wk=Math.min(.5,z.wk+dt*.18);p.flash=Math.max(0,p.flash-dt);p.gate=p.done?Math.min(1,p.gate+dt*1.4):0;
  if(tap&&ptr&&Math.hypot(ptr.x-420,ptr.y-232)<18)pzRst(z);
  if(p.k===0){if(p.ph==='show'&&p.play){p.st+=dt;if(p.si<4&&p.st>=1+.9*p.si){p.lit=p.seq[p.si];p.litT=.6;beep(NOTE[p.lit]);p.si++}if(p.si>=4&&p.st>=1+.9*4){p.ph='in';p.idx=0}}if(p.litT>0){p.litT-=dt;if(p.litT<=0)p.lit=-1}}
