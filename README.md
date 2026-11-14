@@ -1,7 +1,7 @@
 # ELYNDRA
 
 RPG de escolhas em pixel art, feito para celular (paisagem). Fan game sem fins lucrativos, inspirado em Undertale, com história e personagens originais.
-Criado por **Weslley Nunes**. Versão **1.8**: Prólogo e Capítulos 1 a 8, 7 rotas/finais e Modo Genocide (abre ao terminar o final de Sacrifício).
+Criado por **W7NNON**. Versão **1.8**: Prólogo e Capítulos 1 a 8, 7 rotas/finais e Modo Genocide (abre ao terminar o final de Sacrifício).
 
 ## Jogar
 - Abra `www/index.html` por um servidor local (ex.: `npx serve www`) ou use o GitHub Pages (Actions > "Publicar no GitHub Pages" > Run workflow).
@@ -29,4 +29,4 @@ O workflow não foi testado por mim; se falhar, mande o log da aba Actions.
 - Sem a imagem, o jogo volta ao desenho antigo (retângulos); nada quebra.
 
 ## Licença
-Código, áudio sintético e texturas de chão/parede: de Weslley Nunes. Os sprites do protagonista, de Floris e dos moradores (recolorizados) vêm de sprites de Undertale (Toby Fox); a Jordana é arte do próprio autor. Projeto de fã, sem monetização.
+Código, áudio sintético e texturas de chão/parede: de W7NNON. Os sprites do protagonista, de Floris e dos moradores (recolorizados) vêm de sprites de Undertale (Toby Fox); a Jordana é arte do próprio autor. Projeto de fã, sem monetização.
