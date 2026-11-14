@@ -4055,8 +4055,8 @@ function abTick(dt){if(!AB.st&&typeof AUD!=='undefined'&&AUD.ok){AB.st=1;abLoadL
  AB.tm=(AB.tm+dt)%AB.LEN;if(AB.tt>0)AB.tt-=dt;
  const e=abEnv(AB.tm);const pk=e.rain>.45?'amb_chuva_leve':'';try{if(AUD.ok&&AB.ak!==pk){AB.ak=pk;playAmb(pk)}}catch(_){}
  if(AB.pa&&AB.on)try{AB.pa.volume=CFG.snd?Math.min(1,CFG.mv):0}catch(_){}}
-function updAber(dt){abTick(dt);if(tap&&T>.5&&!AB.go&&!(AB.ld&&!AB.pl.length)){AB.go=1;try{audInit();sfx('ui_confirmar')}catch(e){}if(AB.ld&&AB.pl.length&&!AB.on)abNext();ptr=null;P0=null;return}
- if(tap&&T>.5){try{sfx('ui_confirmar')}catch(e){}S='title';T=0;AB.lg=0;AB.sel=0;ptr=null;P0=null}}
+function updAber(dt){abTick(dt);if(AB.go)AB.gt=(AB.gt||0)+dt;if(tap&&T>.5&&!AB.go){AB.go=1;AB.gt=0;try{audInit();sfx('ui_confirmar')}catch(e){}if(AB.ld&&AB.pl.length&&!AB.on)abNext();ptr=null;P0=null;return}
+ if(tap&&AB.go&&AB.gt>1.5){try{sfx('ui_confirmar')}catch(e){}S='title';T=0;AB.lg=0;AB.sel=0;ptr=null;P0=null}}
 const _mkA=musKey;musKey=function(){return S==='aber'?null:_mkA()};
 function abRender(ttl){const t=AB.tm,e=abEnv(t),ty=e.A,r=abScene(ty,t,e,1);
  if(e.k>0&&e.B!==e.A){g.globalAlpha=e.k;abScene(e.B,t,e,1);g.globalAlpha=1}
@@ -4064,10 +4064,8 @@ function abRender(ttl){const t=AB.tm,e=abEnv(t),ty=e.A,r=abScene(ty,t,e,1);
  g.fillStyle='rgba(255,170,80,'+(.04*(1-r.d))+')';g.fillRect(0,0,W,H);
  vignette();
  const ln=ABL[e.k>.5?(e.i+1)%ABL.length:e.i][6]||ABL[0][6],sg=t%AB.SEG,tt=e.k>.5?sg-AB.SEG*.85:sg;
- if(!ttl&&tt>=0&&tt<5&&T>1.5){g.globalAlpha=Math.min(1,tt,(5-tt));tx(ln,W/2,30,'#f3e6c8',13,'center');g.globalAlpha=1}
- if(S==='aber'&&AB.tt>0&&AB.nm){g.globalAlpha=Math.min(1,AB.tt);tx('♪ '+AB.nm.slice(0,48),10,16,'#d9d2ea',10);g.globalAlpha=1}
- if(!ttl&&T<1.5){g.fillStyle='rgba(0,0,0,'+(1-T/1.5)+')';g.fillRect(0,0,W,H)}}
-function drawAber(){abRender(0);if(!AB.go&&T>1.5){g.globalAlpha=.55+.4*Math.sin(T*3);tx('Toque para ativar o som',W/2,252,'#f3e6c8',11,'center');g.globalAlpha=1}}
+ if(!ttl){const k=AB.go?1-Math.min(1,(AB.gt||0)/2.5):1;if(k>0){g.fillStyle='rgba(0,0,0,'+k+')';g.fillRect(0,0,W,H)}}}
+function drawAber(){abRender(0)}
 
 /* ---------- NOVO MENU: logo dourada surgindo devagar sobre o ambiente ---------- */
 const IMGL=new Image();IMGL.onload=()=>{IMGL.ok=1};IMGL.src='img/logo_elyndra.png';
